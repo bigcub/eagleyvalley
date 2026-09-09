@@ -78,3 +78,10 @@ https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135558,-2.4268
 
 2026-09-09 v0.2.9 Brook Mill: re-read Historic England 1388079. Upper-storey windows have segmental heads; added shallow arched glass heads and brick arches on the upper two model floors. Five-storey, 14x6-bay framework retained provisionally. Roof is documented as multi-ridge slate but present-day ridge layout has not been established, so no guessed roof reconstruction this pass. Listing amended 2001; not a current window schedule.
 https://historicengland.org.uk/listing/the-list/list-entry/1388079
+
+2026-09-09 v0.3.0 Brook Mill and west parking:
+June 2024 Street View at 53.6143587,-2.4265031, looking south and upward, shows a full stone lowest storey, alternating glazed and recessed balcony bays on the north elevation, dark frames and iron balcony rails. Added an interpreted 14-bay north arrangement, broad openings, reveals and stronger third-storey cornice. Datum now uses north frontage ground rather than the lowest river-bank footprint sample; foundation extends down to the original low level. Dimensions and concealed openings remain provisional.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6143587,-2.4265031&heading=191
+Google north-up aerial inspected at 10m and 20m scale, Airbus/Maxar copyright 2026, acquisition date unavailable. Shows broad low light-grey roof within parapets, eight small roof fixtures and four-facet east tower cap. This supersedes the assumption that the current roof must match the historic multi-ridge listing. Tower dimensions and exact roof pitch remain interpreted.
+https://www.google.com/maps/@53.61412,-2.4267,20z/data=!3m1!1e3
+West car park perimeter estimated against mapped service ways 762841712–715. Added graded asphalt, parking groups, open north entrance, perimeter kerbs and clipped hedge groups. Exact bay totals, markings, shrub species and boundaries still require closer references. North/east Threadfold Way segment 655432303 changed to asphalt based on the June 2024 view. No source imagery distributed.

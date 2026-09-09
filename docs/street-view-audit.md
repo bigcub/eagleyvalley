@@ -26,3 +26,9 @@ v0.2.6 models the taller west roadside section, individual upright coping stones
 ## Gate returns, v0.2.7
 
 Revisited June 2024 at 53.6135722,-2.4262459, rotating east from the uphill view. Narrow iron gate is recessed from the road; stone returns flare out and curve into the roadside boundary, with broad flat coping. Left bank is densely planted; right side is lawn around a mature tree. Model now flares the low returns rather than using parallel block rows. Exact entrance levels, paving and connection to the long boundary remain unresolved. The bank between mill wall faces now has an explicit continuous surface to eliminate terrain-grid gaps; this is a rendering correction, not a new elevation measurement.
+
+## Brook Mill north and west, v0.3.0
+
+Surveyed two consecutive June 2024 positions from the northeast bend to 53.6143587,-2.4265031, rotating south/up at the second. The street-facing north elevation has alternating windows and balcony recesses, stone lowest storey, dark frames, thin rails and a cornice above storey three. The near northeast road surface is asphalt. Foliage obscures some bays and the entrance; this is not an every-panorama completion.
+
+Overhead view at 53.61412,-2.4267, zoom 20 and 19: low grey roof, perimeter parapet, eight fixtures, four-facet tower cap; west parking aisles, north entrance and hedge islands. Existing OSM access lanes provide the layout anchors. Modelled north elevation, roof details and initial parking formation. West/east/south opening schedules, exact tower/porch, all bay counts, drains and planted beds remain open. Do not mark Brook Mill fully accurate.

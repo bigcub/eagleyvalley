@@ -426,3 +426,11 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [x] Start Brook Mill facade-specific modelling with upper-storey segmental window heads, v0.2.9.
 - [ ] Survey current Brook Mill upper openings, balconies and window counts in Street View. Historic 14x6 bays do not establish every present-day opening.
 - [ ] Confirm Brook Mill roof ridge count and direction in aerial imagery before replacing the flat placeholder roof.
+
+## Progress checkpoint, v0.3.0
+
+- [x] Replace Brook Mill north elevation's uniform glazing with an initial reference-based alternating window/balcony arrangement, dark frames and rails.
+- [x] Match the current broad grey roof, parapets and visible roof fixtures; add interpreted tower roof facets.
+- [x] Give Brook Mill west parking a separate graded surface tied to its mapped north entrance and access aisles, with initial parking rows and hedge boundaries.
+- [ ] Verify exact parking totals, west and south balcony/window schedules, tower height and entrance porch from close views. Current north bay rhythm is interpreted where trees obscure openings.
+- [ ] Complete the full continuous route audit. The new Brook Mill views are partial coverage, not completion of that task.
