@@ -1,0 +1,74 @@
+Eagley Valley sources and modelling limits
+
+Terrain: Environment Agency LIDAR Composite DTM 1m, 2022.
+https://environment.data.gov.uk/dataset/13787b9a-26a4-4775-8523-806d13af58fc
+Canopy: Environment Agency first-return DSM 1m, 2022.
+https://environment.data.gov.uk/dataset/df4e3ec3-315e-48aa-aaaf-b5ae74d7b2bb
+© Environment Agency copyright and/or database right 2022. All rights reserved.
+Contains public sector information licensed under the Open Government Licence v3.0.
+https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+Terrain resampled to a 2m game grid. Game y=metres above 100m AOD.
+Canopy peaks are inferred tree centres; trunks, crown shapes and current tree coverage are not surveyed.
+
+Roads, watercourse and footprints: © OpenStreetMap contributors, ODbL.
+https://www.openstreetmap.org/copyright
+
+Building references:
+https://historicengland.org.uk/listing/the-list/list-entry/1388031
+https://historicengland.org.uk/listing/the-list/list-entry/1388079
+https://www.bolton.gov.uk/downloads/file/877/eagley-bank-conservation-area-appraisal
+https://www.geograph.org.uk/photo/2325514
+https://www.geograph.org.uk/photo/6670256
+
+Architecture is interpreted geometry, not a photogrammetric reconstruction. Road widths, wall alignments/heights, building heights, entrance details and parking layout remain approximate. Riverside retaining walls follow the brook-facing edge of the mapped footway. Mill floor counts and roof forms follow heritage references; decorative details are simplified. Photographs are modelling references and are not distributed as game assets.
+
+2026-09-06 Street View detail pass:
+Google Street View Eagley Way, June 2024 imagery: inspected from Blackburn Road through the wooded bends; lower view at 53.6135406,-2.4273076.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6130528,-2.4293204
+Google Street View car park entrance, August 2022 imagery, 6 Threadfold Way:
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6138813,-2.4280293&heading=109
+Google Maps satellite view of Bridge Mill used to interpret the western parking court and narrower garage lane. Street View coverage does not extend inside this private court. Five doors are visible on the long stone garage range; details of the separate garage are inferred from its mapped footprint. No Google imagery is copied into game textures or distributed assets. Boundary heights are visual estimates, not measurements.
+
+2026-09-07 photographic detail pass:
+Six user-supplied photographs inform Bridge Mill's south entrance elevation: two visible storeys, white multi-pane sash glazing, alternating door/window bays, panelled coloured doors and transoms, lanterns, pots, iron rails, cobbled passage and tall opposing retaining wall. Dimensions and exact bay positions remain interpreted. User photographs are not embedded or distributed.
+Threadfold Way June 2024 Street View inspected at 101 and 113 Threadfold Way; block paving, double yellow lines, pavements and northern stone boundary inform the model. Surface treatment beyond inspected views remains an approximation.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6143618,-2.4269452&heading=270
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6143536,-2.426347&heading=270
+
+2026-09-07 roof and side-building correction:
+Bridge Mill original west projection recovered from OSM way 727427316 and modelled separately. Historic England 1388031 describes a single-storey gabled former boiler house against the west wall; the existing north-front reference photograph also shows this lower projection. Height and roof pitch are visual estimates. Passage wall coping now falls toward the garage end based on user correction and supplied photographs; endpoints are not measured. Brook Mill 1388079 documents 14 by 6 window bays, now used for the principal elevations. Generic gutters and downpipes are added detail, not individually surveyed positions.
+
+2026-09-07 user correction: Bridge Mill rear uses exactly the same buff stone material as the front. Removed the contrasting rear panels. The user's current local knowledge supersedes the older north-front reference photograph. Gardens are interpreted planting from the supplied passage photos and brook-side reference; exact bed and ownership boundaries are not surveyed.
+School House: separate model on OSM footprint 727404344. Steep advanced gables, stepped three-light windows, recessed crosswing, gabled porches, sandstone and slate follow Historic England and the March 2024 photograph by Sarah Bowles. Model dimensions and concealed elevations remain estimated. Reference photograph is not distributed in the game.
+https://historicengland.org.uk/listing/the-list/list-entry/1388260
+https://britishlistedbuildings.co.uk/101388260-former-eagley-bridge-school-bromley-cross-ward/photos/355851
+
+2026-09-07 aerial garden correction:
+Google Maps north-up satellite view centred near 53.6139567,-2.42665, inspected at 10m scale. Displayed Airbus copyright 2026; acquisition date not shown.
+https://www.google.com/maps/@53.6139567,-2.42665,20z/data=!3m1!1e3
+Visible rear garden edges traced relative to Bridge Mill roof corners and the mapped riverside footway 655432309. Replaced shallow strips with five long landscape plots, approximate hedged divisions and irregular outer plots. These are visual estimates, not surveyed or legal property boundaries. Patio sizes and hedge heights remain interpreted; furniture and detailed planting await ground photos. No aerial imagery is distributed as game assets.
+Gatehouse research begun at the Eagley Way entrance, June 2024 panorama. Visible cream render and dark trim differ from the current generic brick model; full elevations and roof still require inspection before reconstruction.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.61245,-2.4323&heading=60
+
+2026-09-08 gatehouse, world v0.2.0:
+Inspected June 2024 Google Street View at the Eagley Way entrance, including projecting gable and adjoining entrance wing.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.61245,-2.4323&heading=300
+Dedicated model replaces generic brick house on OSM 571633838. Cream render, dark lintels/sills, two three-light cross windows, lower slate entrance roof, narrow window beside dark panelled door, chimney, low boundary and iron pedestrian gate are interpreted from the visible frontage. Roof dimensions, height and concealed elevations remain approximate. Full elevation survey and masonry weathering remain unfinished. No Street View imagery included in game assets.
+
+2026-09-08 v0.2.1: gatehouse floor datum corrected from the rear footprint minimum to the pavement side using existing EA terrain and user observation that the frontage was sunken. Foundation still extends to the rear bank. Eagley Way roadside shrub rendering changed to branching and small foliage clusters at existing positions; no new species or individual planting survey is claimed.
+
+2026-09-08 v0.2.2 Bridge Mill passage and Hough Lane gate:
+Rechecked overhead view centred 53.61367,-2.42665. Wall-foot alignment interpreted relative to the mill's south roof edge; now angles along the passage rather than using constant world z. Exact wall dimensions remain approximate. Paving, border, ivy and collision follow the same alignment; darker rubble material follows the supplied passage photos.
+https://www.google.com/maps/@53.61367,-2.42665,20z/data=!3m1!1e3
+User clarified that the requested side gate is at the Hough Lane end. June 2024 panorama shows a narrow black iron pedestrian gate set back between stone wall returns, with the path descending inward. Model uses mapped access way 655432309 for approximate placement. Gate dimensions and fine ironwork are inferred; entrance ground formation, wall curves and access interaction still need refinement. No Google imagery distributed.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.61359,-2.42618&heading=285
+
+2026-09-08 v0.2.3 garage-court houses:
+User confirms three storeys, only the lowest partly sunken, with a little bridge to each door. Rechecked nearest available June 2024 Street View from Eagley Way looking north over the garages. Requested court viewpoint resolves to Eagley Way, not an interior private-court panorama. View shows the attached stone houses, continuous hipped slate roof, upper window rhythm and raised entrances/railings. Model groups OSM 727427311/312/313 as one continuous range. Door/bay positions, depths and hidden rear openings remain interpreted; user correction establishes storey/access arrangement.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.61373,-2.42715&heading=355
+
+2026-09-08 v0.2.4 terrain rendering:
+Existing EA heights remain the source. Added half-metre render geometry around the mill courts over the same resampled 2m height data, matching outer mesh edges. This improves representation of local formation changes, not survey resolution. Removed a broad artificial flat strip behind garages and blended the court/passage approach; those local formation levels remain interpreted.
+
+2026-09-08 v0.2.5 wall correction:
+User again rejects Bridge Mill boundary as seen from Eagley Way. Code/road-view inspection identified missing road-facing low wall and a reversed manually assigned passage-wall slope that projected several metres above the descending road. Restored the low road boundary, tied passage coping to the existing road elevation and added intervening bank formation. Prior claims that the user specified a fall toward the garages were an incorrect inference; superseded here. Exact coping, wall thickness/ends and vegetation remain subject to the full Street View audit. No new full-route Street View survey was completed this pass.
