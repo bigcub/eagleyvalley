@@ -22,3 +22,7 @@ Inspected the next navigated panorama at 53.6135558,-2.426847, June 2024, approx
 Reference: https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135558,-2.426847&heading=30
 
 v0.2.6 models the taller west roadside section, individual upright coping stones and lower flat-coped east section. Further intermediate panoramas, exact alignment/transition measurements and matching gate-end planting remain open.
+
+## Gate returns, v0.2.7
+
+Revisited June 2024 at 53.6135722,-2.4262459, rotating east from the uphill view. Narrow iron gate is recessed from the road; stone returns flare out and curve into the roadside boundary, with broad flat coping. Left bank is densely planted; right side is lawn around a mature tree. Model now flares the low returns rather than using parallel block rows. Exact entrance levels, paving and connection to the long boundary remain unresolved. The bank between mill wall faces now has an explicit continuous surface to eliminate terrain-grid gaps; this is a rendering correction, not a new elevation measurement.

@@ -149,7 +149,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  function masonry(a:P,b:P,ya:number,yb:number,ha:number,hb:number,material:T.Material=boundaryStone,uprightCoping=false){
  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz),g=new T.BoxGeometry(.55,1,len+.04),v=g.getAttribute('position'),uv=g.getAttribute('uv');
  for(let j=0;j<v.count;j++){const t=(v.getZ(j)+len/2)/len,base=T.MathUtils.lerp(ya,yb,t),height=T.MathUtils.lerp(ha,hb,t);v.setY(j,base+(v.getY(j)+.5)*height);uv.setXY(j,uv.getX(j)*len/2,uv.getY(j)*height/2)}g.rotateY(rot);g.translate((a[0]+b[0])/2,0,(a[1]+b[1])/2);g.computeVertexNormals();batch(g,material);
- if(uprightCoping){const count=Math.ceil(len/.22);for(let k=0;k<count;k++){const t=(k+.5)/count;box(T.MathUtils.lerp(a[0],b[0],t),T.MathUtils.lerp(ya+ha,yb+hb,t)+.12,T.MathUtils.lerp(a[1],b[1],t),.59,.24+Math.sin(k*2.7+a[0])*.035,len/count-.015,material,rot)}}else beam(new T.Vector3(a[0],ya+ha+.055,a[1]),new T.Vector3(b[0],yb+hb+.055,b[1]),.68,.11,material);wallSegments.push({a,b});
+ if(uprightCoping){const count=Math.ceil(len/.22);for(let k=0;k<count;k++){const t=(k+.5)/count;box(T.MathUtils.lerp(a[0],b[0],t),T.MathUtils.lerp(ya+ha,yb+hb,t)+.12,T.MathUtils.lerp(a[1],b[1],t),.59,.24+Math.sin(k*2.7+a[0])*.035,len/count-.015,material,rot)}}else {const cap=new T.BoxGeometry(.68,.11,len+.025),positions=cap.getAttribute('position');for(let k=0;k<positions.count;k++){const t=(positions.getZ(k)+len/2)/len;positions.setY(k,positions.getY(k)+T.MathUtils.lerp(ya+ha,yb+hb,t)+.055)}cap.rotateY(rot);cap.translate((a[0]+b[0])/2,0,(a[1]+b[1])/2);cap.computeVertexNormals();batch(cap,material)}wallSegments.push({a,b});
  }
  const eagley=roads.find(f=>f.name==='Eagley Way')!,edgePath=densify(eagley.points,2.3);
  function offsetRoadPoint(i:number,d:number):P{const before=edgePath[Math.max(0,i-1)],after=edgePath[Math.min(edgePath.length-1,i+1)],dx=after[0]-before[0],dz=after[1]-before[1],l=Math.hypot(dx,dz);return [edgePath[i][0]-dz/l*d,edgePath[i][1]+dx/l*d]}
@@ -171,6 +171,12 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  }}
  for(let x=74;x<110;x+=1)masonry([x,passageWallZ(x)],[x+1,passageWallZ(x+1)],passageY-.25,passageY-.25,passageWallHeight(x),passageWallHeight(x+1),passageStone);
  masonry([59,27.05],[74,passageWallZ(74)],passageY-.25,passageY-.25,1.1,passageWallHeight(74),passageStone);
+ // Explicit bank strip avoids terrain-grid triangles leaving a trench between wall faces.
+ const bankPositions:number[]=[],bankUvs:number[]=[],bankIndices:number[]=[];
+ for(let i=0;i<=72;i++){const x=74+i*.5,z=passageWallZ(x),n=nearest(x,z+4,eagleySegments),dx=n.s.b[0]-n.s.a[0],dz=n.s.b[1]-n.s.a[1],len=Math.hypot(dx,dz),roadEdge:P=[n.x+dz/len*3.7,n.z-dx/len*3.7],y=sampledTerrain(n.x,n.z)+.93;
+  bankPositions.push(x,y,z+.2,roadEdge[0],y,roadEdge[1]);bankUvs.push(0,x/3,1,x/3);if(i){const k=i*2;bankIndices.push(k-2,k,k-1,k-1,k,k+1)}
+ }
+ const bankGeometry=new T.BufferGeometry();bankGeometry.setAttribute('position',new T.Float32BufferAttribute(bankPositions,3));bankGeometry.setAttribute('uv',new T.Float32BufferAttribute(bankUvs,2));bankGeometry.setIndex(bankIndices);bankGeometry.computeVertexNormals();const bankMaterial=mat('millBank','#657345');bankMaterial.side=T.DoubleSide;batch(bankGeometry,bankMaterial);
  const sideGate=addBridgeSideGate({box,batch,stone:boundaryStone,dark,ground});wallSegments.push({a:sideGate[0],b:sideGate[1]});
  // Retain the raised west passage apron instead of leaving paving floating above the bank.
  for(let z=12;z<27;z+=1){const a:P=[71.8,z],b:P=[71.8,z+1],ya=Math.min(sampledTerrain(...a)-.15,passageY-.3),yb=Math.min(sampledTerrain(...b)-.15,passageY-.3);masonry(a,b,ya,yb,passageY-.07-ya,passageY-.07-yb);wallSegments.pop()}

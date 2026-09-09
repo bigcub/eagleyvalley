@@ -418,3 +418,6 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [ ] Match the wall's broad flat coping, curved gate return and dense planting to these views. Current v0.2.5 remains provisional.
 - [x] Inspect the next uphill panorama and reverse mill-facing view; distinguish upright coping on the tall wall from flat coping on the low section.
 - [ ] Verify v0.2.6's interpreted wall-step position X94 against closer references. Complete the remaining panorama sequence and gate-end planting.
+- [x] Recheck Hough Lane gate return shape in June 2024 view; replace straight parallel rows with curved, flared returns in v0.2.7.
+- [ ] Match gate entrance paving and descending threshold; join returns to long boundary and verify wall collisions.
+- [ ] Refine bank planting and reconcile passage/road wall alignment using closer photographs. Explicit bank surface removes rendering gaps but does not verify dimensions.
