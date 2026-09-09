@@ -421,3 +421,5 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [x] Recheck Hough Lane gate return shape in June 2024 view; replace straight parallel rows with curved, flared returns in v0.2.7.
 - [ ] Match gate entrance paving and descending threshold; join returns to long boundary and verify wall collisions.
 - [ ] Refine bank planting and reconcile passage/road wall alignment using closer photographs. Explicit bank surface removes rendering gaps but does not verify dimensions.
+- [x] Add sloping gate approach paving with shared visual/walking levels and collisions on the curved wall returns, v0.2.8.
+- [ ] Match paving joints/weathering and exact threshold levels to closer photos; verify return connections and gate approach on foot.

@@ -1,5 +1,5 @@
 import {addCourtHouses,courtHouseGround} from './court-houses';
-import {addBridgeSideGate} from './bridge-side-gate';
+import {addBridgeSideGate,gateWorld,gateLocal} from './bridge-side-gate';
 import {passageWallZ} from './bridge-passage';
 import {addRoadsideShrubs} from './roadside-shrubs';
 import {addGatehouse} from './gatehouse';
@@ -38,11 +38,12 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
   const n=nearest(x,z,courtAccess),courtHeight=sampledTerrain(n.x,n.z)+.38;
   return T.MathUtils.lerp(courtHeight,passageY,weight);
  }
- function terrain(x:number,z:number){const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return houseEntry-2.51;const approach=passageApproach(x,z);if(approach!==undefined)return approach-.18;if(inPassage(x,z))return passageY-.18;if(x>74&&x<110&&z>passageWallZ(x)+.35){const n=nearest(x,z,eagleySegments);if(z<n.z&&n.d>3.2)return sampledTerrain(n.x,n.z)+.93}if(inPoly(x,z,court)){const n=nearest(x,z,courtAccess);return sampledTerrain(n.x,n.z)}if(x> -310&&x<120&&z>15&&z<180){const n=nearest(x,z,eagleySegments);if(n.d<5.4)return sampledTerrain(n.x,n.z);if(n.d<7)return T.MathUtils.lerp(sampledTerrain(n.x,n.z),sampledTerrain(x,z),(n.d-5.4)/1.6)}return sampledTerrain(x,z)}
+ function gateApproach(x:number,z:number){const [u,v]=gateLocal(x,z);if(v<0||v>3.2||Math.abs(u)>.9+.7*Math.pow(v/3.2,2)+.25)return undefined;const end=gateWorld(0,3.2),n=nearest(...end,roadSeg),roadLevel=sampledTerrain(n.x,n.z)+.38,gateLevel=sampledTerrain(115.41,21.28)+.13;return T.MathUtils.lerp(gateLevel,roadLevel,v/3.2)}
+ function terrain(x:number,z:number){const gate=gateApproach(x,z);if(gate!==undefined)return gate-.08;const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return houseEntry-2.51;const approach=passageApproach(x,z);if(approach!==undefined)return approach-.18;if(inPassage(x,z))return passageY-.18;if(x>74&&x<110&&z>passageWallZ(x)+.35){const n=nearest(x,z,eagleySegments);if(z<n.z&&n.d>3.2)return sampledTerrain(n.x,n.z)+.93}if(inPoly(x,z,court)){const n=nearest(x,z,courtAccess);return sampledTerrain(n.x,n.z)}if(x> -310&&x<120&&z>15&&z<180){const n=nearest(x,z,eagleySegments);if(n.d<5.4)return sampledTerrain(n.x,n.z);if(n.d<7)return T.MathUtils.lerp(sampledTerrain(n.x,n.z),sampledTerrain(x,z),(n.d-5.4)/1.6)}return sampledTerrain(x,z)}
  function riverY(x:number,z:number){const n=nearest(x,z,riverSeg);return terrain(n.x,n.z)+.12}
  function roadY(x:number,z:number,r=nearest(x,z,roadSeg)){if(r.s?.f.tags.bridge){const p=r.s.f.points,a=p[0],b=p[p.length-1],n=nearest(x,z,[{a,b}]);return T.MathUtils.lerp(terrain(a[0],a[1]),terrain(b[0],b[1]),n.t)+.38}return terrain(r.x,r.z)+.38}
  function courtY(x:number,z:number){const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return houseEntry-2.35;const approach=passageApproach(x,z);if(approach!==undefined)return approach;const n=nearest(x,z,courtAccess);return sampledTerrain(n.x,n.z)+.38}
- function ground(x:number,z:number){const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return well;const approach=passageApproach(x,z);if(approach!==undefined)return approach;if(inPassage(x,z))return passageY;if(inPoly(x,z,court))return courtY(x,z);const r=nearest(x,z,roadSeg);return r.d<width(r.s.f)/2+1.3?roadY(x,z,r):terrain(x,z)+.13}
+ function ground(x:number,z:number){const gate=gateApproach(x,z);if(gate!==undefined)return gate;const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return well;const approach=passageApproach(x,z);if(approach!==undefined)return approach;if(inPassage(x,z))return passageY;if(inPoly(x,z,court))return courtY(x,z);const r=nearest(x,z,roadSeg);return r.d<width(r.s.f)/2+1.3?roadY(x,z,r):terrain(x,z)+.13}
  const mats:Record<string,T.Material>={},batches:Record<string,T.BufferGeometry[]>={};
  function mat(key:string,color:string,rough=1){if(!mats[key])mats[key]=new T.MeshStandardMaterial({color,roughness:rough});return mats[key] as T.MeshStandardMaterial}
  function batch(g:T.BufferGeometry,m:T.Material){const key=m.uuid;mats[key]=m;(batches[key]??=[]).push(g.index?g.toNonIndexed():g)}
@@ -177,7 +178,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
   bankPositions.push(x,y,z+.2,roadEdge[0],y,roadEdge[1]);bankUvs.push(0,x/3,1,x/3);if(i){const k=i*2;bankIndices.push(k-2,k,k-1,k-1,k,k+1)}
  }
  const bankGeometry=new T.BufferGeometry();bankGeometry.setAttribute('position',new T.Float32BufferAttribute(bankPositions,3));bankGeometry.setAttribute('uv',new T.Float32BufferAttribute(bankUvs,2));bankGeometry.setIndex(bankIndices);bankGeometry.computeVertexNormals();const bankMaterial=mat('millBank','#657345');bankMaterial.side=T.DoubleSide;batch(bankGeometry,bankMaterial);
- const sideGate=addBridgeSideGate({box,batch,stone:boundaryStone,dark,ground});wallSegments.push({a:sideGate[0],b:sideGate[1]});
+ const gatePaving=mat('gatePaving','#858477');gatePaving.side=T.DoubleSide;wallSegments.push(...addBridgeSideGate({box,batch,stone:boundaryStone,dark,paving:gatePaving,ground}));
  // Retain the raised west passage apron instead of leaving paving floating above the bank.
  for(let z=12;z<27;z+=1){const a:P=[71.8,z],b:P=[71.8,z+1],ya=Math.min(sampledTerrain(...a)-.15,passageY-.3),yb=Math.min(sampledTerrain(...b)-.15,passageY-.3);masonry(a,b,ya,yb,passageY-.07-ya,passageY-.07-yb);wallSegments.pop()}
  // Threadfold Way north boundary, checked against June 2024 Street View.
