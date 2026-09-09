@@ -146,10 +146,10 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  const passageStone=mat('passageRubble','#777b6c');passageStone.map=masonryTexture(true);passageStone.bumpMap=passageStone.map;passageStone.bumpScale=.16;
  const weatheredTimber=mat('weatheredTimber','#777566'),steel=mat('guardSteel','#a8afaa',.5),hedgeMat=mat('boundaryHedge','#405638');
  function beam(a:T.Vector3,b:T.Vector3,w:number,d:number,m:T.Material){const delta=b.clone().sub(a),g=new T.BoxGeometry(w,delta.length(),d);g.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize()));const mid=a.clone().add(b).multiplyScalar(.5);g.translate(mid.x,mid.y,mid.z);batch(g,m)}
- function masonry(a:P,b:P,ya:number,yb:number,ha:number,hb:number,material:T.Material=boundaryStone){
+ function masonry(a:P,b:P,ya:number,yb:number,ha:number,hb:number,material:T.Material=boundaryStone,uprightCoping=false){
  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz),g=new T.BoxGeometry(.55,1,len+.04),v=g.getAttribute('position'),uv=g.getAttribute('uv');
  for(let j=0;j<v.count;j++){const t=(v.getZ(j)+len/2)/len,base=T.MathUtils.lerp(ya,yb,t),height=T.MathUtils.lerp(ha,hb,t);v.setY(j,base+(v.getY(j)+.5)*height);uv.setXY(j,uv.getX(j)*len/2,uv.getY(j)*height/2)}g.rotateY(rot);g.translate((a[0]+b[0])/2,0,(a[1]+b[1])/2);g.computeVertexNormals();batch(g,material);
- beam(new T.Vector3(a[0],ya+ha+.07,a[1]),new T.Vector3(b[0],yb+hb+.07,b[1]),.68,.18,material);wallSegments.push({a,b});
+ if(uprightCoping){const count=Math.ceil(len/.22);for(let k=0;k<count;k++){const t=(k+.5)/count;box(T.MathUtils.lerp(a[0],b[0],t),T.MathUtils.lerp(ya+ha,yb+hb,t)+.12,T.MathUtils.lerp(a[1],b[1],t),.59,.24+Math.sin(k*2.7+a[0])*.035,len/count-.015,material,rot)}}else beam(new T.Vector3(a[0],ya+ha+.055,a[1]),new T.Vector3(b[0],yb+hb+.055,b[1]),.68,.11,material);wallSegments.push({a,b});
  }
  const eagley=roads.find(f=>f.name==='Eagley Way')!,edgePath=densify(eagley.points,2.3);
  function offsetRoadPoint(i:number,d:number):P{const before=edgePath[Math.max(0,i-1)],after=edgePath[Math.min(edgePath.length-1,i+1)],dx=after[0]-before[0],dz=after[1]-before[1],l=Math.hypot(dx,dz);return [edgePath[i][0]-dz/l*d,edgePath[i][1]+dx/l*d]}
@@ -159,7 +159,13 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  if(side===-1&&x<18){for(const h of [.55,1.12])beam(new T.Vector3(...[aa[0],ya+h,aa[1]] as [number,number,number]),new T.Vector3(bb[0],yb+h,bb[1]),.11,.12,weatheredTimber);beam(new T.Vector3(aa[0],ya+.62,aa[1]),new T.Vector3(bb[0],yb+.62,bb[1]),.09,.3,steel);box(aa[0],ya+.6,aa[1],.13,1.2,.13,weatheredTimber);wallSegments.push({a:aa,b:bb});}
  else if(side===1&&x< -267){masonry(aa,bb,ya-.18,yb-.18,1.25,1.25)}
  else if(side===1&&x< -157){box(aa[0],ya+.55,aa[1],.1,1.1,.1,weatheredTimber);for(const h of [.35,.7,1])beam(new T.Vector3(aa[0],ya+h,aa[1]),new T.Vector3(bb[0],yb+h,bb[1]),.016,.016,dark);wallSegments.push({a:aa,b:bb});}
- else {const h=side===1?(x< -115?.85:x<18?1.45:1.7):1.3;if(side===-1&&x>74&&x<110)masonry(aa,bb,ya-.18,yb-.18,.92,.92);else masonry(aa,bb,ya-.18,yb-.18,h,h);}
+ else {const h=side===1?(x< -115?.85:x<18?1.45:1.7):1.3;if(side===-1&&x>59&&x<110){
+ // June 2024 reverse view: upright coping on the taller west section, a sharp drop beside the mill.
+ // The transition at x94 is an interpreted position, pending closer survey.
+ const split=94;
+ if(aa[0]<split&&bb[0]>split){const t=(split-aa[0])/(bb[0]-aa[0]),mid:P=[split,T.MathUtils.lerp(aa[1],bb[1],t)],ym=T.MathUtils.lerp(ya,yb,t);masonry(aa,mid,ya-.18,ym-.18,1.42,1.42,passageStone,true);masonry(mid,bb,ym-.18,yb-.18,.92,.92,passageStone)}
+ else masonry(aa,bb,ya-.18,yb-.18,x<split?1.42:.92,x<split?1.42:.92,passageStone,x<split);
+ }else masonry(aa,bb,ya-.18,yb-.18,h,h);}
  // Continuous understorey behind the roadside boundaries, keeping the carriageway open.
  if(x<18&&j%2===0){const hx=(aa[0]+bb[0])/2+nx*side*2.4,hz=(aa[1]+bb[1])/2+nz*side*2.4;roadsideShrubs.push({x:hx,z:hz,y:terrain(hx,hz),h:side===1?2.1:1.55})}
  }}

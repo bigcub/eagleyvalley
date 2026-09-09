@@ -72,3 +72,6 @@ Existing EA heights remain the source. Added half-metre render geometry around t
 
 2026-09-08 v0.2.5 wall correction:
 User again rejects Bridge Mill boundary as seen from Eagley Way. Code/road-view inspection identified missing road-facing low wall and a reversed manually assigned passage-wall slope that projected several metres above the descending road. Restored the low road boundary, tied passage coping to the existing road elevation and added intervening bank formation. Prior claims that the user specified a fall toward the garages were an incorrect inference; superseded here. Exact coping, wall thickness/ends and vegetation remain subject to the full Street View audit. No new full-route Street View survey was completed this pass.
+
+2026-09-09 v0.2.6: June 2024 panorama at 53.6135558,-2.426847 inspected uphill and rotated toward Bridge Mill. Shows taller rubble roadside wall with upright coping stones ending in a distinct step to a lower flat-coped wall near the lamp/sign column. Model transition X94 and heights are interpreted, not measured. Full run audit remains incomplete.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135558,-2.426847&heading=30

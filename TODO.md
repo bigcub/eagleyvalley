@@ -416,3 +416,5 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [x] Record the two inspected June 2024 Bridge Mill road viewpoints in `docs/street-view-audit.md`.
 - [ ] Continue from X97 Z29 uphill through every available panorama and inspect reverse views. Resolve the low-to-tall wall transition before the next geometry change.
 - [ ] Match the wall's broad flat coping, curved gate return and dense planting to these views. Current v0.2.5 remains provisional.
+- [x] Inspect the next uphill panorama and reverse mill-facing view; distinguish upright coping on the tall wall from flat coping on the low section.
+- [ ] Verify v0.2.6's interpreted wall-step position X94 against closer references. Complete the remaining panorama sequence and gate-end planting.
