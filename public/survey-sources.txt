@@ -75,3 +75,6 @@ User again rejects Bridge Mill boundary as seen from Eagley Way. Code/road-view 
 
 2026-09-09 v0.2.6: June 2024 panorama at 53.6135558,-2.426847 inspected uphill and rotated toward Bridge Mill. Shows taller rubble roadside wall with upright coping stones ending in a distinct step to a lower flat-coped wall near the lamp/sign column. Model transition X94 and heights are interpreted, not measured. Full run audit remains incomplete.
 https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135558,-2.426847&heading=30
+
+2026-09-09 v0.2.9 Brook Mill: re-read Historic England 1388079. Upper-storey windows have segmental heads; added shallow arched glass heads and brick arches on the upper two model floors. Five-storey, 14x6-bay framework retained provisionally. Roof is documented as multi-ridge slate but present-day ridge layout has not been established, so no guessed roof reconstruction this pass. Listing amended 2001; not a current window schedule.
+https://historicengland.org.uk/listing/the-list/list-entry/1388079

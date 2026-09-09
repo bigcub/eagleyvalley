@@ -423,3 +423,6 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [ ] Refine bank planting and reconcile passage/road wall alignment using closer photographs. Explicit bank surface removes rendering gaps but does not verify dimensions.
 - [x] Add sloping gate approach paving with shared visual/walking levels and collisions on the curved wall returns, v0.2.8.
 - [ ] Match paving joints/weathering and exact threshold levels to closer photos; verify return connections and gate approach on foot.
+- [x] Start Brook Mill facade-specific modelling with upper-storey segmental window heads, v0.2.9.
+- [ ] Survey current Brook Mill upper openings, balconies and window counts in Street View. Historic 14x6 bays do not establish every present-day opening.
+- [ ] Confirm Brook Mill roof ridge count and direction in aerial imagery before replacing the flat placeholder roof.
