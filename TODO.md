@@ -442,3 +442,8 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 ### v0.3.2 Bridge Mill wall correction
 - [x] Remove unsupported duplicate passage wall and intervening grass bank; use one retaining boundary for road and passage.
 - [ ] Confirm revised passage width, exact wall alignment, height step and both end joins against user photos. The wall is not marked accepted.
+
+### v0.3.3 passage detail
+- [x] Replace uniform pale setts with varied grey/brown procedural stone, grain, irregular sizing and a dark joint bed.
+- [x] Add uneven rubble courses and smaller branching shrub clusters around the passage and existing rear gardens.
+- [ ] Match exact paving courses, moss distribution, individual plants and topiary against further close photographs. Existing placement and garden boundaries remain provisional.

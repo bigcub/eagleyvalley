@@ -20,17 +20,20 @@ export function addBridgeGardens({box,batch,leaf,stone,dark,terrain,passageY}:He
     g.computeVertexNormals();batch(g,m);
   }
   function shrub(x:number,z:number,h:number,y:number,flowers=false){
-    for(let k=0;k<9;k++){
-      const a=k*2.399,px=x+Math.sin(a)*h*.28,pz=z+Math.cos(a)*h*.28;
-      const g=new T.PlaneGeometry(h*.8,h*.85);g.rotateY(a);g.rotateZ(Math.sin(k+x)*.2);g.translate(px,y+h*(.38+(k%3)*.12),pz);batch(g,leaf);
-      if(flowers&&k%2===0){const f=new T.SphereGeometry(h*.075,6,4);f.scale(1,.6,1);f.translate(px,y+h*.75,pz);batch(f,petals[k%3])}
+    let seed=(Math.round(x*103+z*211)+94031)>>>0;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+    for(let k=0;k<4;k++){const g=new T.CylinderGeometry(.008,.018,h*.6,5);g.rotateZ((rand()-.5)*.65);g.translate(x+(rand()-.5)*h*.2,y+h*.3,z+(rand()-.5)*h*.2);batch(g,dark)}
+    for(let k=0;k<48;k++){
+      const a=rand()*Math.PI*2,level=rand(),r=Math.sqrt(rand())*h*.42*Math.sqrt(1-Math.pow(level-.35,2));
+      const px=x+Math.sin(a)*r,pz=z+Math.cos(a)*r,py=y+.08+level*h*.8;
+      const size=.2+rand()*.14,g=new T.PlaneGeometry(size,size);g.rotateX((rand()-.5)*1.2);g.rotateY(a);g.rotateZ((rand()-.5)*.7);g.translate(px,py,pz);batch(g,leaf);
+      if(flowers&&k%9===0){for(let j=0;j<4;j++){const f=new T.SphereGeometry(.025,5,3);f.scale(1,.5,1);f.translate(px+Math.sin(j*2.4)*.035,py+.04,pz+Math.cos(j*2.4)*.035);batch(f,petals[k%3])}}
     }
   }
   // Border against the retaining wall leaves the centre of the passage open.
   for(let x=76;x<109;x+=.55){
     const z=passageWallZ(x)-.72;
     patch(x,z,.58,.85,earth,()=>passageY);
-    box(x,passageY+.05,z-.48,.56,.17,.18,stone,-Math.atan(.125));
+    box(x,passageY+.05,z-.48,.56,.17,.18,stone,-Math.atan((passageWallZ(x+.1)-passageWallZ(x-.1))/.2));
     if(Math.floor(x*10)%3!==0)shrub(x,z,.55+(Math.sin(x)*.5+.5)*.7,passageY,Math.floor(x)%3===0);
   }
   // Planting between entrances rather than across the doors or route around the west end.

@@ -1,3 +1,4 @@
+import {settMaterials} from './sett-material';
 import {passageWallZ} from './bridge-passage';
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -22,8 +23,10 @@ export function addBridgeFront({box,batch,stone,trim,dark,glass,base}:Helpers){
  }
  for(const x of [77.8,90.8,104.4]){B(x,3.6,.075,7.3,.075,dark,.22);B(x,7.1,.12,.12,.28,dark,.22)}
  // Individual flags at the doorstep; irregular setts fill the shared passage.
- const stones=Array.from({length:7},(_,i)=>new T.MeshStandardMaterial({color:new T.Color().setHSL(.12,.12,.20+i*.025),roughness:.72}));
- const sett=new RoundedBoxGeometry(.4,.13,.25,1,.035);for(let col=0;col<81;col++){const x=74+col*.43;for(let row=0;row<24;row++){const z=south(x)+1.35+row*.27;if(z>passageWallZ(x)-.8)continue;const n=col*41+row*37,j=n%7,g=sett.clone();g.rotateY(Math.sin(n)*.065);g.translate(x+(row%2)*.13,base-.07+Math.sin(n)*.012,z);batch(g,stones[j])}}sett.dispose();
+ const stones=settMaterials();
+ const joints=new T.MeshStandardMaterial({color:'#454638',roughness:1});
+ for(let x=74;x<109;x+=.43){const z0=south(x)+1.15,z1=passageWallZ(x)-.7;box(x,base-.1,(z0+z1)/2,.45,.025,z1-z0,joints)}
+ const sett=new RoundedBoxGeometry(.4,.11,.25,2,.038);for(let col=0;col<81;col++){const x=74+col*.43;for(let row=0;row<24;row++){const z=south(x)+1.35+row*.27;if(z>passageWallZ(x)-.8)continue;const n=col*41+row*37,j=n%7,g=sett.clone();g.scale(.93+.07*Math.sin(n*1.7),1,.94+.06*Math.cos(n*2.3));g.rotateY(Math.sin(n)*.09);g.translate(x+(row%2)*.13,base-.052+Math.sin(n)*.006,z);batch(g,stones[j])}}sett.dispose();
  for(let x=75;x<108;x+=.65)box(x,base-.06,south(x)+.65,.62,.12,1.1,stones[Math.floor(x)%7],-.041);
  // The passage turns around the western end to the garage court.
  for(let x=72;x<76;x+=.45)for(let z=12;z<27;z+=.3)box(x,base-.1,z,.42,.12,.27,stones[Math.floor(x+z)%7]);
