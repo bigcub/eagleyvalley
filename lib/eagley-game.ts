@@ -1,3 +1,4 @@
+import {addBrookEntrance} from './brook-mill-entrance';
 import {brookParking,addBrookParking,addBrookHedges} from './brook-mill-grounds';
 import {addBrookUpperWindow,addBrookNorth,addBrookRoof} from './brook-mill';
 import {addCourtHouses,courtHouseGround} from './court-houses';
@@ -115,7 +116,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  for(let k=0;k<n;k++){const t=(k+.5)/n,x=a[0]+dx*t,z=a[1]+dz*t,ww=Math.min(2.6,len/n-.38);box(x,base+1.14,z,.21,2.28,ww+.16,dark,rot);box(x,base+1.14,z,.24,2.15,ww,door,rot);for(let j=1;j<12;j++){const d=(j/12-.5)*ww;box(x+Math.sin(rot)*d,base+1.14,z+Math.cos(rot)*d,.27,2.1,.018,rib,rot)}box(x,base+1.0,z,.29,.04,.22,trim,rot);box(x,base+2.37,z,.28,.16,ww+.3,stone,rot)}
  }
  const near=Math.hypot(cx,cz)<470;
- if(near&&!garage)for(let j=0;j<p.length;j++){const a=p[j],b=p[(j+1)%p.length];if(bridge&&(a[1]+b[1])/2>17)continue;if(f.name==='Brook Mill'&&j===5)continue;const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<2.3)continue;const rot=Math.atan2(dx,dz),n=bridge&&len>20?9:f.name==='Brook Mill'?(len>30?14:len>20?6:len>7?2:1):Math.max(1,Math.floor(len/(mill?3.3:3.1)));for(let k=0;k<n;k++){const t=(k+.5)/n,x=a[0]+dx*t,z=a[1]+dz*t;for(let level=0;level<levels;level++){const yy=base+level*h/levels+1.65,ww=mill?1.55:1.15,hh=mill?2.25:1.3;if(f.name==='Brook Mill'&&level>=3){addBrookUpperWindow(x,yy,z,rot,glass,trim,brick,batch);continue}box(x,yy,z,.19,hh+.23,ww+.22,trim,rot);box(x,yy+.04,z,.22,hh,ww,glass,rot);box(x,yy+.04,z,.25,.045,ww,trim,rot);box(x,yy+.04,z,.25,hh,.045,trim,rot);if(mill){for(const frac of [-.25,.25]){box(x+Math.sin(rot)*ww*frac,yy+.04,z+Math.cos(rot)*ww*frac,.26,hh,.035,trim,rot);box(x,yy+.04+hh*frac,z,.26,.035,ww,trim,rot)}}}if(!mill&&k===0&&!garage)box(x,base+.95,z,.25,1.9,.85,dark,rot)}
+ if(near&&!garage)for(let j=0;j<p.length;j++){const a=p[j],b=p[(j+1)%p.length];if(bridge&&(a[1]+b[1])/2>17)continue;if(f.name==='Brook Mill'&&(j===5||j===6))continue;const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<2.3)continue;const rot=Math.atan2(dx,dz),n=bridge&&len>20?9:f.name==='Brook Mill'?(len>30?14:len>20?6:len>7?2:1):Math.max(1,Math.floor(len/(mill?3.3:3.1)));for(let k=0;k<n;k++){const t=(k+.5)/n,x=a[0]+dx*t,z=a[1]+dz*t;for(let level=0;level<levels;level++){const yy=base+level*h/levels+1.65,ww=mill?1.55:1.15,hh=mill?2.25:1.3;if(f.name==='Brook Mill'&&level>=3){addBrookUpperWindow(x,yy,z,rot,glass,trim,brick,batch);continue}box(x,yy,z,.19,hh+.23,ww+.22,trim,rot);box(x,yy+.04,z,.22,hh,ww,glass,rot);box(x,yy+.04,z,.25,.045,ww,trim,rot);box(x,yy+.04,z,.25,hh,.045,trim,rot);if(mill){for(const frac of [-.25,.25]){box(x+Math.sin(rot)*ww*frac,yy+.04,z+Math.cos(rot)*ww*frac,.26,hh,.035,trim,rot);box(x,yy+.04+hh*frac,z,.26,.035,ww,trim,rot)}}}if(!mill&&k===0&&!garage)box(x,base+.95,z,.25,1.9,.85,dark,rot)}
  if(mill&&!bridge){for(let floor=1;floor<=levels;floor++)box((a[0]+b[0])/2,base+floor*h/levels-.12,(a[1]+b[1])/2,.48,.32,len+.12,trim,rot)}
  if(mill){box((a[0]+b[0])/2,base+h-.15,(a[1]+b[1])/2,.4,.3,len+.15,trim,rot);if(!bridge)for(let k=0;k<=n;k++){const t=k/n;box(a[0]+dx*t,base+h/2,a[1]+dz*t,.35,h,.35,material,rot)}}}
  for(let j=0;j<p.length;j++){const a=p[j],b=p[(j+1)%p.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz);if(len<2)continue;box((a[0]+b[0])/2,base+h-.08,(a[1]+b[1])/2,.13,.14,len+.16,dark,rot);if(j%2===0){box(a[0],base+h/2,a[1],.08,h,.08,dark);box(a[0],base+.18,a[1],.2,.25,.2,dark)}}
@@ -129,15 +130,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  const brookBase=brookDatum;
  addBrookNorth(brookBase,box,batch,stone,brick,trim,glass,dark);
  addBrookRoof(brookBase,brook.points.slice(0,-1),box,batch,brick,trim,dark);
- const towerX=113.2,towerZ=-35.3,towerY=brookBase+18;
- box(towerX,towerY+1.6,towerZ,2.1,5.4,5.2,brick,.086);
- box(towerX,towerY+3.7,towerZ,2.4,.28,5.7,trim,.086);
- const pediment=new T.BufferGeometry();pediment.setAttribute('position',new T.Float32BufferAttribute([114.45,towerY+3.85,-38,114.45,towerY+5.5,-35.3,114.45,towerY+3.85,-32.6],3));pediment.computeVertexNormals();batch(pediment,new T.MeshStandardMaterial({color:'#bdac88',side:T.DoubleSide}));
- const clockCanvas=document.createElement('canvas');clockCanvas.width=clockCanvas.height=256;const clockCtx=clockCanvas.getContext('2d')!;
- clockCtx.fillStyle='#e1dcc5';clockCtx.beginPath();clockCtx.arc(128,128,119,0,Math.PI*2);clockCtx.fill();clockCtx.strokeStyle='#263733';clockCtx.lineWidth=9;clockCtx.stroke();
- for(let i=0;i<12;i++){const a=i*Math.PI/6;clockCtx.lineWidth=i%3===0?7:4;clockCtx.beginPath();clockCtx.moveTo(128+Math.sin(a)*95,128-Math.cos(a)*95);clockCtx.lineTo(128+Math.sin(a)*109,128-Math.cos(a)*109);clockCtx.stroke()}
- clockCtx.lineWidth=7;clockCtx.beginPath();clockCtx.moveTo(82,102);clockCtx.lineTo(128,128);clockCtx.lineTo(160,61);clockCtx.stroke();
- const clockTex=new T.CanvasTexture(clockCanvas);clockTex.colorSpace=T.SRGBColorSpace;const face=new T.Mesh(new T.CircleGeometry(1.15,32),new T.MeshStandardMaterial({map:clockTex,roughness:.8}));face.rotation.y=Math.PI/2;face.position.set(114.5,towerY+2.05,towerZ);scene.add(face);
+ colliders.push(bounds(addBrookEntrance(brookBase,box,batch,stone,brick,trim,glass,dark)));
  // Valley Mill has a flat roof and a raised northeast bell cupola.
  const valley=buildings.find(f=>f.name==='Valley Mill')!,valleyBase=Math.min(...valley.points.map(p=>terrain(...p))),vy=valleyBase+14.4;
  box(11,vy+1,-79,4.2,2,4.2,brick,-.34);box(11,vy+2.1,-79,4.6,.28,4.6,trim,-.34);

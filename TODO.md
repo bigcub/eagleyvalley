@@ -434,3 +434,7 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [x] Give Brook Mill west parking a separate graded surface tied to its mapped north entrance and access aisles, with initial parking rows and hedge boundaries.
 - [ ] Verify exact parking totals, west and south balcony/window schedules, tower height and entrance porch from close views. Current north bay rhythm is interpreted where trees obscure openings.
 - [ ] Complete the full continuous route audit. The new Brook Mill views are partial coverage, not completion of that task.
+
+### v0.3.1 entrance progress
+- [x] Replace Brook Mill's rooftop-only clock treatment with a full-height central stair-tower facade and offset pointed stone porch from the clearer saved reference.
+- [ ] Recheck the east upper arched openings, exact porch proportions, roof junction and current window changes against closer current photos. Keep west/south elevation schedules and full continuous survey open.
