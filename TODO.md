@@ -438,3 +438,7 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 ### v0.3.1 entrance progress
 - [x] Replace Brook Mill's rooftop-only clock treatment with a full-height central stair-tower facade and offset pointed stone porch from the clearer saved reference.
 - [ ] Recheck the east upper arched openings, exact porch proportions, roof junction and current window changes against closer current photos. Keep west/south elevation schedules and full continuous survey open.
+
+### v0.3.2 Bridge Mill wall correction
+- [x] Remove unsupported duplicate passage wall and intervening grass bank; use one retaining boundary for road and passage.
+- [ ] Confirm revised passage width, exact wall alignment, height step and both end joins against user photos. The wall is not marked accepted.

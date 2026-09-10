@@ -88,3 +88,8 @@ West car park perimeter estimated against mapped service ways 762841712–715. A
 
 2026-09-10 v0.3.1 Brook Mill east entrance:
 Re-inspected the saved local brook-mill-front.jpg reference, previously gathered with the project building references. It clearly shows three bays each side of the central stair tower, a full-height central brick projection, clock stage with brick triangular pediment, small finials and a pointed stone entrance porch offset to the south. New June 2024 Street View checks around the northeast bend/Hough Lane remained heavily obscured by trees. The saved photograph is historical reference, not a verified current opening schedule; its capture date has not been re-established. The tower and porch geometry is interpreted, not measured. No photograph distributed.
+
+2026-09-10 v0.3.2 Bridge Mill wall:
+Inspected June 2024 forward view at 53.6135558,-2.426847, next panorama 53.6135367,-2.426537 and its reverse view. The flat-coped low section and upright-coped uphill section form one retaining boundary directly between road and lower passage. Removed the game's unsupported separate inner wall and broad grass bank. One roadside mesh now continues down to passage level; paving/ground follow its back edge. Approximate plan trace follows the mapped road boundary, replacing a roof-relative interpretation affected by aerial roof displacement. Step position X94, exact thickness, passage width and endpoint joins remain provisional.
+https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135367,-2.426537&heading=30
+https://www.google.com/maps/@53.61367,-2.42665,21z/data=!3m1!1e3
