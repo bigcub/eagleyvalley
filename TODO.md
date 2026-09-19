@@ -136,7 +136,7 @@ These override the general order below. Previous modelling does not count as acc
 - [ ] Map front gardens, driveways, parking areas, gates, hedges and boundary walls.
 - [ ] Verify road width and curve geometry throughout the loop.
 - [ ] Check changes in surface, markings and pavement continuity.
-- [ ] Remove invented repeated doors on side and rear walls.
+- [x] Remove invented repeated doors on side and rear walls. (Claude branch v0.3.37, integrated v0.3.39: generic buildings now get one door, on the elevation nearest a road, replacing the first ground-floor window. Door position within that elevation is still not surveyed.)
 - [ ] Check the route back to the Bridge Mill entrance and the visibility of that entrance.
 
 ## 07. Bridge Mill entrance and western parking court
@@ -280,7 +280,7 @@ First mark which portions are inside the rendered/playable boundary. Survey ever
 - [ ] School Street, Back School Street and Scholars Rise.
 - [ ] Eagley Brow and its connections to Hough Lane.
 - [ ] Hough Lane and Back Hough Lane East.
-- [ ] Eagley Hall, its circular window, roof, entrances and corner setting.
+- [ ] Eagley Hall, its circular window, roof, entrances and corner setting. (Claude branch v0.3.37, integrated v0.3.39: first dedicated model in lib/eagley-hall.ts from June 2024/Aug 2022 Street View and aerial outline: three-storey coursed rock-faced stone, bands, dark frames, corner tower with gables and round windows, hipped slate roof, car-park porch; attached brick block split off as a flat-roofed three-storey generic block. Still interpreted: 16 m plan depth, storey heights, bay spacing, tower size, porch position, exact gable shapes. Needs user comparison.)
 - [ ] Spread Eagle and its immediate surroundings.
 - [ ] The Brewhouse and its car park where visible from the game area.
 - [ ] Sandbanks House and the Sand Banks approaches where visible.

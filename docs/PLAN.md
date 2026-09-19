@@ -2,7 +2,7 @@
 
 ## 1. Fix the rejected Hough Lane junction as one connected section
 
-Re-survey both approaches and old-lane entrance; trace road/pavement/wall outlines before props. Resolve levels, bollard row and railing alignment, parapet joins and landscaping boundaries. Remove obsolete duplicate geometry and use one shared layout for visuals/collisions. Compare road-level views at the flagged coordinates. Eagley Hall needs its own model, not generic red brick. Do not mark this complete without reference comparison and user review.
+Re-survey both approaches and old-lane entrance; trace road/pavement/wall outlines before props. Resolve levels, bollard row and railing alignment, parapet joins and landscaping boundaries. Remove obsolete duplicate geometry and use one shared layout for visuals/collisions. Compare road-level views at the flagged coordinates. Review the dedicated Eagley Hall model integrated in v0.3.39 against the references; its dimensions and openings remain interpreted. Do not mark this complete without reference comparison and user review.
 
 ## 2. Complete Bridge Mill boundaries and entrances
 
