@@ -37,3 +37,8 @@ next-env.d.ts
 /outputs/
 /work/
 *.tsbuildinfo
+
+# Local research, personal references and editor state
+/reference-photos/
+/.codex/
+/.agents/

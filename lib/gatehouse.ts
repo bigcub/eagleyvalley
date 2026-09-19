@@ -1,3 +1,4 @@
+import {slateMaterial,roofUV} from './building-surfaces';
 import * as T from 'three';
 type P=[number,number];
 type Helpers={box:(x:number,y:number,z:number,w:number,h:number,d:number,m:T.Material,rot?:number)=>void,batch:(g:T.BufferGeometry,m:T.Material)=>void,glass:T.Material,dark:T.Material,stone:T.Material,base:number,foundationBottom:number,points:P[]};
@@ -7,10 +8,10 @@ export function addGatehouse({box,batch,glass,dark,stone,base,foundationBottom,p
  const ux=.662,uz=-.749,rot=Math.atan2(-uz,ux),world=(u:number,v:number):P=>[-288.91+u*ux+v*uz,148.86+u*uz-v*ux];
  const cream=new T.MeshStandardMaterial({color:'#d7d5c7',roughness:.97,side:T.DoubleSide});
  const frame=new T.MeshStandardMaterial({color:'#deded4',roughness:.8});
- const slate=new T.MeshStandardMaterial({color:'#626767',roughness:.92,side:T.DoubleSide});
+ const slate=slateMaterial();
  const wood=new T.MeshStandardMaterial({color:'#302426',roughness:.85});
  const B=(u:number,y:number,v:number,w:number,h:number,d:number,m:T.Material)=>{const [x,z]=world(u,v);box(x,base+y,z,w,h,d,m,rot)};
- function mesh(coords:number[],indices:number[],m:T.Material){const g=new T.BufferGeometry(),p:number[]=[];for(let i=0;i<coords.length;i+=3){const [x,z]=world(coords[i],coords[i+2]);p.push(x,base+coords[i+1],z)}g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('uv',new T.Float32BufferAttribute(coords.flatMap((_,i)=>i%3===0?[coords[i]/2,coords[i+1]/2]:[]),2));g.setIndex(indices);g.computeVertexNormals();batch(g,m)}
+ function mesh(coords:number[],indices:number[],m:T.Material){const g=new T.BufferGeometry(),p:number[]=[];for(let i=0;i<coords.length;i+=3){const [x,z]=world(coords[i],coords[i+2]);p.push(x,base+coords[i+1],z)}g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('uv',new T.Float32BufferAttribute(coords.flatMap((_,i)=>i%3===0?[coords[i]/2,coords[i+1]/2]:[]),2));g.setIndex(indices);g.computeVertexNormals();if(m===slate)roofUV(g);batch(g,m)}
  const footprint=new T.Shape(points.map(([x,z])=>new T.Vector2(x,-z))),body=new T.ExtrudeGeometry(footprint,{depth:base-foundationBottom+3.2,bevelEnabled:false});body.rotateX(-Math.PI/2);body.translate(0,foundationBottom,0);batch(body,cream);
  // Taller entrance gable and a lower slate crosswing.
  B(2.75,4.6,3.7,5.5,2.8,7.4,cream);
@@ -19,6 +20,15 @@ export function addGatehouse({box,batch,glass,dark,stone,base,foundationBottom,p
  mesh([5.4,3.2,-.18,11.7,3.2,-.18,5.4,5.4,2.8,11.7,5.4,2.8,5.4,3.2,5.6,11.7,3.2,5.6],[0,1,3,0,3,2,2,3,5,2,5,4],slate);
  mesh([11.5,3.2,0,11.5,5.4,2.8,11.5,3.2,5.6],[0,1,2],cream);
  function window(u:number,y:number,w:number,h:number,columns:number){B(u,y,-.09,w+.17,h+.13,.16,dark);B(u,y,-.19,w,h,.08,glass);for(let i=0;i<=columns;i++)B(u-w/2+w*i/columns,y,-.26,.08,h,.07,frame);for(const yy of [y-h/2,y,y+h/2])B(u,yy,-.26,w,.08,.07,frame);B(u,y+h/2+.15,-.12,w+.45,.22,.22,dark);B(u,y-h/2-.13,-.17,w+.4,.16,.32,dark)}
+ // EAG-001, June 2024, heading310: small wall plate left of lower window.
+ const signCanvas=document.createElement('canvas');signCanvas.width=768;signCanvas.height=160;
+ const ctx=signCanvas.getContext('2d')!;ctx.fillStyle='#e7e5dc';ctx.fillRect(0,0,768,160);
+ ctx.strokeStyle='#292b29';ctx.lineWidth=3;ctx.strokeRect(5,5,758,150);
+ ctx.fillStyle='#222421';ctx.font='bold 100px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('EAGLEY WAY',384,84,720);
+ for(const x of [18,750]){ctx.beginPath();ctx.arc(x,80,4,0,Math.PI*2);ctx.fill()}
+ const signTexture=new T.CanvasTexture(signCanvas);signTexture.colorSpace=T.SRGBColorSpace;
+ const signMaterial=new T.MeshStandardMaterial({map:signTexture,roughness:.9});
+ const plate=new T.PlaneGeometry(.8,.167);plate.rotateY(rot);const signPosition=world(.55,-.105);plate.translate(signPosition[0],base+2.5,signPosition[1]);batch(plate,signMaterial);
  window(2.75,1.7,2.7,2.25,3);window(2.75,5.2,2.7,2.3,3);
  window(6.75,1.65,.75,1.95,1);
  B(8.65,1.2,-.12,1.25,2.4,.17,dark);B(8.65,1.17,-.23,1.05,2.3,.1,wood);

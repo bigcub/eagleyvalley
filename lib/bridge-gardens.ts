@@ -34,7 +34,26 @@ export function addBridgeGardens({box,batch,leaf,stone,dark,terrain,passageY}:He
     const z=passageWallZ(x)-.72;
     patch(x,z,.58,.85,earth,()=>passageY);
     box(x,passageY+.05,z-.48,.56,.17,.18,stone,-Math.atan((passageWallZ(x+.1)-passageWallZ(x-.1))/.2));
-    if(Math.floor(x*10)%3!==0)shrub(x,z,.55+(Math.sin(x)*.5+.5)*.7,passageY,Math.floor(x)%3===0);
+    if((x<101.4||x>105)&&Math.floor(x*10)%3!==0)shrub(x,z,.55+(Math.sin(x)*.5+.5)*.7,passageY,Math.floor(x)%3===0);
+  }
+  // IMG_9029: weathered square trellis and clustered glazed pots against the wall.
+  // Location and dimensions are interpreted; keep all additions within the existing border.
+  const timber=new T.MeshStandardMaterial({color:'#777260',roughness:1});
+  const potMaterials=['#244c83','#999589','#77513d','#35574a'].map(color=>new T.MeshStandardMaterial({color,roughness:.48}));
+  const tx=103.3,tz=passageWallZ(tx)-.34;
+  for(let i=0;i<8;i++)box(tx-1.05+i*.3,passageY+1.45,tz,.045,1.95,.055,timber);
+  for(let i=0;i<7;i++)box(tx,passageY+.5+i*.3,tz-.025,2.16,.045,.045,timber);
+  for(let i=0;i<24;i++){
+    const x=tx-1+((i*7)%23)/11,z=tz-.08;
+    const g=new T.PlaneGeometry(.31,.37);g.rotateY(Math.sin(i)*.35);g.rotateZ(Math.sin(i*2)*.4);
+    g.translate(x,passageY+.65+i*.065,z);batch(g,leaf);
+  }
+  for(const [i,x] of [101.8,102.5,103.2,104,104.65].entries()){
+    const z=passageWallZ(x)-.73,h=.4+(i%3)*.08,r=.23+(i%2)*.055;
+    const pot=new T.CylinderGeometry(r,r*.7,h,12,1,true);pot.translate(x,passageY+h/2,z);batch(pot,potMaterials[i%4]);
+    const rim=new T.TorusGeometry(r,.025,5,12);rim.rotateX(Math.PI/2);rim.translate(x,passageY+h,z);batch(rim,potMaterials[i%4]);
+    const soil=new T.CircleGeometry(r-.025,12);soil.rotateX(-Math.PI/2);soil.translate(x,passageY+h-.04,z);batch(soil,earth);
+    shrub(x,z,.65+(i%2)*.2,passageY+h-.03,true);
   }
   // Planting between entrances rather than across the doors or route around the west end.
   for(const x of [82.82,89.06,95.3,101.54]){

@@ -28,3 +28,14 @@ export function addBridgeSideGate({box,batch,stone,dark,paving,ground}:Helpers):
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();batch(g,paving);
  barriers.push({a:world(-.66,0),b:world(.66,0)});return barriers;
 }
+
+// User-confirmed separate entrance to the cobbled passage. Dimensions are interpreted.
+export function addPassageGate({box,dark}:Pick<Helpers,'box'|'dark'>,floor:number):{a:P,b:P}[]{
+ const x=110,z0=23.05,z1=24.4,mid=(z0+z1)/2;
+ for(const z of [z0,z1])box(x,floor+.65,z,.07,1.3,.07,dark);
+ for(const y of [.15,.55,1.17])box(x,floor+y,mid,.045,.035,z1-z0-.08,dark);
+ for(let i=0;i<10;i++)box(x,floor+.65,z0+.1+i*(z1-z0-.2)/9,.022,1.17,.022,dark);
+ for(const y of [.25,1.06])box(x,floor+y,z0,.1,.06,.14,dark);
+ box(x+.04,floor+.85,z1-.13,.045,.045,.19,dark);
+ return [{a:[x,z0],b:[x,z1]}];
+}

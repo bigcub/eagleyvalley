@@ -1,3 +1,4 @@
+import {slateMaterial,roofUV} from './building-surfaces';
 import * as T from 'three';
 type P=[number,number];
 type Helpers={box:(x:number,y:number,z:number,w:number,h:number,d:number,m:T.Material,rot?:number)=>void,batch:(g:T.BufferGeometry,m:T.Material)=>void,stone:T.Material,trim:T.Material,dark:T.Material,glass:T.Material,base:number,points:P[]};
@@ -8,9 +9,9 @@ export function addSchoolHouse({box,batch,stone,trim,dark,glass,base,points}:Hel
  const rot=-Math.atan2(.427,.904),world=(u:number,v:number):P=>[50.53+u*.904+v*.427,-98.6+u*.427-v*.904];
  const B=(u:number,y:number,v:number,w:number,h:number,d:number,m:T.Material)=>{const [x,z]=world(u,v);box(x,base+y,z,w,h,d,m,rot)};
  // Local v points north-west. Transform each vertex explicitly to avoid reflected normals.
- function mesh(vertices:number[],indices:number[],material:T.Material){const g=new T.BufferGeometry(),coords:number[]=[],uv:number[]=[];for(let i=0;i<vertices.length;i+=3){const [x,z]=world(vertices[i],vertices[i+2]);coords.push(x,base+vertices[i+1],z);uv.push(vertices[i]/2,vertices[i+1]/2)}g.setAttribute('position',new T.Float32BufferAttribute(coords,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();batch(g,material)}
+ function mesh(vertices:number[],indices:number[],material:T.Material){const g=new T.BufferGeometry(),coords:number[]=[],uv:number[]=[];for(let i=0;i<vertices.length;i+=3){const [x,z]=world(vertices[i],vertices[i+2]);coords.push(x,base+vertices[i+1],z);uv.push(vertices[i]/2,vertices[i+1]/2)}g.setAttribute('position',new T.Float32BufferAttribute(coords,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();if(material===slate)roofUV(g);batch(g,material)}
  const shape=new T.Shape(points.map(p=>new T.Vector2(p[0],-p[1])));const body=new T.ExtrudeGeometry(shape,{depth:5.4,bevelEnabled:false});body.rotateX(-Math.PI/2);body.translate(0,base,0);const uv=body.getAttribute('uv');for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)/2,uv.getY(i)/2);batch(body,stone);
- const slate=new T.MeshStandardMaterial({color:'#4c5354',roughness:.88,side:T.DoubleSide});
+ const slate=slateMaterial();
  const gableStone=(stone as T.MeshStandardMaterial).clone();gableStone.side=T.DoubleSide;
  const dress=new T.MeshStandardMaterial({color:'#b9b098',roughness:.9,side:T.DoubleSide});
  function beam(u1:number,y1:number,v1:number,u2:number,y2:number,v2:number,w:number,m:T.Material){const a=world(u1,v1),b=world(u2,v2),start=new T.Vector3(a[0],base+y1,a[1]),end=new T.Vector3(b[0],base+y2,b[1]),delta=end.clone().sub(start),g=new T.BoxGeometry(w,delta.length(),w);g.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize()));g.translate(...start.add(end).multiplyScalar(.5).toArray());batch(g,m)}

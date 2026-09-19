@@ -53,6 +53,45 @@ export function addBrookNorth(base:number,box:(x:number,y:number,z:number,w:numb
  b(length/2,18.65,0,length+.18,.14,.65,trim);
 }
 
+// South elevation from user views X59,Z14 and X127,Z27.
+// Fourteen-bay schedule follows the documented long elevation; obscured bays
+// remain provisional. Penultimate floor has arches, top floor has flat heads.
+export function addBrookSouth(base:number,box:(x:number,y:number,z:number,w:number,h:number,d:number,m:T.Material,rot?:number)=>void,batch:(g:T.BufferGeometry,m:T.Material)=>void,stone:T.Material,brick:T.Material,trim:T.Material,glass:T.Material,dark:T.Material){
+ const length=Math.hypot(48.04,4.12),angle=-Math.atan2(4.12,48.04),pitch=length/14;
+ const p=(u:number,v:number):[number,number]=>[64.26+u*Math.cos(angle)+v*Math.sin(angle),-26.37-u*Math.sin(angle)+v*Math.cos(angle)];
+ const b=(u:number,y:number,v:number,w:number,h:number,d:number,m:T.Material)=>{const [x,z]=p(u,v);box(x,base+y,z,w,h,d,m,angle)};
+ const frame=new T.MeshStandardMaterial({color:'#515a58',roughness:.65});
+ const shade=new T.MeshStandardMaterial({color:'#292924',roughness:1});
+ for(let floor=0;floor<5;floor++){
+  const y=floor*3.6,material=floor===0?stone:brick;
+  for(let k=0;k<14;k++){
+   const u=(k+.5)*pitch,balcony=k%2===1;
+   b(u,y+1.7,.13,2.35,2.85,.08,balcony?shade:glass);
+   // Projecting masonry reveals leave the dark balcony back behind its rail.
+   for(const side of [-1,1])b(u+side*1.24,y+1.7,.25,.18,2.9,.62,material);
+   b(u,y+.24,.25,2.65,.17,.7,trim);
+   if(balcony){
+    b(u,y+1.22,.53,2.35,.055,.055,dark);
+    b(u,y+.4,.53,2.35,.045,.045,dark);
+    for(let n=0;n<=15;n++)b(u-1.14+n*2.28/15,y+.81,.53,.025,.84,.025,dark);
+    b(u,y+1.45,.19,1.6,2.2,.035,glass);
+   }else{
+    for(const du of [-1.16,-.39,.39,1.16])b(u+du,y+1.7,.2,.065,2.85,.07,frame);
+    for(const dy of [.32,1.23,2.16,3.08])b(u,y+dy,.2,2.35,.065,.07,frame);
+   }
+   if(floor===3){
+    for(let s=0;s<18;s++){const du=-1.25+(s+.5)*2.5/18,yy=y+3.0+.22*(1-Math.pow(du/1.25,2));b(u+du,yy,.26,2.5/18+.01,.22,.65,brick)}
+   }else b(u,y+3.18,.24,2.65,.25,.64,floor===4?brick:trim);
+  }
+  for(let k=0;k<=14;k++)b(k*pitch,y+1.8,.19,.6,3.6,.58,material);
+  b(length/2,y+3.48,.23,length,.16,.66,trim);
+ }
+ // Photo-visible cornice below the upper two storeys and continuous parapet.
+ b(length/2,10.8,.3,length+.25,.32,.85,trim);
+ b(length/2,18.3,0,length,.65,.5,brick);
+ b(length/2,18.65,0,length+.18,.14,.65,trim);
+}
+
 export function addBrookRoof(base:number,points:[number,number][],box:(x:number,y:number,z:number,w:number,h:number,d:number,m:T.Material,rot?:number)=>void,batch:(g:T.BufferGeometry,m:T.Material)=>void,brick:T.Material,trim:T.Material,dark:T.Material){
  const roof=new T.MeshStandardMaterial({color:'#929697',roughness:.85,side:T.DoubleSide});
  const shape=new T.Shape(points.map(p=>new T.Vector2(p[0],-p[1]))),g=new T.ShapeGeometry(shape);g.rotateX(-Math.PI/2);g.translate(0,base+18.08,0);batch(g,roof);

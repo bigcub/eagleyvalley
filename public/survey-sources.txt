@@ -96,3 +96,70 @@ https://www.google.com/maps/@53.61367,-2.42665,21z/data=!3m1!1e3
 
 2026-09-10 v0.3.3 passage surfaces and planting:
 Used the user's previously supplied Bridge Mill passage photographs as visual reference for varied grey/brown worn setts, dark mossy joints, irregular rubble courses and smaller foliage. Added procedural grain/bump textures, varied sett sizes, a dark joint bed and smaller shrub foliage clusters with branching and small flower groups. No user photos are included as assets. Plant positions remain interpreted; this is a surface/detail pass, not a new boundary or species survey.
+
+2026-09-10 v0.3.4 frontage topiary:
+Supplied frontage photos show clipped spiral topiary in tapered ochre pots. Replaced stacked spherical crowns with small individual leaves, branching, pot rims and visible soil. Shapes and dimensions are interpreted; this does not establish an exact inventory of each doorstep's planting. No photos distributed.
+
+2026-09-10 v0.3.5 passage paving:
+Refined main passage using supplied frontage photos: transverse courses, variable lengths and staggered joints, reduced rounding/gaps, scattered moss in joints. This is an interpreted surface pattern, not a measured paving survey. Existing passage width/levels and western return remain unresolved.
+New user photos IMG_9028, IMG_9029 and IMG_9030 supplied 10 September 2026. Number 3 close-up used for five-column/two-row transom, long centre surround panel and pruned pot stems. Wider views establish timber trellis, grouped pots, raised planter and falling far-end wall; their locations/dimensions still require reconciliation with the world. Photos are references only, not game assets.
+
+2026-09-10 v0.3.6 Brook Mill tower:
+User's winter photograph at X127,Z27 shows a circular glazed south opening separate from the east clock and a south pediment. Added ring/radial glazing, stone surround, side pediment and deeper stage. Dimensions remain interpreted, and the complete tower roof/ornaments and south facade schedule remain unresolved. Warm sunset colour is not used as a material-colour reference.
+
+2026-09-10 v0.3.7: Brook Mill south facade interpreted from user photos X59,Z14 and X127,Z27. Alternating window/balcony bays, buff ground floor, penultimate arches and flat top heads; fourteen-bay schedule partly inferred where cropped/obscured. Recess depths are estimates. User confirms Bridge Mill has no windows on its end facing the turning circle; removed main west-end generic openings.
+
+2026-09-10 v0.3.8 correction: user rejected the side selected in v0.3.7. Restore west-end windows and make the opposite, east end blank. This supersedes the previous west-end interpretation.
+
+2026-09-10 v0.3.9 riverside path:
+User photo codex-clipboard-481d49dc-8b50-4177-b427-0e507025e547.jpg at interpreted X24,Z-4 shows gravel, steel mesh fence, closed five-rail gate, grass and landward hedge. Mapped footway 655432309 retained. Local formation and fence replacement cover roughly X20–70. Gate centre X31.5,Z-8.47, width2.4m and hedge positions are provisional, not surveyed. Higher court-side bank and opposite terrace remain unresolved. No source photograph distributed.
+
+2026-09-10 v0.3.10 Brook Mill terrace:
+User river photographs at approximately X24,Z-4 and X59,Z14 show a raised terrace with a continuous retaining face, railing and dark privacy screens falling toward the river edge. Added these along the mapped south facade. The 2.6m terrace depth, seven patio divisions, height and end returns are interpreted, not measured. No photos distributed.
+
+2026-09-11 v0.3.11: light mixed gravel material informed by supplied riverside photo; procedural texture only. Court-house rear glazing visibility corrected as a rendering defect, without asserting verified rear window counts.
+
+2026-09-11 v0.3.12: shared masonry mapping corrected to consistent world-space scale across wall components. Course dimensions remain interpreted. Procedural slate texture added to generic pitched roofs, informed by supplied mill/garage roof views; this does not verify roof types or counts on generic buildings. No source imagery embedded.
+
+2026-09-11 v0.3.13: IMG_9029 user photo informs timber lattice, climbing foliage and mixed blue/grey/brown/green pots. Dimensions and placement interpreted within existing border; no photograph distributed.
+
+v0.3.14: user X59,Z14 photograph informs low stone parking edge and planted drop. Model follows existing provisional court outline X41–69; not a surveyed trace.
+
+v0.3.15: soil beds and edging added under existing interpreted Brook parking planting runs. No new survey or measured dimensions claimed.
+
+2026-09-11 v0.3.16: Google Maps aerial https://www.google.com/maps/@53.61412,-2.4267,20z/data=!3m1!1e3 revisited and panned west. Imagery Airbus copyright2026, acquisition date unavailable. Dense western roadside and northern edge planting visible. Added estimated runs along existing Brook parking outline, north entrance retained. No imagery distributed.
+
+v0.3.18: X24,Z-4 user photograph shows grass/gravel foreground rather than continuous asphalt down river bank. Northern Bridge court apron reduced and north row moved inward. Alignment estimated, not measured; underlying terrain retained outside revised court.
+
+v0.3.20:2m local landscape blend around selected soft parking edges is a rendering/formation approximation, not new terrain survey. Road/brook corridors and retained mill edges excluded.
+
+v0.3.21: road-edge overlaps corrected using mapped carriageway intersections. Procedural grass/bark and additional upper-facing foliage improve rendering, retaining inferred tree locations. Slate courses extended to existing dedicated landmark roofs; dimensions/forms unchanged. Flat face normals correct shading. No new geographic survey or external image assets.
+
+2026-09-12 v0.3.22: Google Street View June 2024, six upper Eagley Way panoramas recorded in SURVEY.md with coordinates, panorama IDs and directions. Observed separate steel/timber boundary layers and right wire mesh modelled within limited inspected spans. Dimensions and supports estimated. Navigation gap and missing reverse views explicitly recorded; full route not surveyed. No imagery distributed.
+
+2026-09-12 v0.3.23: June2024 Street View EAG-002A/B/C and007/008/009 added to SURVEY.md; entrance150-degree return inspected. Corner stone wall, mesh, grassy bank and doubleyellow lines inform limited upper-road changes. Transitionx=-279 and plantingx=-269..-252 estimated from views, not measurements. Flowering bank recorded pending trace. No images distributed.
+
+v0.3.24: June2024 Street View EAG-010..013, coordinates and panorama IDs in SURVEY.md. Flowering runs and low plain retaining face interpreted from images; exact dimensions/ends/drains remain estimates. No imagery distributed.
+
+v0.3.25: uses existing EAG-012/013 observations for plain wall finish and a small weep opening; opening location estimated. No new imagery or additional coverage.
+
+2026-09-13 v0.3.26: six consecutive June2024 Street View panoramas EAG-014..019 logged in SURVEY.md, right side of019 also inspected. Plain retaining continuation and separated left barriers confirmed. Heights and model cutoff x=-108 estimated; imagery not distributed.
+
+v0.3.27: user correction and June2024 EAG-001 heading310 confirm gatehouse-mounted Eagley Way plate. Small plate dimensions interpreted. Unverified Threadfold/Bridge Mill boards removed pending evidence; ivy curtains interpreted from EAG-015..019.
+v0.3.27 survey continuation: EAG-020/021 June2024 forward views recorded with coordinates/panorama IDs in SURVEY.md. Exposed retaining panels, moss, ferns and ivy confirm continuation beyond current model cutoff; not yet modelled.
+
+v0.3.28: June2024 Google Street View022..026 logged in SURVEY.md. Plain panel seams, drainage edge, fern bank and mixed ivy/flowering growth inform interpreted geometry. No images distributed; exact dimensions/locations not measured.
+
+v0.3.30 feedback review: user flags from v0.3.29 preserved in TODO.md. Flag2/3 pale road strips traced to mapped footway806928776 and steps655432308 reaching carriageway centrelines; clip paving at vehicle-road edge. Flag1 wall clipped out of Blackburn Road corridor; full junction reconstruction remains open.
+Turning circle: Google Street View Aug2022 panorama o630WlJgG1IIouCJdb9kHw at53.6135187,-2.4260507 heading68 shows block-paved loop, kerbed grass island and clipped hedge. June2024 panorama mUlPCC0ketNM1MKwI2GPCw at53.6135444,-2.4263731 heading65 confirms planted island/kerbs and road junction. Width6.4m and hedge offset5.1m interpreted against mapped loop549204394, not measured.
+Mill entrance: June2024 Ol5x2LtTib6ZgLsg_puNUA at53.6135722,-2.4262459 headings267/355 shows curved stone returns, narrow iron gate and lawn/tree beyond. Adjacent mUlPCC0ketNM1MKwI2GPCw headings267/65 checked. User confirms two gates; second entrance alignment/connecting wall sections still need tracing. No source imagery distributed.
+
+2026-09-14 v0.3.31: revisited June2024 Ol5x2LtTib6ZgLsg_puNUA headings315/267. Continuous low rubble corner wall connects frontage boundary to recessed iron garden gate; model now joins existing endpoint to curved return and continues garden-side boundary. Extents/height and corner planting interpreted, not measured. Second gate still unresolved; no additional gate invented.
+June2024 GXaLJ6-lQQXM-ZBvWlBeyw at53.6137125,-2.4260501 headings169/349: Hough Lane bridge has steady descent northward, close stone parapets, no terrain-scale dip. Deck now interpolates terrain beyond abutments at128.32,13.36 and146.1,-20. Heights remain terrain-derived, not surveyed road levels.
+June2024 DQl_iPlCOrF2ekkB6nUQbQ at53.6140332,-2.4258421 heading154: Threadfold/Hough junction has narrow paved corner, black bollards with light tops, short stone posts, double-yellow kerb lines, paired30mph signs, stone parapet returns, dense tree/ivy corner and separate rail beside brook. Initial inventory only; no completed junction reconstruction claimed. No imagery distributed.
+
+14 September user clarification: two Hough Lane-end gates, one to the cobbled passage and the other to shared landscaping behind the private gardens. The latter is not a garden entrance. v0.3.32 adds the separate passage gate and adjoining wall sections; placement/dimensions remain interpreted.
+
+v0.3.33,14September: June2024 DQl_iPlCOrF2ekkB6nUQbQ rechecked at154 and65 degrees.65 shows exactly three black/light-capped removable bollards, stone posts, pedestrian railing and the old lane beside Eagley Hall.154 shows30mph signs and bridge wall returns. Model positions interpreted against mapped roads655432304/655432303/73858744; no dimensional survey claimed. Added asphalt old-lane apron, bollards/posts/railing, signs, short parapet returns and wooded-edge understorey. Eagley Hall itself still requires separate reconstruction.
+
+v0.3.36: user rejects junction and bollard angle. Revised bollards along the junction mouth, joined railing to end post and moved it outside the driving bend. Matched wall-return material/height to bridge and removed unsupported corner shrub clusters. Alignment remains interpreted and requires user/reference acceptance; this does not finish the junction.

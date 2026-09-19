@@ -21,11 +21,26 @@ export function addBrookEntrance(base:number,box:Box,batch:(g:T.BufferGeometry,m
  for(const u of [-2.55,2.55]){b(u,9,.75,.4,18,.3,brick);for(let y=.5;y<18;y+=1.15)b(u,y,.93,.46,.17,.12,trim)}
  for(let floor=1;floor<=5;floor++){b(0,floor*3.6-.1,.79,5.9,.24,.35,trim);for(const side of [-1,1])b(side*8,floor*3.6-.1,.16,10,.18,.4,trim)}
  // Clock stage with brick pediment and small corner finials.
- b(0,19.55,.2,4.65,3.1,1.8,brick);b(0,18.2,.3,6.05,.5,2,trim);b(0,21.14,.3,4.95,.18,2,trim);
+ b(0,19.55,-1.2,4.65,3.1,4.65,brick);b(0,18.2,-1.2,6.05,.5,4.9,trim);b(0,21.14,-1.2,4.95,.18,4.95,trim);
  const pedimentMat=new T.MeshStandardMaterial({color:'#9a5946',side:T.DoubleSide,roughness:1});
  shape([[-2.5,0],[2.5,0],[0,1.75]],0,21.2,1.27,pedimentMat);
  for(const u of [-2.5,2.5]){b(u,21.4,1.23,.16,.65,.16,trim);const finial=new T.SphereGeometry(.18,8,6);const [x,z]=point(u,1.23);finial.translate(x,base+21.8,z);batch(finial,trim)}
  const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d')!;ctx.fillStyle='#e5dfc9';ctx.beginPath();ctx.arc(128,128,123,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#343735';ctx.lineWidth=7;ctx.stroke();for(let i=0;i<12;i++){const a=i*Math.PI/6;ctx.beginPath();ctx.moveTo(128+Math.sin(a)*99,128-Math.cos(a)*99);ctx.lineTo(128+Math.sin(a)*112,128-Math.cos(a)*112);ctx.stroke()}ctx.beginPath();ctx.moveTo(75,90);ctx.lineTo(128,128);ctx.lineTo(173,59);ctx.stroke();const tex=new T.CanvasTexture(canvas);tex.colorSpace=T.SRGBColorSpace;const face=new T.CircleGeometry(1.02,48);face.rotateY(Math.PI/2+rot);const [fx,fz]=point(0,1.15);face.translate(fx,base+19.75,fz);batch(face,new T.MeshStandardMaterial({map:tex,roughness:.8}));
+ // User winter reference from X127,Z27 shows a circular glazed south face,
+ // distinct from the east clock. Stage depth and moulding sizes are estimated.
+ const [sx,sz]=point(2.36,-1.2);
+ const side=(g:T.BufferGeometry,m:T.Material)=>{g.rotateY(rot);g.translate(sx,base+19.75,sz);batch(g,m)};
+ side(new T.CircleGeometry(.82,40),glass);
+ side(new T.RingGeometry(.83,1.06,40),trim);
+ side(new T.RingGeometry(.39,.45,32),dark);
+ for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
+   const bar=new T.BoxGeometry(.38,.045,.055);bar.rotateZ(a);bar.translate(Math.cos(a)*.62,Math.sin(a)*.62,.018);side(bar,dark);
+ }
+ const sidePediment=new T.Shape([new T.Vector2(-2.5,0),new T.Vector2(2.5,0),new T.Vector2(0,1.75)]);
+ const ped=new T.ShapeGeometry(sidePediment);ped.rotateY(rot);ped.translate(sx,base+21.2,sz);batch(ped,pedimentMat);
+ for(const sign of [-1,1]){
+   const edge=new T.BoxGeometry(Math.hypot(2.5,1.75),.12,.14);edge.rotateZ(-sign*Math.atan2(1.75,2.5));edge.translate(sign*1.25,2.325,.06);side(edge,trim);
+ }
  // Offset pointed porch, visible at the left of the east-facing reference.
  const porch=4.1;b(porch,1.65,1.0,2.65,3.3,1.8,stone);
  const stoneFace=new T.MeshStandardMaterial({color:'#b1a38a',roughness:1,side:T.DoubleSide});shape([[-1.52,0],[1.52,0],[0,1.3]],porch,3.3,1.93,stoneFace);

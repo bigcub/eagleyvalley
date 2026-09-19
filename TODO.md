@@ -1,5 +1,7 @@
 # Eagley accuracy and detail checklist
 
+Current handover: [context](docs/CONTEXT.md), [ordered plan](docs/PLAN.md), [audit coverage](docs/STREETVIEW_STATUS.md). Historical checkpoints below do not imply acceptance. Next priority is the rejected Hough/Threadfold junction.
+
 Working plan, 7 September 2026. The aim is a recognisable reconstruction of the area, from the Blackburn Road entrance down Eagley Way, around Threadfold Way and into Bridge Mill, with convincing surroundings when driving or walking.
 
 This is a work backlog, not a record of a completed survey. Previous Street View checks covered parts of Eagley Way, its entrance, the mill court entrance and parts of Threadfold Way. The entire area has not been reviewed systematically. Existing models are provisional even where they already contain detail.
@@ -447,3 +449,226 @@ Interiors, traffic simulation, pedestrians, missions, a larger map, weather syst
 - [x] Replace uniform pale setts with varied grey/brown procedural stone, grain, irregular sizing and a dark joint bed.
 - [x] Add uneven rubble courses and smaller branching shrub clusters around the passage and existing rear gardens.
 - [ ] Match exact paving courses, moss distribution, individual plants and topiary against further close photographs. Existing placement and garden boundaries remain provisional.
+
+## Local checkpoint v0.3.4
+
+- [x] Remove the on-screen journey objective card at the user's request, including its arrival variant.
+- [x] Replace Bridge Mill doorway topiary balls with finer spiral foliage, stems, pot rims and soil using supplied photo references.
+- [ ] Verify each individual pot/plant against additional frontage views; current assignments remain interpreted.
+- Sites publishing is paused by the user from 10 September 2026 until explicitly resumed. Continue locally.
+
+## Local checkpoint v0.3.5
+
+- [x] Reduce exaggerated main-passage sett rounding/gaps and replace longitudinal repetition with variable-length transverse courses, following supplied photos.
+- [x] Add intermittent moss within joints, keeping stone tops near the movement surface.
+- [ ] Confirm exact course direction through both passage ends, western return paving and doorstep transitions from wider references.
+- [ ] Verify passage width and lengthwise levels. This surface pass does not resolve the rejected boundary alignment.
+
+### New photo references received 10 September
+
+- [x] IMG_9030: number 3 transom has five columns and two rows; correct the extra vertical division.
+- [x] IMG_9030: surround has a long middle panel between short end panels; pots now contain pruned stems.
+- [ ] IMG_9028: locate and model the raised stone planter and adjacent storage chest.
+- [ ] IMG_9029: locate timber trellis, climber and grouped blue/neutral pots; replace the current continuous generic border where inappropriate.
+- [ ] IMG_9028/9029: reconcile dense ivy and far-end falling wall with road-side views; record the limits of perspective-derived dimensions.
+
+### User photo reference: X59, Z14
+
+Photo codex-clipboard-dbebaf1e-4638-4848-854f-fc562701b319.jpg, supplied 10 September 2026. User identifies camera position as approximately X59, Z14; viewing direction is not supplied.
+
+- [ ] Reproduce the camera view using normal walking inputs and establish heading against mapped building footprints.
+- [ ] Compare the large red-brick mill elevation: alternating glazed windows/recessed balconies, buff ground floor, horizontal stone bands, arched heads on the penultimate floor and roofline pediments. Count the complete elevation only after reconciling cropped/obscured bays.
+- [ ] Correct the foreground asphalt parking edge, low kerb and planted boundary; distinguish temporary pink survey markings from permanent bay markings.
+- [ ] Match the right-hand buff-stone building and lower projecting gable, slate roofs, blank wall areas and visible narrow windows.
+- [ ] Reconstruct the drop beside that building, small stone parapet and paved access after checking footprint and ground levels. Do not infer a level apron from the car park surface.
+- [ ] Replace generic planting here with the visible layered hedge, multi-stem deciduous tree and smaller shrubs, preserving seasonal uncertainty.
+
+Photo is reference evidence only; do not embed/distribute it as a game asset. No geometry changes or accuracy acceptance from this reference yet.
+
+### User photo reference: X127, Z27, winter
+
+Photo codex-clipboard-19f68f4d-b119-4ecc-8f18-57fe3547529f.jpg. User confirms viewpoint X127,Z27 and winter season; heading not supplied.
+
+- [ ] Match this viewpoint against the mapped buildings before modifying geometry.
+- [ ] Check the stone building's broad blank end wall, hipped slate roof, eaves and visible side openings.
+- [ ] Compare the brick mill's window/balcony arrangement, stone bands, roofline pediments and both visible tower faces. The circular side opening differs from the clock face; do not copy a clock onto every face.
+- [ ] Reconcile foreground low stone wall, coping, gate opening and stepped returns with the Hough Lane gate model.
+- [ ] Locate the prominent deciduous tree using this leafless view; match trunk and branch structure rather than treating winter canopy gaps as missing trees.
+- [ ] Use the exposed garden boundaries and background building as cross-checks against summer references.
+
+Warm low sunlight affects all masonry colours in this image; preserve the user's confirmed same buff stone at front and rear of Bridge Mill. This reference does not request a winter-mode change.
+
+### User photo reference: approximately X24, Z-4
+
+Photo codex-clipboard-481d49dc-8b50-4177-b427-0e507025e547.jpg. User wrote 'x 24 X-4'; interpreted as X24,Z-4, pending correction. User says this area is a mess in the current game.
+
+- [ ] Prioritise rebuilding the narrow gravel path, sloping grass, metal gate, riverside mesh fence and dense hedge together after matching the viewpoint.
+- [ ] Check the brick mill's raised terrace and retaining wall across the brook.
+- [ ] Keep path surface, bank geometry and collision aligned; existing geometry is not accepted.
+
+## Local checkpoint v0.3.6
+
+- [x] Add Brook Mill tower's circular south glazing with stone surround and radial bars, distinct from its east clock, using winter photo X127,Z27.
+- [x] Give the clock stage depth and a south pediment rather than a thin front-only face.
+- [ ] Reconcile tower roof, mouldings, exact depth and both pediment ornaments with closer references; current dimensions are interpreted.
+- [ ] Rebuild the south mill elevation's balcony/window schedule. The X127,Z27 comparison exposes the remaining generic facade.
+- Riverside path at X24,Z-4 remains a priority; no ground or fence correction claimed in this tower pass.
+
+## Local checkpoint v0.3.7
+
+- [x] Replace Brook Mill generic south windows with dedicated alternating balcony/window bays, ground-floor stone, penultimate arches and flat upper heads using the supplied views.
+- [x] Remove Bridge Mill main end-wall windows facing the turning circle, per explicit local correction.
+- [ ] Verify obscured south bays and exact recess dimensions; current fourteen-bay schedule remains partly inferred.
+- [ ] Rebuild the riverside path/gate/bank from X24,Z-4 reference and reconcile raised mill terrace.
+
+## Local correction v0.3.8
+
+- [x] Undo the wrong-end window removal: west windows restored, east end blank. User explicitly rejected the v0.3.7 side choice.
+- Earlier west-end blank-wall notes are superseded by this correction.
+
+## Local checkpoint v0.3.9
+
+- [x] Compare on foot near X24,Z-4 and identify wrong paved strip/stone boundary.
+- [x] Add gravel, local path formation, mesh fence and a closed rail gate with collision; replace generic stone retaining face on this section.
+- [x] Add landward hedge inferred from supplied photo.
+- [ ] Verify exact gate position/width and hedge extent. Current placement is interpreted.
+- [ ] Rebuild higher court-side bank and parking edge; this remains visibly wrong and is not resolved by the path formation.
+- [ ] Check gate collision from both directions and match raised terrace across brook.
+
+## Local checkpoint v0.3.10
+
+- [x] Add the missing raised Brook Mill south terrace, continuous retaining face, coping, river-edge railing and dark sloping privacy dividers based on supplied river views.
+- [x] Keep terrain below the terrace and add collision around its private footprint.
+- [ ] Verify terrace width, level, division count and end connections; current geometry remains interpreted.
+- [ ] Reconcile broad parking slope and gravel appearance with the X24,Z-4 photograph.
+
+## Local checkpoint v0.3.11
+
+- [x] Fix court-house rear glazing/bars hidden behind frames by incorrect depth direction.
+- [x] Replace dark road texture reused for riverside gravel with light mixed aggregate.
+- [ ] Verify actual rear opening schedule and detailed gravel/grass boundaries from additional evidence.
+
+## Local checkpoint v0.3.12
+
+- [x] Use consistent physical masonry scale across shared stone/brick wall bodies and smaller pieces.
+- [x] Add slate-course texture to generic pitched roofs, including Bridge Mill and garages.
+- [ ] Verify course dimensions per building and extend roof surface work to dedicated landmark meshes after reference checks.
+- [ ] Continue geographic tasks: parking slope/boundary, passage trellis/planters, full continuous Street View survey. Surface improvements do not complete these.
+
+## Local checkpoint v0.3.13
+
+- [x] Add photographed trellis and grouped planters as provisional details within existing passage border.
+- [ ] Reconcile their precise positions, raised planter and complete wall profile with the photo sequence.
+
+
+## Local checkpoint v0.3.14
+- [x] Add missing low retaining edge/coping and planting to north garage approach.
+- [ ] Verify exact edge alignment and rebuild remaining parking boundaries and Brook Mill parking.
+
+
+## Local checkpoint v0.3.15
+- [x] Add soil/edging beneath Brook parking planting and improve leaf/stem detail.
+- [ ] Verify planting extents, parking boundary and bay schedule; existing overhead interpretation retained.
+
+
+## Local checkpoint v0.3.16
+- [x] Revisit aerial and add missing Brook parking western/northern boundary planting.
+- [ ] Reconcile western islands, bay layout and Bridge court outline against continuous reference coverage.
+
+## Local checkpoint v0.3.17
+- [x] Prevent parking markings crossing planted footprints.
+- [ ] Rebuild remaining parking layout and verify bay totals; boundary planting alone does not resolve the car parks.
+
+
+## Local checkpoint v0.3.18
+- [x] Pull northern Bridge court asphalt back from photographed grass approach; align row and kerb.
+- [x] Remove survey-bank slope blending from parking apron.
+- [ ] Verify revised court limits and level transitions against additional measured/reference views.
+
+## Local checkpoint v0.3.19
+- [x] Bird inspection mode with fast flight, height controls, photo coordinates and return to saved position.
+- [ ] Continue parking boundaries and building accuracy checks using aerial inspection.
+
+
+## Local checkpoint v0.3.20
+- [x] Soften selected parking-to-landscape joins without moving boundaries.
+- [x] Add overhead bird view and height above ground.
+- [ ] Verify actual grading and remaining retained edges.
+
+
+## Local checkpoint v0.3.21 broad scene pass
+- [x] Clip road-edge paving/kerbs/paint at crossing carriageways, preserving collinear continuations.
+- [x] Improve canopy visibility from above and bark surface detail.
+- [x] Add grass surface detail and slate courses to four dedicated landmark models.
+- [x] Use flat roof-face normals to avoid rounded shading across pitches.
+- [ ] Continue reference-led boundary/window/roof-shape corrections; these shared fixes do not verify building accuracy.
+
+
+## Survey restart, 12 September 2026
+- [x] Start a panorama-by-panorama evidence register in SURVEY.md, including directions and explicit coverage gaps.
+- [x] Inspect six upper Eagley Way views and record boundary/vegetation discrepancies.
+- [x] Separate barrier/fence layers and add visible mesh on the inspected upper stretch in v0.3.22.
+- [ ] Backfill EAG-002 to EAG-003 navigation gap; complete reverse/side views before claiming continuous coverage.
+- [ ] Map right grassy opening, wall transition, individual trunks and lamp positions; replace generic shrub treatment.
+- [ ] Continue downhill from EAG-006, then Threadfold Way and mill courts.
+
+## Local checkpoint v0.3.23
+- [x] Recover three intermediate upper-road panoramas and extend forward survey through EAG-009.
+- [x] Correct corner wall coverage, weathered mesh and upper double yellow lines; lower understorey across photographed opening.
+- [ ] Finish all side/reverse views, match estimated transition and planting polygon, inventory trunks.
+- [ ] Trace flowering shrub bank around EAG-008/009 before extending model.
+- [ ] Full-area survey and reconstruction remain outstanding; SURVEY.md tracks actual coverage.
+
+## v0.3.24 checkpoint
+- [x] Survey forward through EAG-013 and inspect inside bend.
+- [x] Model two flowering banks and missing low retaining face.
+- [ ] Verify endpoints, drain details, flower appearance and remaining reverse views.
+- [ ] Continue downstream from EAG-013; full area remains incomplete.
+
+## Local checkpoint v0.3.25
+- [x] Tone down plain retaining-wall finish and remove projecting coping.
+- [ ] Verify drain positions/count and complete wall alignment and surrounding planting.
+- [ ] Continue survey beyond EAG-013 and complete outstanding reverse views.
+
+13 September, v0.3.26: forward survey extended through EAG-019 (six additional panoramas). Plain right retaining extent/height and separate left barriers updated locally; next priorities are ivy patches, panel seams, fence above wall and side/reverse coverage. Section remains open.
+
+v0.3.27: corrected Eagley Way sign host from user/Street View. Survey actual Threadfold Way and mill name plates before adding replacements for removed oversized boards. Retaining-wall ivy patches added, still require matching against references.
+
+v0.3.28: forward survey reaches026; wall endpoint still ahead. Fern layer and retaining detail added in inspected stretch; check hillside density, exact panel/drain spacing and left fence lean. Side/reverse audit remains open.
+
+- [x] Location feedback flags: plant at current position, comment, edit/delete, retain locally and export all notes as copyable text (v0.3.29).
+- [ ] When the user pastes exported location feedback, add each item to this checklist with its flag ID, coordinates, world version and original comment. Track completion individually; do not treat flags as verified geometry or silently discard duplicates with different comments.
+
+## User location feedback — 13 September 2026, world v0.3.29
+
+All five items remain open until inspected, corrected and visually checked. User wording retained; headings are viewing directions, positions are metres in the game.
+
+- [ ] **88bc3dbf-9522-4dc7-8032-360131516d24 — Blackburn Road/Eagley Way junction.** X -289.6, Z 158.0, ground Y44.4; 53.612381,-2.432386; heading74°, drive. Recorded2026-09-13T21:07:50.024Z. Comment: “why the hell is this wall extending out into the road. get the whole junction correct”
+- [x] **cd3dbd08-8598-4bd8-a99d-35d3eef257b8 — upper Eagley Way road obstruction.** X -272.2, Z136.0, ground Y43.8; 53.612578,-2.432122; heading154°, drive. Recorded2026-09-13T21:08:24.091Z. Comment: “what os this weird shit in the road - get it gone”
+- [x] **e0f140d7-755c-4c34-9d12-e0012bb7e4d7 — lower Eagley Way road obstruction.** X55.9, Z31.6, ground Y24.3; 53.613516,-2.427153; heading91°, drive. Recorded2026-09-13T21:09:14.940Z. Comment: “more strange shit in the road here to mop up”
+- [ ] **34419932-5612-483f-8db5-91f162263206 — bus turning circle.** X132.6, Z34.6, ground Y18.9; 53.613489,-2.425992; heading68°, drive/off road. Recorded2026-09-13T21:10:05.224Z. Comment: “this is known as the turning circle and it where the bus turns around. it looks a complete joke right now, no detail at all”
+- [ ] **ae46b280-22e3-4388-9178-9650d042680a — Hough Lane side of Bridge Mill.** X114.5, Z25.6, ground Y19.3; 53.613570,-2.426267; heading267°, drive. Recorded2026-09-13T21:10:46.974Z. Comment: “what on earth is going on here at side of Bridge Mill - there are two gates and the wall sections should be completed”
+
+
+### Feedback status in local v0.3.30
+
+- Flags2/3: corrected the reported pale strips. Footway/steps paving now stops at mapped vehicle carriageways. Matching before/after images checked at both coordinates, full route passes.
+- Flag1: protruding wall removed from Blackburn carriageway, visually checked. Remains open for the whole junction: curved corner return, pavement shape, road joining surface, markings and planting.
+- Flag4: reference-led first pass adds block paving, kerbs and low island hedge; width6.4m estimated. Remains open for exact island outline, clipped hedge shape, trees, bus stop furniture, edge paint and turning-route validation.
+- Flag5: remains open. June2024 gate/curved return and adjacent views recorded in sources. Complete the two-gate layout and connecting boundaries from close views; current exposed ground wedge and disconnected wall ends are not corrected.
+
+## User location feedback, world v0.3.30
+
+- [ ] **2c38ae18-90f7-4282-898b-d92ba0f3bc6d — Hough Lane road dip.** X132.5, Z6.6, ground Y17.5; 53.613741,-2.425994; heading169°, drive, Hough Lane. Recorded2026-09-13T21:28:17.859Z. Comment: “strange dip in road”
+- [ ] **9217d4a4-b7d3-41cd-9c9a-c4fbfe51a208 — Threadfold Way/Hough Lane junction.** X146.4, Z-28.7, ground Y16.4; 53.614058,-2.425783; heading154°, drive, Threadfold Way. Recorded2026-09-13T21:28:47.775Z. Comment: “this bit where is meets Hough Lane is awful - nothing like real life. model is properly with detail”
+
+### Local v0.3.31 feedback follow-up
+- Flag ae46b280: connected frontage wall to the existing recessed gate's curved return and continued its garden-side boundary. Blended the passage-end planting bed and added corner shrubs. Second gate location remains unresolved; clarification requested. Do not mark the two-gate task complete.
+- Flag 2c38ae18: corrected bridge road height sampling to use terrain beyond abutments instead of river-bank elevations. Rendered road and movement use the same deck profile. Validation recorded in progress.md.
+- Flag 9217d4a4: inspected June2024 panorama DQl_iPlCOrF2ekkB6nUQbQ heading154. Rebuild narrow pavement corner, black/light-topped bollards, stone posts, double yellow returns,30mph pair, bridge parapet connections and wooded/ivy corner. Trace all sides/reverse before assigning precise positions. Junction remains open.
+
+14 September user clarification: two Hough Lane-end gates, one to the cobbled passage and the other to shared landscaping behind the private gardens. The latter is not a garden entrance. v0.3.32 adds the separate passage gate and adjoining wall sections; placement/dimensions remain interpreted.
+
+v0.3.33 flag9217d4a4: added the observed three-bollard old-lane filter, adjacent stone posts/pedestrian railing, asphalt apron,30mph pair and bridge-mouth wall returns. Exact pavement radii, building model, signs beyond30mph, vegetation positions and detailed road surface remain open. Locations are interpreted, not surveyed.
+
+v0.3.36: user rejects junction and bollard angle. Revised bollards along the junction mouth, joined railing to end post and moved it outside the driving bend. Matched wall-return material/height to bridge and removed unsupported corner shrub clusters. Alignment remains interpreted and requires user/reference acceptance; this does not finish the junction.

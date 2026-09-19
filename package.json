@@ -10,7 +10,11 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "preview": "python3 -m http.server 3000 --bind 127.0.0.1 --directory dist/client",
+    "typecheck": "tsc --noEmit",
+    "test:journey": "node scripts/check-journey.mjs",
+    "test:locations": "node scripts/check-locations.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

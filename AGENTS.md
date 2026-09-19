@@ -6,6 +6,12 @@ Build a convincing browser driving and walking game of Eagley, Bolton. The main 
 
 Local accuracy matters more than decorative additions. Prioritise road alignment, elevation, Eagley Brook, mill proportions, retaining walls, the Bridge Mill car park and garages, and vegetation in the right places. The user knows this area and expects recognisable details.
 
+## Current handover
+
+Read README.md, docs/CONTEXT.md, docs/STREETVIEW_STATUS.md and docs/PLAN.md first. They summarize current state; progress.md and older survey entries contain superseded interpretations. The user rejected the Hough/Threadfold junction, and v0.3.36 is still provisional. Do not resume cosmetic prop placement before fixing the connected layout.
+
+Portable validation now lives in scripts/: use npm run test:journey and npm run test:locations with npm run preview running. Legacy ../work scripts are optional local history, not a fresh-checkout dependency.
+
 ## Before changing the game
 
 - Read `progress.md` for completed work, known limitations and previous validation.
@@ -101,7 +107,7 @@ Update `progress.md` with what changed, what was checked, relevant screenshots a
 
 ## Publishing
 
-Local development is authorised. An earlier external Sites source upload was rejected by automatic approval review because the destination had not been explicitly approved. Do not retry that upload or publish the project until the user authorises the external destination. Keep credentials, temporary research downloads and user photographs out of commits and deployment artifacts.
+Local development is authorised. On 2026-09-10 the user paused Sites publishing until they explicitly ask to resume. Build and preview locally; do not push source to Sites, save versions or deploy during this pause. The existing live site stays at v0.3.3. Keep credentials, temporary research downloads and user photographs out of commits and deployment artifacts.
 
 ## World version
 
@@ -110,3 +116,9 @@ Increment `WORLD_VERSION` in `lib/world-version.ts` for each user-visible world 
 The attached houses opposite Bridge Mill garages, OSM 727427311/312/313, are three storeys with only the bottom floor partly sunken. The user confirms a small bridge to each door. Preserve their dedicated model in lib/court-houses.ts, continuous roof and raised entrance access. Do not return them to generic two-storey buildings or simply bury their frontage in court terrain.
 
 The user specifically rejects the Bridge Mill wall as viewed from Eagley Way. Audit the road-facing boundary independently of the passage retaining face; do not treat either as accepted. TODO.md now requires a frame-by-frame, every-available-panorama audit of the complete journey, with coverage gaps and matching in-game views recorded.
+
+User correction, 10 September 2026: Bridge Mill main east end facing the turning circle has no windows. Keep this wall blank. The user corrected the earlier west-end interpretation; retain west-end windows.
+
+Location feedback (v0.3.29): user can place numbered flags with comments and export them as text. When pasted back, turn each comment into a coordinate-linked TODO preserving the stable flag ID and source world version. Flags are user observations, not completed survey. Notes live in the browser under eagley-review-flags-v1; do not clear them during development or change the storage key without migration. Bird-mode flags use ground beneath the player, not camera ray targeting.
+
+14 September user clarification: two Hough Lane-end gates, one to the cobbled passage and the other to shared landscaping behind the private gardens. The latter is not a garden entrance. v0.3.32 adds the separate passage gate and adjoining wall sections; placement/dimensions remain interpreted.

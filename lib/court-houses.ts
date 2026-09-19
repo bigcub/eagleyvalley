@@ -1,3 +1,4 @@
+import {slateMaterial,roofUV} from './building-surfaces';
 import * as T from 'three';
 export const courtHouseLocal=(x:number,z:number)=>[(x-40.42)*.997-(z-7.45)*.079,(x-40.42)*.079+(z-7.45)*.997];
 export const courtDoorPositions=[1.7,14.1,22.0];
@@ -13,8 +14,8 @@ export function addCourtHouses({box,batch,stone,trim,dark,glass,entry}:Helpers){
  const B=(u:number,y:number,v:number,w:number,h:number,d:number,m:T.Material)=>{const [x,z]=world(u,v);if(m===stone){const g=new T.BoxGeometry(w,h,d),p=g.getAttribute('position'),n=g.getAttribute('normal'),uv=g.getAttribute('uv');for(let i=0;i<p.count;i++)uv.setXY(i,(Math.abs(n.getX(i))>.5?p.getZ(i):p.getX(i))/2,(Math.abs(n.getY(i))>.5?p.getZ(i):p.getY(i))/2);g.rotateY(rot);g.translate(x,y,z);batch(g,m)}else box(x,y,z,w,h,d,m,rot)};
  B(11.8,base+4.1,-3.88,23.6,8.2,7.76,stone);
  const roof=new T.BufferGeometry(),verts=[-.25,0,.25,23.85,0,.25,3.6,1.65,-3.88,20,1.65,-3.88,-.25,0,-8.01,23.85,0,-8.01],p:number[]=[];
- for(let i=0;i<verts.length;i+=3){const [x,z]=world(verts[i],verts[i+2]);p.push(x,base+8.2+verts[i+1],z)}roof.setAttribute('position',new T.Float32BufferAttribute(p,3));roof.setIndex([0,2,3,0,3,1,4,5,3,4,3,2,0,4,2,1,3,5]);roof.computeVertexNormals();batch(roof,new T.MeshStandardMaterial({color:'#535a59',roughness:.9,side:T.DoubleSide}));
- function window(u:number,y:number,v:number,w=1.05){B(u,y,v,w+.18,1.45,.16,trim);B(u,y,v+.09,w,1.29,.12,glass);B(u,y,v+.17,.055,1.3,.05,trim);B(u,y+.12,v+.17,w,.045,.05,trim);B(u,y-.8,v,w+.3,.14,.3,stone)}
+ for(let i=0;i<verts.length;i+=3){const [x,z]=world(verts[i],verts[i+2]);p.push(x,base+8.2+verts[i+1],z)}roof.setAttribute('position',new T.Float32BufferAttribute(p,3));roof.setIndex([0,2,3,0,3,1,4,5,3,4,3,2,0,4,2,1,3,5]);roof.computeVertexNormals();roofUV(roof);batch(roof,slateMaterial());
+ function window(u:number,y:number,v:number,w=1.05){const outward=v<0?-1:1;B(u,y,v,w+.18,1.45,.16,trim);B(u,y,v+outward*.09,w,1.29,.12,glass);B(u,y,v+outward*.17,.055,1.3,.05,trim);B(u,y+.12,v+outward*.17,w,.045,.05,trim);B(u,y-.8,v,w+.3,.14,.3,stone)}
  const bays=[1.7,3.65,6.05,8.95,11.35,14.1,17.0,19.5,22.0];
  for(const u of bays){window(u,entry+4.05,.08,courtDoorPositions.includes(u)?.7:1.05);if(!courtDoorPositions.includes(u))window(u,entry+1.35,.08);window(u,base+1.35,.08)}
  // Rear openings are provisional pending a closer view.
