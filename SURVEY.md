@@ -101,3 +101,25 @@ EAG-021: 53.6130528,-2.4293204, panorama fLYr9gdDoSVVpb0Z6E4t9A, June2024, forwa
 | EAG-026 | 53.6131045,-2.4285779 | RJ78tVUTMnIxHbpiwCJFJQ | 82 and172, side view shows plain panel face, moss base/top, drainage edge, patchy ivy, ferns and flowering shrubs. |
 
 These five consecutive positions extend forward coverage; side/reverse gaps remain, except026 right inspected. Yellow lines are not clearly present through this new stretch: do not extrapolate them. Local v0.3.28 extends plain wall/separate left barriers to estimated x=-40, adds interpreted panel seams and drainage lip, fern layer/ivy patches and a flowering clump. Plant locations, dimensions and cutoff remain estimates; actual wall endpoint not reached. Resume026 heading82. No section accepted.
+
+## Hough Lane junction follow-up,19September2026
+
+- DQl_iPlCOrF2ekkB6nUQbQ, June2024, heading65 rechecked: three black removable bollards in a dropped asphalt crossing, curved kerb and raised flanking pavement, pedestrian rail to the north.
+- Navigated into old Hough Lane to CD44JCXYHZPTLGAoXPEVlg at53.6140576,-2.4256538. Imagery changes to **Aug2022**. Heading65 shows Eagley Hall frontage; heading230 gives reverse view of crossing, pavement lobes, stone posts and separate narrow footbridge beside road bridge. Metal rails, not stone parapets, on footbridge.
+- Aerial53.61402,-2.42585 zoom21 reviewed. North-up road bend and old-lane mouth checked against mapped anchors; tree cover obscures southern edges. Acquisition date unavailable. No imagery saved as assets.
+- v0.3.37 joins interpreted pavement surfaces/ground sampling and substitutes metal rails for generic footbridge stone walls. This is junction evidence only; forward audit still resumesEAG-026. Exact kerb trace, foliage and Eagley Hall model remain open.
+
+
+## Hough bridge and crossing, 19 September 2026, v0.3.38
+
+Inspected through the browser, starting at DQl_iPlCOrF2ekkB6nUQbQ heading65, then the recorded old-lane reverse CD44JCXYHZPTLGAoXPEVlg heading230. Followed visible navigation to J2OzBk7ztAD0mx85G5KuCg, then Xfqx0n9UZdny-vrzXJfziQ, then _odWeZzd3Ye8T0rGT_epug. Navigation does not establish that every intervening panorama was visited.
+
+| Panorama | Camera latitude, longitude | Date / inspected headings | Evidence |
+| --- | --- | --- | --- |
+| J2OzBk7ztAD0mx85G5KuCg | 53.6139815, -2.4256686 | Aug2022 / 230 | Asphalt footbridge approach, four tapered stone posts across its old-lane side, railings and stone road parapet distinct. |
+| Xfqx0n9UZdny-vrzXJfziQ | 53.6138692, -2.425911 | June2024 / 230, 50 | Narrow road carriageway between stone walls, separate metal-railed pedestrian deck alongside; no separate pavement inside the road parapets. |
+| _odWeZzd3Ye8T0rGT_epug | 53.6139476, -2.4258488 | June2024 / 50, 230 | Road widens into bend beyond parapets; separate footbridge joins asphalt pavement; old-lane crossing and bollards visible. |
+
+Model discrepancy established: generic 6.4m road bridge and its parapet overlapped the independently mapped pedestrian deck. Local correction uses interpreted 3.8m carriageway and 1.05m parapet height, tapered approaches, separate continuous footbridge and consistent southern approach levels. Neither dimension is measured. Mapped centrelines retained. Crossing pavement and adjacent road heights now share a datum, with kerbs dropping toward the crossing. Duplicate generic paving behind the north railing removed.
+
+Matching coordinate/heading comparisons saved locally as outputs/hough-reference-1..4.png. These are bird views at 3m above ground, not exact camera-height matches. Ground-level walking views: outputs/hough-walk-north.png and hough-walk-south.png. Reference IDs map to DQl, Xfq, _od and CD44 respectively. Four-direction panorama coverage remains incomplete; no imagery is distributed. Missing details include the four tapered posts, precise kerb curves, tactile paving, sign inventory, Eagley Hall and vegetation. Junction remains open for further modelling and user review.

@@ -1,4 +1,4 @@
-import {addHoughJunction} from './hough-junction';
+import {addHoughJunction,addHoughFootbridge,onJunctionPavement,junctionGroundWeight} from './hough-junction';
 import type {ReviewFlag} from './review-flags';
 import {grassTexture,retainingTexture} from './landscape-materials';
 import {masonryUV,slateTexture} from './building-surfaces';
@@ -34,6 +34,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  const courtAccess=segments([roads.find(f=>f.id==='655432311')!]),eagleySegments=segments(roads.filter(f=>f.name==='Eagley Way'));
  function nearest(x:number,z:number,segs:any[]){let best={d:Infinity,x:0,z:0,t:0,s:segs[0]};for(const s of segs){const dx=s.b[0]-s.a[0],dz=s.b[1]-s.a[1],t=T.MathUtils.clamp(((x-s.a[0])*dx+(z-s.a[1])*dz)/(dx*dx+dz*dz||1),0,1),px=s.a[0]+dx*t,pz=s.a[1]+dz*t,d=Math.hypot(px-x,pz-z);if(d<best.d)best={d,x:px,z:pz,t,s}}return best}
  const [survey,terrainBuffer]=await Promise.all([fetch('/eagley-survey.json').then(r=>{if(!r.ok)throw Error('Survey unavailable');return r.json() as Promise<{x0:number,z0:number,step:number,cols:number,rows:number,trees:number[][]}>}),fetch('/eagley-terrain.bin').then(r=>{if(!r.ok)throw Error('Terrain unavailable');return r.arrayBuffer()})]);
+ const houghFootSegments=roadSeg.filter(s=>['655432306','655432307'].includes(s.f.id));
  const elevations=new Uint16Array(terrainBuffer);
  function sampledTerrain(x:number,z:number){const u=T.MathUtils.clamp((x-survey.x0)/survey.step,0,survey.cols-1.001),v=T.MathUtils.clamp((z-survey.z0)/survey.step,0,survey.rows-1.001),i=Math.floor(u),j=Math.floor(v),a=j*survey.cols+i;return T.MathUtils.lerp(T.MathUtils.lerp(elevations[a],elevations[a+1],u-i),T.MathUtils.lerp(elevations[a+survey.cols],elevations[a+survey.cols+1],u-i),v-j)/100}
  const brookDatum=sampledTerrain(91,-55)-.35;
@@ -84,9 +85,16 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
   if(n.d>5.8||z>houghSouth[1]||z<houghNorth[1])return undefined;
   return T.MathUtils.lerp(sampledTerrain(...houghSouth),sampledTerrain(...houghNorth),n.t)+.38;
  }
- function roadY(x:number,z:number,r=nearest(x,z,roadSeg)){const deck=r.s?.f.name==='Hough Lane'?houghDeck(x,z):undefined;if(deck!==undefined)return deck;if(r.s?.f.id==='655432309'&&x>18&&x<70)return terrain(r.x,r.z)+.13;if(inPoly(x,z,brookParking))return brookParkingY(x,z)+.025;if(r.s?.f.tags.bridge){const p=r.s.f.points,a=p[0],b=p[p.length-1],n=nearest(x,z,[{a,b}]);return T.MathUtils.lerp(terrain(a[0],a[1]),terrain(b[0],b[1]),n.t)+.38}return terrain(r.x,r.z)+.38}
+ function rawRoadY(x:number,z:number,r=nearest(x,z,roadSeg)){if(r.s?.f.id==='655432307'){const p:P[]=r.s.f.points,a=p[0],b=p[p.length-1];return T.MathUtils.lerp(houghDeck(...a)!,sampledTerrain(...b)+.38,nearest(x,z,[{a,b}]).t)}const deck=(r.s?.f.name==='Hough Lane'||['655432305','655432306'].includes(r.s?.f.id))?houghDeck(x,z):undefined;if(deck!==undefined)return deck;if(r.s?.f.id==='655432309'&&x>18&&x<70)return terrain(r.x,r.z)+.13;if(inPoly(x,z,brookParking))return brookParkingY(x,z)+.025;if(r.s?.f.tags.bridge){const p=r.s.f.points,a=p[0],b=p[p.length-1],n=nearest(x,z,[{a,b}]);return T.MathUtils.lerp(terrain(a[0],a[1]),terrain(b[0],b[1]),n.t)+.38}return terrain(r.x,r.z)+.38}
+ function roadY(x:number,z:number,r=nearest(x,z,roadSeg)){
+  const original=rawRoadY(x,z,r);
+  if(x<141||x>153||z< -40||z> -13.1||['655432306','655432307'].includes(r.s?.f.id))return original;
+  return T.MathUtils.lerp(original,junctionBaseY(z),junctionGroundWeight(x,z));
+ }
  function courtY(x:number,z:number){const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return houseEntry-2.35;const approach=passageApproach(x,z);if(approach!==undefined)return approach;const n=nearest(x,z,courtAccess),level=sampledTerrain(n.x,n.z)+.38;return level}
- function ground(x:number,z:number){if(inPoly(x,z,brookParking))return brookParkingY(x,z);const gate=gateApproach(x,z);if(gate!==undefined)return gate;const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return well;const approach=passageApproach(x,z);if(approach!==undefined)return approach;if(inPassage(x,z))return passageY;if(inPoly(x,z,court))return courtY(x,z);const r=nearest(x,z,roadSeg);return r.d<width(r.s.f)/2+1.3?roadY(x,z,r):terrain(x,z)+.13}
+ function junctionBaseY(z:number){const n=nearest(143.4,-38.8,roadSeg);return T.MathUtils.lerp(terrain(n.x,n.z)+.38,houghDeck(145.9,-13.64)!,T.MathUtils.clamp((z+38.8)/25.16,0,1))}
+ function junctionPavementY(x:number,z:number){const drop=T.MathUtils.smoothstep(z,-27.5,-26.7)*(1-T.MathUtils.smoothstep(z,-20.4,-19.6));return junctionBaseY(z)+.08*(1-drop);}
+ function ground(x:number,z:number){const foot=nearest(x,z,houghFootSegments);if(foot.d<=.95)return roadY(x,z,foot);if(onJunctionPavement(x,z))return junctionPavementY(x,z);if(x>141&&x<153&&z> -40&&z< -13.1&&junctionGroundWeight(x,z)>0)return roadY(x,z);if(inPoly(x,z,brookParking))return brookParkingY(x,z);const gate=gateApproach(x,z);if(gate!==undefined)return gate;const well=courtHouseGround(x,z,houseEntry);if(well!==undefined)return well;const approach=passageApproach(x,z);if(approach!==undefined)return approach;if(inPassage(x,z))return passageY;if(inPoly(x,z,court))return courtY(x,z);const r=nearest(x,z,roadSeg);return r.d<width(r.s.f)/2+1.3?roadY(x,z,r):terrain(x,z)+.13}
  const mats:Record<string,T.Material>={},batches:Record<string,T.BufferGeometry[]>={};
  function mat(key:string,color:string,rough=1){if(!mats[key])mats[key]=new T.MeshStandardMaterial({color,roughness:rough});return mats[key] as T.MeshStandardMaterial}
  function batch(g:T.BufferGeometry,m:T.Material){if(m.userData.pitchedRoof){if(g.index)g=g.toNonIndexed();g.computeVertexNormals()}if(m===stone||m===brick)masonryUV(g,m===stone?4:1.2);const key=m.uuid;mats[key]=m;(batches[key]??=[]).push(g.index?g.toNonIndexed():g)}
@@ -109,7 +117,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  }
  makeLand(-750,-650,1500,1300,2,true);makeLand(0,-40,140,100,.5);
 
- function ribbon(points:P[],width:number,m:T.Material,yFn:(x:number,z:number)=>number,offset=0,keep?:(a:P,b:P)=>boolean){const p:number[]=[],uv:number[]=[],idx:number[]=[];let dist=0;points.forEach((a,i)=>{const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)],dx=after[0]-before[0],dz=after[1]-before[1],l=Math.hypot(dx,dz)||1,nx=-dz/l,nz=dx/l;if(i)dist+=Math.hypot(a[0]-before[0],a[1]-before[1]);for(const side of [-1,1]){const x=a[0]+nx*(width/2*side+offset),z=a[1]+nz*(width/2*side+offset);p.push(x,yFn(x,z),z);uv.push((side+1)/2,dist/8)}if(i&&(!keep||keep(points[i-1],a))){const k=i*2;idx.push(k-2,k-1,k,k-1,k+1,k)}});const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();batch(g,m)}
+ function ribbon(points:P[],width:number|((x:number,z:number)=>number),m:T.Material,yFn:(x:number,z:number)=>number,offset=0,keep?:(a:P,b:P)=>boolean){const p:number[]=[],uv:number[]=[],idx:number[]=[];let dist=0;points.forEach((a,i)=>{const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)],dx=after[0]-before[0],dz=after[1]-before[1],l=Math.hypot(dx,dz)||1,nx=-dz/l,nz=dx/l;if(i)dist+=Math.hypot(a[0]-before[0],a[1]-before[1]);for(const side of [-1,1]){const x=a[0]+nx*((typeof width==='number'?width:width(...a))/2*side+offset),z=a[1]+nz*((typeof width==='number'?width:width(...a))/2*side+offset);p.push(x,yFn(x,z),z);uv.push((side+1)/2,dist/8)}if(i&&(!keep||keep(points[i-1],a))){const k=i*2;idx.push(k-2,k-1,k,k-1,k+1,k)}});const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();batch(g,m)}
  function densify(p:P[],step=3){const out:P[]=[];for(let i=1;i<p.length;i++){const a=p[i-1],b=p[i],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/step));for(let j=0;j<n;j++)out.push([a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n])}out.push(p[p.length-1]);return out}
  // Trim pavement/marking segments wherever another mapped carriageway joins them.
  function roadEdge(points:P[],w:number,m:T.Material,yfn:(x:number,z:number)=>number,offset:number,f:Feature){
@@ -117,7 +125,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
   ribbon(points,w,m,yfn,offset,(a,b)=>{
    const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
    const x=(a[0]+b[0])/2-dz/len*offset,z=(a[1]+b[1])/2+dx/len*offset;
-   if(x>137&&x<151&&z> -28&&z< -12&&(m===paving||m===kerb))return false;
+   if((m===paving||m===kerb)&&((x>137&&x<151&&z> -28&&z< -12)||(x>142&&x<151&&z> -39&&z<=-28)))return false;
    const n=nearest(x,z,others.filter(s=>{const ox=s.b[0]-s.a[0],oz=s.b[1]-s.a[1];return Math.abs((dx*ox+dz*oz)/(len*(Math.hypot(ox,oz)||1)))<.96}));
    return !n.s||n.d>=width(n.s.f)/2+w/2+.15;
   });
@@ -125,12 +133,13 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  const waterMat=new T.MeshStandardMaterial({color:'#548b89',metalness:.45,roughness:.19,transparent:true,opacity:.88});
  for(const w of water){ribbon(densify(w.points),10,soil,(x,z)=>riverY(x,z)-.4);ribbon(densify(w.points),7,waterMat,(x,z)=>riverY(x,z));}
  const waterLines: T.Line[]=[];for(let i=0;i<70;i++){const s=riverSeg[i%riverSeg.length],t=(i*.618)%1,x=T.MathUtils.lerp(s.a[0],s.b[0],t),z=T.MathUtils.lerp(s.a[1],s.b[1],t);const g=new T.BufferGeometry().setFromPoints([new T.Vector3(x,riverY(x,z)+.06,z),new T.Vector3(x+1.6,riverY(x,z)+.06,z+.18)]);const l=new T.Line(g,new T.LineBasicMaterial({color:'#cee4d6',transparent:true,opacity:.25}));scene.add(l);waterLines.push(l)}
- function width(f:Feature){if(f.id==='549204394')return 6.4;return f.tags.highway==='trunk'?10:['footway','steps','cycleway','path'].includes(f.tags.highway)?1.8:f.tags.highway==='service'?4.6:6.4}
+ function width(f:Feature){if(f.id==='73858744')return 3.8;if(f.id==='549204394')return 6.4;return f.tags.highway==='trunk'?10:['footway','steps','cycleway','path'].includes(f.tags.highway)?1.8:f.tags.highway==='service'?4.6:6.4}
  const gravel=mat('riversideGravel','#aaa99a');gravel.map=gravelTexture();gravel.bumpMap=gravel.map;gravel.bumpScale=.025;
- for(const f of roads){if(f.id==='655432304')continue;const w=width(f),foot=w<2,p=densify(f.points,foot?.35:3);const own=segments([f]);const yfn=(x:number,z:number)=>roadY(x,z,nearest(x,z,own));
- if(!foot){for(const side of [-1,1]){if((f.tags.highway==='service'&&f.id!=='549204394')||(f.name==='Eagley Way'&&side===1))continue;const walkPoints=f.name==='Eagley Way'?p.filter(q=>q[0]<18):p;if(walkPoints.length<2)continue;if(f.id!=='549204394')roadEdge(walkPoints,1.1,paving,(x,z)=>yfn(x,z)+.07,side*(w/2+.7),f);roadEdge(walkPoints,.16,kerb,(x,z)=>yfn(x,z)+.08,side*(w/2+.08),f)}}ribbon(p,w,foot?(f.id==='655432309'?gravel:paving):(f.id==='549204394'||f.name==='Threadfold Way'&&f.id!=='655432303')?blockPaving:asphalt,yfn,0,foot?(a,b)=>{
+ for(const f of roads){if(['655432304','655432305'].includes(f.id))continue;const w=width(f),foot=w<2,p=densify(f.points,foot||f.id==='655432303'?.35:3);const own=segments([f]);const yfn=(x:number,z:number)=>roadY(x,z,nearest(x,z,own));
+ if(!foot&&f.id!=='73858744'){for(const side of [-1,1]){if((f.tags.highway==='service'&&f.id!=='549204394')||(f.name==='Eagley Way'&&side===1))continue;const walkPoints=f.name==='Eagley Way'?p.filter(q=>q[0]<18):p;if(walkPoints.length<2)continue;if(f.id!=='549204394')roadEdge(walkPoints,1.1,paving,(x,z)=>yfn(x,z)+.07,side*(w/2+.7),f);roadEdge(walkPoints,.16,kerb,(x,z)=>yfn(x,z)+.08,side*(w/2+.08),f)}}ribbon(p,f.id==='681379568'||f.id==='727434505'?(x,z)=>{const end=f.id==='681379568'?f.points[f.points.length-1]:f.points[0];return T.MathUtils.lerp(3.8,6.4,Math.min(1,Math.hypot(x-end[0],z-end[1])/Math.min(6,Math.hypot(f.points[0][0]-f.points[f.points.length-1][0],f.points[0][1]-f.points[f.points.length-1][1]))))}:w,foot?(f.id==='655432309'?gravel:paving):(f.id==='549204394'||f.name==='Threadfold Way'&&f.id!=='655432303')?blockPaving:asphalt,yfn,0,foot?(a,b)=>{
  // OSM paths meet road centrelines; their paving must stop at the carriageway edge.
  const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
+ if(f.id==='655432306')return true;
  if(f.id==='655432309'&&gateApproach(mx,mz)!==undefined)return false;
  const n=nearest(mx,mz,roadSeg.filter(s=>width(s.f)>2));
  return !n.s||n.d>width(n.s.f)/2+.12;
@@ -138,7 +147,7 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
  if(f.tags.highway==='trunk'||f.name==='Eagley Way'){let walked=0;for(let i=1;i<p.length;i++){walked+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(walked%10<3)roadEdge([p[i-1],p[i]],.1,paint,(x,z)=>yfn(x,z)+.035,0,f)}}
  if(f.name==='Eagley Way'){const inspected=p.filter(q=>q[0]<=-118);if(inspected.length>1){const yellow=mat('surveyYellowLines','#b5a365');for(const side of [-1,1])for(const d of [.12,.31])roadEdge(inspected,.075,yellow,(x,z)=>yfn(x,z)+.03,side*(w/2-d),f);}}
  if(f.name==='Threadfold Way'){const yellow=mat('yellowLines','#c7af65');for(const side of [-1,1])for(const d of [.12,.31])roadEdge(p,.075,yellow,(x,z)=>yfn(x,z)+.025,side*(w/2-d),f);}
- if(f.tags.bridge){for(let i=1;i<p.length;i++){const a=p[i-1],b=p[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz);for(const side of [-1,1]){const x=(a[0]+b[0])/2+Math.cos(rot)*(w/2+.45)*side,z=(a[1]+b[1])/2-Math.sin(rot)*(w/2+.45)*side;box(x,yfn(x,z)+.7,z,.55,1.4,len+.1,stone,rot)}}}
+ if(f.tags.bridge&&!['655432306','73858744'].includes(f.id)){for(let i=1;i<p.length;i++){const a=p[i-1],b=p[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz);for(const side of [-1,1]){const x=(a[0]+b[0])/2+Math.cos(rot)*(w/2+.45)*side,z=(a[1]+b[1])/2-Math.sin(rot)*(w/2+.45)*side;box(x,yfn(x,z)+.7,z,.55,1.4,len+.1,stone,rot)}}}
  }
  // Mapped access aisle and a modest paved court beside Bridge Mill.
 
@@ -303,14 +312,22 @@ export async function createGame(host:HTMLElement,onHud:(s:any)=>void){
   roadsideShrubs.push({x,z,y:terrain(x,z),h});
  // Retain the raised west passage apron instead of leaving paving floating above the bank.
  for(let z=12;z<27;z+=1){const a:P=[71.8,z],b:P=[71.8,z+1],ya=Math.min(sampledTerrain(...a)-.15,passageY-.3),yb=Math.min(sampledTerrain(...b)-.15,passageY-.3);masonry(a,b,ya,yb,passageY-.07-ya,passageY-.07-yb);wallSegments.pop()}
- // North bridge mouth: wall returns frame the bend and wooded verge.
- for(const path of [[[138.62,-15.15],[139.35,-17.5],[140.4,-19.1]],[[145.18,-11.94],[146.65,-14.9],[148.1,-16.8],[150.1,-17.5]]] as P[][])
-  for(let i=1;i<path.length;i++)masonry(path[i-1],path[i],roadY(...path[i-1]),roadY(...path[i]),1.4,1.4,stone);
- wallSegments.push(...addHoughJunction({box,batch,ground,dark,stone,trim}));
- // Asphalt apron of the filtered old lane; preserve its mapped centreline.
+ // Narrow road bridge and separate footbridge, checked in both directions in June2024.
+ // 3.8m carriageway is interpreted, not measured. Keep both parapets outside it.
+ const roadBridge=roads.find(f=>f.id==='73858744')!,bridgeEnds=roadBridge.points;
+ const ba=bridgeEnds[0],bb=bridgeEnds[bridgeEnds.length-1],bl=Math.hypot(bb[0]-ba[0],bb[1]-ba[1]);
+ const bnx=-(bb[1]-ba[1])/bl,bnz=(bb[0]-ba[0])/bl;
+ for(const side of [-1,1]){
+  const a:P=[ba[0]+bnx*2.175*side,ba[1]+bnz*2.175*side],b:P=[bb[0]+bnx*2.175*side,bb[1]+bnz*2.175*side];
+  masonry(a,b,roadY(...a),roadY(...b),1.05,1.05,stone,false,false);
+  const end:P=side===-1?[141.1,-18.0]:[144.6,-15.4];
+  masonry(b,end,roadY(...b),roadY(...end),1.05,1.05,stone,false,false);
+ }
+ wallSegments.push(...addHoughJunction({box,batch,ground,dark,stone,trim,paving:asphalt,kerb},junctionPavementY));
+ wallSegments.push(...addHoughFootbridge({box,batch,ground,dark,stone,trim,paving},roads.find(f=>f.id==='655432306')!.points));
+ // Asphalt crossing of the filtered old lane, following the mapped centreline.
  const oldLane=roads.find(f=>f.id==='655432304')!;
- ribbon(densify(oldLane.points,.3),5.2,asphalt,(x,z)=>roadY(x,z)+.018);
- // Corner vegetation awaits a proper footprint trace; remove the floating shrub clusters.
+ ribbon(densify(oldLane.points,.3),5.2,asphalt,(x,z)=>(onJunctionPavement(x,z)?junctionPavementY(x,z):roadY(x,z))+.018);
  // Threadfold Way north boundary, checked against June 2024 Street View.
  const threadfold=roads.find(f=>f.id==='655432303')!,threadPath=densify(threadfold.points,2);
  for(let j=1;j<threadPath.length;j++){const a=threadPath[j-1],b=threadPath[j],x=(a[0]+b[0])/2;if(x<45||x>130)continue;const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),nx=-dz/len,nz=dx/len,aa:P=[a[0]+nx*5.1,a[1]+nz*5.1],bb:P=[b[0]+nx*5.1,b[1]+nz*5.1];masonry(aa,bb,roadY(...a)-.2,roadY(...b)-.2,x>104?1.9:1.05,x>104?1.9:1.05);}

@@ -672,3 +672,8 @@ All five items remain open until inspected, corrected and visually checked. User
 v0.3.33 flag9217d4a4: added the observed three-bollard old-lane filter, adjacent stone posts/pedestrian railing, asphalt apron,30mph pair and bridge-mouth wall returns. Exact pavement radii, building model, signs beyond30mph, vegetation positions and detailed road surface remain open. Locations are interpreted, not surveyed.
 
 v0.3.36: user rejects junction and bollard angle. Revised bollards along the junction mouth, joined railing to end post and moved it outside the driving bend. Matched wall-return material/height to bridge and removed unsupported corner shrub clusters. Alignment remains interpreted and requires user/reference acceptance; this does not finish the junction.
+
+v0.3.37 Hough junction: replace erroneous footbridge stone parapets with metal rails, share bridge datum with pedestrian crossing, model flanking pavement and lower bollard socket bases. Exact pavement trace, Eagley Hall and landscape remain open. New reverse reference is Aug2022, not June2024.
+
+
+19September v0.3.38 junction pass: separated narrow road bridge from the mapped footbridge, joined approach heights, added dropped kerb edges and removed duplicate north-side pavement. Full junction task remains open. New references in SURVEY.md establish four tapered stone posts on the footbridge approach, still unmodelled; exact kerb trace, tactile paving, Eagley Hall and planting remain priorities. Do not treat this pass as acceptance.

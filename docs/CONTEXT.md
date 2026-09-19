@@ -1,6 +1,6 @@
 # Current project context
 
-Handover updated19September2026. World v0.3.36; this documentation pass does not change the world version.
+Handover updated19September2026. World v0.3.38. Latest pass separates the narrow road bridge from the footbridge, joins walking levels through its approaches and crossing, adds dropped kerb edges and removes duplicate north paving. The junction remains unfinished. Eagley Hall, four tapered approach posts, exact kerbs and planting remain open.
 
 ## Product and current state
 
@@ -45,4 +45,6 @@ User prefers action and concise updates. They recently requested small passes be
 
 This repository root was originally `.../i/game`; it already had Git history before handover. Preserve that history and existing work. The parent `work/` contains historical local-only artifacts. Portable copies of the journey/location checks are now in scripts/.
 
-World version is lib/world-version.ts, separate from package version. Increment only for visible game changes. Sites publishing remains paused; GitHub backup is separately authorized. Browser review notes belong to the user; never clear their storage during testing.
+World version is lib/world-version.ts, separate from package version. Increment only for visible game changes. Sites publishing remains paused; User requested no GitHub push for this pass on19September; keep changes local unless asked to push. Browser review notes belong to the user; never clear their storage during testing.
+
+Local preview for the19September v0.3.38 pass is port3001. Port3000 was serving an older checkout; verify the visible world version before testing.

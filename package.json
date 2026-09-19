@@ -14,7 +14,8 @@
     "preview": "python3 -m http.server 3000 --bind 127.0.0.1 --directory dist/client",
     "typecheck": "tsc --noEmit",
     "test:journey": "node scripts/check-journey.mjs",
-    "test:locations": "node scripts/check-locations.mjs"
+    "test:locations": "node scripts/check-locations.mjs",
+    "test:hough": "node scripts/check-hough-walk.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
