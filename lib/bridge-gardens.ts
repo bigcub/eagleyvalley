@@ -88,11 +88,7 @@ export function addBridgeGardens({box,batch,leaf,stone,dark,terrain,passageY}:He
   }
   for(const plot of plots){lawn(plot);hedge(plot[0],plot[1],1.35)}
   // Shared divisions occur once, rather than overlapping hedges from each plot.
-  for(let i=1;i<plots.length;i++)hedge(plots[i][0],plots[i][plots[i].length-1],1.15);
+  for(let i=1;i<plots.length;i++){const end=plots[i][plots[i].length-1];hedge(plots[i][0],[end[0],end[1]-3.25],1.15)}
   hedge([70,0],[70,-5.5],1.3);hedge([111.5,-4.3],[113.1,-1.8],1.3);hedge([113.1,-1.8],[113.4,10.8],1.3);
-  // Small paved areas adjoining the rear elevation; individual furniture awaits photos.
-  const paving=new T.MeshStandardMaterial({color:'#8b8773',roughness:.95});
-  for(const [x,width] of [[81,3.4],[85.8,4.6],[91.3,4.2],[97.2,5.1],[103.8,5.2]]){
-    const rear=9.43+(x-78.79)*.0415;patch(x,rear-1.35,width,2.5,paving,(px,pz)=>terrain(px,pz)+.04);
-  }
+  // Rear patios and solid dividers are modelled in bridge-rear.ts from IMG_8274.
 }

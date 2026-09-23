@@ -1,6 +1,6 @@
 # Current project context
 
-Handover updated19September2026. World v0.3.39. Latest pass separates the narrow road bridge from the footbridge, joins walking levels through its approaches and crossing, adds dropped kerb edges and removes duplicate north paving. The junction remains unfinished. Eagley Hall now has Claude Fable's dedicated first-pass stone model and separate brick block, still awaiting local accuracy review. Four tapered approach posts, exact kerbs and planting remain open.
+Handover updated 23 September 2026. World v0.3.40. Latest pass separates the narrow road bridge from the footbridge, joins walking levels through its approaches and crossing, adds dropped kerb edges and removes duplicate north paving. The junction remains unfinished. Eagley Hall now has Claude Fable's dedicated first-pass stone model and separate brick block, still awaiting local accuracy review. Four tapered approach posts, exact kerbs and planting remain open.
 
 ## Product and current state
 
@@ -50,3 +50,5 @@ World version is lib/world-version.ts, separate from package version. Increment 
 Local preview for the19September v0.3.38 pass is port3001. Port3000 was serving an older checkout; verify the visible world version before testing.
 
 Integrated claude/discussion-bcee90 into codex/integrate-fable as v0.3.39. Generic buildings now use one inferred road-facing door rather than doors overlapping windows on every elevation. Branch-local v0.3.37 entries in progress/sources refer to Claude's separate version sequence.
+
+World v0.3.40 adds Bridge Mill rear French doors, transoms, adjacent sash windows, lanterns, flagstone patios and solid timber dividers from user photo IMG_8274. Each house's door and patio division are user-confirmed; the five existing modelled plots and dimensions remain estimates. Dedicated module lib/bridge-rear.ts shares patio formation with terrain and registers fence collision lines.

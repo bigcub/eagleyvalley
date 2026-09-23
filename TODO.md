@@ -677,3 +677,7 @@ v0.3.37 Hough junction: replace erroneous footbridge stone parapets with metal r
 
 
 19September v0.3.38 junction pass: separated narrow road bridge from the mapped footbridge, joined approach heights, added dropped kerb edges and removed duplicate north-side pavement. Full junction task remains open. New references in SURVEY.md establish four tapered stone posts on the footbridge approach, still unmodelled; exact kerb trace, tactile paving, Eagley Hall and planting remain priorities. Do not treat this pass as acceptance.
+
+### 19 September — Bridge Mill rear photo correction
+- [x] v0.3.40: paired white glazed French doors and solid timber patio dividers using IMG_8274 and user's confirmation, with paving and collision alignment.
+- [ ] Verify the complete rear house count, door/window positions, patio widths and fence lengths; existing five plot divisions remain estimated. Photo detail does not complete the surrounding geography audit.
