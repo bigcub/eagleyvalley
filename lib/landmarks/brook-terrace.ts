@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 const length = Math.hypot(48.04, 4.12),
   angle = -Math.atan2(4.12, 48.04);
 const point = (u: number, v: number): [number, number] => [
@@ -14,23 +15,12 @@ export const brookTerrace = [
 // User river views show a continuous raised terrace and dark privacy dividers.
 // Width, level and individual patio divisions are interpreted, not surveyed.
 export function addBrookTerrace(
+  kit: Kit,
   base: number,
   ground: (x: number, z: number) => number,
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  stone: T.Material,
-  trim: T.Material,
-  dark: T.Material,
 ) {
+  const { box, batch } = kit;
+  const { stone, trim, dark } = kit.m;
   const paving = new T.MeshStandardMaterial({
     color: '#85877c',
     roughness: 0.95,

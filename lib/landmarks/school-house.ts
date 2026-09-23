@@ -1,38 +1,16 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  stone: T.Material;
-  trim: T.Material;
-  dark: T.Material;
-  glass: T.Material;
-  base: number;
-  points: P[];
-};
 
 // OSM footprint 727404344, with roof and facade composition interpreted from
 // Historic England 1388260 and Sarah Bowles' March 2024 photograph.
-export function addSchoolHouse({
-  box,
-  batch,
-  stone,
-  trim,
-  dark,
-  glass,
-  base,
-  points,
-}: Helpers) {
+export function addSchoolHouse(
+  kit: Kit,
+  { base, points }: { base: number; points: P[] },
+) {
+  const { box, batch } = kit;
+  const { stone, trim, dark, glass } = kit.m;
   const rot = -Math.atan2(0.427, 0.904),
     world = (u: number, v: number): P => [
       50.53 + u * 0.904 + v * 0.427,

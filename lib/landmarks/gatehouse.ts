@@ -1,37 +1,19 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  glass: T.Material;
-  dark: T.Material;
-  stone: T.Material;
-  base: number;
-  foundationBottom: number;
-  points: P[];
-};
 // Public June 2024 Eagley Way panorama: rendered gable, cross windows and lower porch.
 // Footprint is mapped; heights, roof pitch and concealed elevations remain estimates.
-export function addGatehouse({
-  box,
-  batch,
-  glass,
-  dark,
-  stone,
-  base,
-  foundationBottom,
-  points,
-}: Helpers) {
+export function addGatehouse(
+  kit: Kit,
+  {
+    base,
+    foundationBottom,
+    points,
+  }: { base: number; foundationBottom: number; points: P[] },
+) {
+  const { box, batch } = kit;
+  const { glass, dark, stone } = kit.m;
   const ux = 0.662,
     uz = -0.749,
     rot = Math.atan2(-uz, ux),

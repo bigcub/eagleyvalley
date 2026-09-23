@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
 // Existing five garden divisions, not surveyed property boundaries. IMG_8274 confirms
 // one pair of French doors per house and solid timber dividers at the patios.
@@ -19,31 +20,9 @@ export function rearFormation(
     T.MathUtils.smoothstep(depth, 2.9, 4.5),
   );
 }
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  stone: T.Material;
-  dark: T.Material;
-  glass: T.Material;
-  base: number;
-};
-export function addBridgeRear({
-  box,
-  batch,
-  stone,
-  dark,
-  glass,
-  base,
-}: Helpers) {
+export function addBridgeRear(kit: Kit, base: number) {
+  const { box, batch } = kit;
+  const { stone, dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
     color: '#eeeae2',
     roughness: 0.72,

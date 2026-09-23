@@ -4,6 +4,7 @@ import { installDebugProbe } from './debug-probe';
 import { createPlay, type Hud } from './game/play';
 import { createReviewMarkers } from './game/overlays';
 import type { ReviewFlag } from './review-flags';
+import { modelContext, testHooks } from './game/hooks';
 import { addBoundaries } from './world/boundaries';
 import { addBuildings } from './world/buildings';
 import { createCollision } from './world/collision';
@@ -146,7 +147,7 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
   };
 
   // ---- Deterministic hooks for automated checks ----
-  const w = window as any;
+  const w = testHooks();
   w.render_game_to_text = () =>
     JSON.stringify({
       coordinates: 'Metres; x east, z south; origin 53.6138,-2.428',
@@ -194,7 +195,7 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
     terrain: surface.terrain,
     canStand: collision.canStand,
   });
-  const context = (document as any).modelContext;
+  const context = modelContext();
   if (context?.registerTool) {
     try {
       Promise.resolve(
@@ -216,7 +217,7 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
                 Object.keys(input).length
               )
                 throw Error('Expected an empty object');
-              return JSON.parse(w.render_game_to_text());
+              return JSON.parse(w.render_game_to_text!()) as unknown;
             },
           },
           { signal: lifecycle.signal },

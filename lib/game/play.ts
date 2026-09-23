@@ -379,7 +379,7 @@ export function createPlay(opts: {
     map.update(s.player.x, s.player.z, s.player.yaw);
   }
   function fullscreen() {
-    if (document.fullscreenElement) document.exitFullscreen();
+    if (document.fullscreenElement) void document.exitFullscreen();
     else host.parentElement?.requestFullscreen().catch(() => {});
   }
   function onKey(e: KeyboardEvent) {
@@ -475,27 +475,27 @@ export function createPlay(opts: {
       return map.visible;
     },
     sound: (m: boolean) => sound.setMuted(m),
-    key(code: string, down: boolean) {
+    key: (code: string, down: boolean) => {
       if (down) keys.add(code);
       else keys.delete(code);
     },
-    start() {
+    start: () => {
       s.started = true;
       s.paused = false;
       reset();
       updateCamera(1);
     },
-    resume() {
+    resume: () => {
       s.paused = false;
       keys.clear();
       updateHud();
     },
-    reviewLock(v: boolean) {
+    reviewLock: (v: boolean) => {
       s.reviewing = v;
       keys.clear();
       dragging = false;
     },
-    reviewSpot() {
+    reviewSpot: () => {
       const { player, mode } = s;
       return {
         x: player.x,

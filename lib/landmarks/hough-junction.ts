@@ -1,24 +1,6 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  ground: (x: number, z: number) => number;
-  dark: T.Material;
-  stone: T.Material;
-  trim: T.Material;
-  paving: T.Material;
-  kerb?: T.Material;
-};
 // Shared polygons for paving and walking. Estimated from mapped road/footbridge anchors,
 // June2024 street view and the reverse Aug2022 view; no survey dimensions claimed.
 export const junctionPavements: P[][] = [
@@ -88,9 +70,14 @@ export function junctionGroundWeight(x: number, z: number) {
 }
 // June2024 DQl_iPlCOrF2ekkB6nUQbQ headings65/154. Positions interpreted against OSM.
 export function addHoughJunction(
-  { box, batch, ground, dark, stone, trim, paving, kerb }: Helpers,
+  kit: Kit,
+  ground: (x: number, z: number) => number,
   pavementY: (x: number, z: number) => number,
 ) {
+  const { box, batch } = kit;
+  const { dark, stone, trim, kerb } = kit.m;
+  // The junction carriageway continues the Hough Lane asphalt.
+  const paving = kit.m.asphalt;
   const barriers: { a: P; b: P }[] = [];
   for (const outline of junctionPavements) {
     const shape = new T.Shape(outline.map(([x, z]) => new T.Vector2(x, -z))),
@@ -270,9 +257,12 @@ export function addHoughJunction(
 // Separate mapped pedestrian bridge655432306. The old generic renderer incorrectly
 // enclosed this narrow deck with the road bridge's stone walls.
 export function addHoughFootbridge(
-  { box, batch, dark, ground }: Helpers,
+  kit: Kit,
+  ground: (x: number, z: number) => number,
   points: P[],
 ) {
+  const { box, batch } = kit;
+  const { dark } = kit.m;
   const a = points[0],
     b = points[points.length - 1],
     dx = b[0] - a[0],

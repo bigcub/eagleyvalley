@@ -212,7 +212,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   }
 
   addParkingCourt(kit, surface);
-  addBrookParking(kit.batch, box, surface.brookParkingY, asphalt, paint, kerb);
+  addBrookParking(kit, surface.brookParkingY);
 
   // Asphalt crossing of the filtered old lane, following the mapped centreline.
   const oldLane = data.roads.find((f) => f.id === OSM.houghOldLane)!;

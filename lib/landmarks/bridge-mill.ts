@@ -3,35 +3,12 @@ import { createPottedTopiary } from '../vegetation/potted-topiary';
 import { settMaterials } from '../materials/sett-material';
 import { passageWallZ } from './bridge-passage';
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 type P = [number, number];
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  stone: T.Material;
-  trim: T.Material;
-  dark: T.Material;
-  glass: T.Material;
-  base: number;
-};
-export function addBridgeFront({
-  box,
-  batch,
-  stone,
-  trim,
-  dark,
-  glass,
-  base,
-}: Helpers) {
+export function addBridgeFront(kit: Kit, base: number) {
+  const { box, batch } = kit;
+  const { stone, trim, dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
       color: '#eeeae0',
       roughness: 0.72,
@@ -220,14 +197,9 @@ export function addBridgeFront({
 
 // Original OSM western projection, retained separately from the main mill volume.
 // Historic England identifies this as a former boiler house; roof height is estimated.
-export function addBridgeEngineHouse({
-  box,
-  batch,
-  stone,
-  dark,
-  glass,
-  base,
-}: Helpers) {
+export function addBridgeEngineHouse(kit: Kit, base: number) {
+  const { box, batch } = kit;
+  const { stone, dark, glass } = kit.m;
   const p: P[] = [
     [75.61, 11.34],
     [78.7, 11.48],

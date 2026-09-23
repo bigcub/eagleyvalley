@@ -141,7 +141,7 @@ export function createEngineSound() {
         gain.connect(audio.destination);
         osc.start();
       }
-      if (audio) audio.resume();
+      if (audio) void audio.resume();
       if (gain) gain.gain.value = muted ? 0 : 0.025;
     },
     update(mode: string, speed: number) {
@@ -154,7 +154,7 @@ export function createEngineSound() {
           : 0;
     },
     close() {
-      audio?.close();
+      void audio?.close();
     },
   };
 }

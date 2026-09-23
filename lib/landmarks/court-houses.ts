@@ -1,5 +1,6 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,
   (x - 40.42) * 0.079 + (z - 7.45) * 0.997,
@@ -16,35 +17,11 @@ export function courtHouseGround(
     ? entry
     : entry - 2.35;
 }
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  stone: T.Material;
-  trim: T.Material;
-  dark: T.Material;
-  glass: T.Material;
-  entry: number;
-};
 // Three attached homes opposite the garages. User confirms three storeys and door bridges.
 // June 2024 Eagley Way panorama informs visible upper windows and entrance arrangement.
-export function addCourtHouses({
-  box,
-  batch,
-  stone,
-  trim,
-  dark,
-  glass,
-  entry,
-}: Helpers) {
+export function addCourtHouses(kit: Kit, entry: number) {
+  const { box, batch } = kit;
+  const { stone, trim, dark, glass } = kit.m;
   const base = entry - 2.7,
     rot = Math.atan2(0.079, 0.997),
     world = (u: number, v: number) => [

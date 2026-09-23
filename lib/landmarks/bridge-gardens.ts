@@ -1,36 +1,23 @@
 import { passageWallZ } from './bridge-passage';
 import * as T from 'three';
-
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  leaf: T.Material;
-  stone: T.Material;
-  dark: T.Material;
-  terrain: (x: number, z: number) => number;
-  passageY: number;
-};
+import type { Kit } from '../core/kit';
 
 // Planting is interpreted from the supplied passage photos and brook-side reference.
 // These are small borders and lawns, not surveyed property boundaries.
-export function addBridgeGardens({
-  box,
-  batch,
-  leaf,
-  stone,
-  dark,
-  terrain,
-  passageY,
-}: Helpers) {
+export function addBridgeGardens(
+  kit: Kit,
+  {
+    leaf,
+    terrain,
+    passageY,
+  }: {
+    leaf: T.Material;
+    terrain: (x: number, z: number) => number;
+    passageY: number;
+  },
+) {
+  const { box, batch } = kit;
+  const { stone, dark } = kit.m;
   const earth = new T.MeshStandardMaterial({ color: '#494637', roughness: 1 });
   const grass = new T.MeshStandardMaterial({ color: '#637449', roughness: 1 });
   const petals = ['#c391a6', '#e4d7bf', '#b3a4bd'].map(

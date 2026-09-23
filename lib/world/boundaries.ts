@@ -30,7 +30,7 @@ export type PlantingHints = {
 // a comment says otherwise.
 export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { box, batch, beam, mat } = kit;
-  const { stone, dark, trim, kerb, paving, asphalt, glass } = kit.m;
+  const { stone, dark, trim, kerb } = kit.m;
   const {
     terrain,
     sampledTerrain,
@@ -45,16 +45,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const walls: Wall[] = [];
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
-  walls.push(
-    ...addBridgeRear({
-      box,
-      batch,
-      stone,
-      dark,
-      glass,
-      base: surface.bridgeBase,
-    }),
-  );
+  walls.push(...addBridgeRear(kit, surface.bridgeBase));
 
   const boundaryStone = mat('boundaryStone', '#b2ad98');
   boundaryStone.map = masonryTexture(true);
@@ -390,11 +381,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const gatePaving = mat('gatePaving', '#858477');
   gatePaving.side = T.DoubleSide;
   walls.push(
-    ...addBridgeSideGate({
-      box,
-      batch,
-      stone: boundaryStone,
-      dark,
+    ...addBridgeSideGate(kit, {
+      wallStone: boundaryStone,
       paving: gatePaving,
       ground,
     }),
@@ -430,7 +418,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       );
     }
   // The other gate serves the cobbled passage, not a private garden.
-  walls.push(...addPassageGate({ box, dark }, passageY));
+  walls.push(...addPassageGate(kit, passageY));
   for (const path of [
     [
       [106.55, 20.66],
@@ -497,15 +485,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       false,
     );
   }
-  walls.push(
-    ...addHoughJunction(
-      { box, batch, ground, dark, stone, trim, paving: asphalt, kerb },
-      surface.junctionPavementY,
-    ),
-  );
+  walls.push(...addHoughJunction(kit, ground, surface.junctionPavementY));
   walls.push(
     ...addHoughFootbridge(
-      { box, batch, ground, dark, stone, trim, paving },
+      kit,
+      ground,
       data.roads.find((f) => f.id === OSM.houghFootbridge)!.points,
     ),
   );

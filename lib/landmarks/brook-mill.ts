@@ -1,16 +1,16 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 // Upper-storey segmental heads described in Historic England 1388079.
 // Dimensions are interpreted; present-day opening counts remain under review.
 export function addBrookUpperWindow(
+  kit: Kit,
   x: number,
   y: number,
   z: number,
   rot: number,
-  glass: T.Material,
-  trim: T.Material,
-  brick: T.Material,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
 ) {
+  const { batch } = kit;
+  const { glass, trim, brick } = kit.m;
   const w = 1.55,
     h = 2.25,
     rise = 0.23;
@@ -62,25 +62,9 @@ export function addBrookUpperWindow(
 
 // June 2024 north elevation: alternating glazed bays and recessed balconies.
 // Bay widths, recess depth and floor heights are interpreted from the street view.
-export function addBrookNorth(
-  base: number,
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  stone: T.Material,
-  brick: T.Material,
-  trim: T.Material,
-  glass: T.Material,
-  dark: T.Material,
-) {
+export function addBrookNorth(kit: Kit, base: number) {
+  const { box } = kit;
+  const { stone, brick, trim, glass, dark } = kit.m;
   const length = 46.34,
     angle = -Math.atan2(3.95, 46.17),
     pitch = length / 14;
@@ -157,25 +141,9 @@ export function addBrookNorth(
 // South elevation from user views X59,Z14 and X127,Z27.
 // Fourteen-bay schedule follows the documented long elevation; obscured bays
 // remain provisional. Penultimate floor has arches, top floor has flat heads.
-export function addBrookSouth(
-  base: number,
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  stone: T.Material,
-  brick: T.Material,
-  trim: T.Material,
-  glass: T.Material,
-  dark: T.Material,
-) {
+export function addBrookSouth(kit: Kit, base: number) {
+  const { box } = kit;
+  const { stone, brick, trim, glass, dark } = kit.m;
   const length = Math.hypot(48.04, 4.12),
     angle = -Math.atan2(4.12, 48.04),
     pitch = length / 14;
@@ -250,23 +218,12 @@ export function addBrookSouth(
 }
 
 export function addBrookRoof(
+  kit: Kit,
   base: number,
   points: [number, number][],
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  brick: T.Material,
-  trim: T.Material,
-  dark: T.Material,
 ) {
+  const { box, batch } = kit;
+  const { brick, trim, dark } = kit.m;
   const roof = new T.MeshStandardMaterial({
     color: '#929697',
     roughness: 0.85,

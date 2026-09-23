@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
 const plantingRuns = [
   { a: [17, -42], b: [30, -55.5], w: 1.2, h: 1.45 },
@@ -39,22 +40,11 @@ function inPlanting(x: number, z: number) {
   });
 }
 export function addBrookParking(
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void,
+  kit: Kit,
   height: (x: number, z: number) => number,
-  asphalt: T.Material,
-  paint: T.Material,
-  kerb: T.Material,
 ) {
+  const { box, batch } = kit;
+  const { asphalt, paint, kerb } = kit.m;
   const shape = new T.Shape(brookParking.map(([x, z]) => new T.Vector2(x, -z))),
     source = new T.ShapeGeometry(shape).toNonIndexed(),
     pos = source.getAttribute('position'),

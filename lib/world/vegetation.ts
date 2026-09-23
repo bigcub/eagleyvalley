@@ -104,15 +104,7 @@ export function addVegetation(
   addWoodlandFerns(scene, plants.ferns);
   addRoadsideShrubs(scene, plants.shrubs, leaf);
   addBrookHedges(scene, leaf, surface.brookParkingY);
-  addBridgeGardens({
-    box: kit.box,
-    batch,
-    leaf,
-    stone: kit.m.stone,
-    dark: kit.m.dark,
-    terrain,
-    passageY,
-  });
+  addBridgeGardens(kit, { leaf, terrain, passageY });
   // Ivy tufts along the top of the passage retaining wall.
   for (let x = 75; x < 109; x += 1.25) {
     if (Math.sin(x * 2.3) < -0.35) continue;

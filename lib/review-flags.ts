@@ -18,8 +18,11 @@ export function isReviewFlag(v: unknown): v is ReviewFlag {
   const f = v as ReviewFlag;
   return (
     ['id', 'comment', 'version', 'createdAt', 'mode', 'road'].every(
-      (k) => typeof (f as any)[k] === 'string',
-    ) && ['x', 'y', 'z', 'heading'].every((k) => Number.isFinite((f as any)[k]))
+      (k) => typeof (f as Record<string, unknown>)[k] === 'string',
+    ) &&
+    ['x', 'y', 'z', 'heading'].every((k) =>
+      Number.isFinite((f as Record<string, unknown>)[k]),
+    )
   );
 }
 export function exportFlags(flags: ReviewFlag[]) {

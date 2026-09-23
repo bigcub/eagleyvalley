@@ -1,26 +1,10 @@
 import * as T from 'three';
-type Box = (
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-  h: number,
-  d: number,
-  m: T.Material,
-  rot?: number,
-) => void;
+import type { Kit } from '../core/kit';
 // East elevation from the local Geograph reference and Historic England 1388079.
 // Three bays each side of the stair tower. Dimensions remain interpreted.
-export function addBrookEntrance(
-  base: number,
-  box: Box,
-  batch: (g: T.BufferGeometry, m: T.Material) => void,
-  stone: T.Material,
-  brick: T.Material,
-  trim: T.Material,
-  glass: T.Material,
-  dark: T.Material,
-) {
+export function addBrookEntrance(kit: Kit, base: number) {
+  const { box, batch } = kit;
+  const { stone, brick, trim, glass, dark } = kit.m;
   const rot = -0.0854,
     cx = 113.42,
     cz = -35.27;

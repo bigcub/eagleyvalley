@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { testHooks } from './game/hooks';
 
 // Deterministic inspection hooks for regression scripts. They read the built
 // scene and the movement surface; they never change world geometry.
@@ -100,7 +101,7 @@ function surfaceGrid(
 }
 
 export function installDebugProbe(probe: Probe) {
-  (window as any).eagley_debug = {
+  testHooks().eagley_debug = {
     fingerprint: () => sceneFingerprint(probe.scene),
     surface: (which: 'wide' | 'core') =>
       which === 'wide'

@@ -61,25 +61,11 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
 
     // Dedicated landmark models.
     if (OSM.courtHouses.includes(f.id)) {
-      if (f.id === OSM.courtHouses[0])
-        addCourtHouses({
-          box,
-          batch,
-          stone,
-          trim,
-          dark,
-          glass,
-          entry: surface.houseEntry,
-        });
+      if (f.id === OSM.courtHouses[0]) addCourtHouses(kit, surface.houseEntry);
       continue;
     }
     if (f.id === OSM.gatehouse) {
-      addGatehouse({
-        box,
-        batch,
-        glass,
-        dark,
-        stone,
+      addGatehouse(kit, {
         base: Math.max(ground(-288.5, 149.3), ground(-280.8, 140.7)) + 0.08,
         foundationBottom: lowest(p) - 0.3,
         points: p,
@@ -87,26 +73,16 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
       continue;
     }
     if (f.id === OSM.schoolHouse) {
-      addSchoolHouse({
-        box,
-        batch,
-        stone,
-        trim,
-        dark,
-        glass,
-        base: lowest(p),
-        points: p,
-      });
+      addSchoolHouse(kit, { base: lowest(p), points: p });
       continue;
     }
     // Eagley Hall: dedicated stone hall; the attached brick block stays generic with a flat roof.
     const flat = f.id === OSM.eagleyHall;
     if (flat) {
-      addEagleyHall({
-        batch,
-        glass,
-        base: Math.max(...hallCorners().map((q) => terrain(...q))) - 0.7,
-      });
+      addEagleyHall(
+        kit,
+        Math.max(...hallCorners().map((q) => terrain(...q))) - 0.7,
+      );
       p = hallBrickPolygon();
       colliders.pop();
       colliders.push(
@@ -247,7 +223,7 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
               ww = mill ? 1.55 : 1.15,
               hh = mill ? 2.25 : 1.3;
             if (brookMill && level >= 3) {
-              addBrookUpperWindow(x, yy, z, rot, glass, trim, brick, batch);
+              addBrookUpperWindow(kit, x, yy, z, rot);
               continue;
             }
             if (level === 0 && k === 0 && j === doorEdge) {
@@ -338,39 +314,18 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
   }
 
   // Bridge Mill frontage and engine house sit on the passage level.
-  const passage = {
-    box,
-    batch,
-    stone,
-    trim,
-    dark,
-    glass,
-    base: surface.passageY,
-  };
-  addBridgeFront(passage);
-  colliders.push(bounds(addBridgeEngineHouse(passage)));
+  addBridgeFront(kit, surface.passageY);
+  colliders.push(bounds(addBridgeEngineHouse(kit, surface.passageY)));
 
   // Brook Mill details, interpreted from Historic England listings and photographs.
   const brook = data.buildings.find((f) => f.name === 'Brook Mill')!;
   const brookBase = surface.brookDatum;
-  addBrookNorth(brookBase, box, batch, stone, brick, trim, glass, dark);
-  addBrookSouth(brookBase, box, batch, stone, brick, trim, glass, dark);
-  addBrookTerrace(brookBase, sampledTerrain, box, batch, stone, trim, dark);
+  addBrookNorth(kit, brookBase);
+  addBrookSouth(kit, brookBase);
+  addBrookTerrace(kit, brookBase, sampledTerrain);
   colliders.push(bounds(brookTerrace));
-  addBrookRoof(
-    brookBase,
-    brook.points.slice(0, -1),
-    box,
-    batch,
-    brick,
-    trim,
-    dark,
-  );
-  colliders.push(
-    bounds(
-      addBrookEntrance(brookBase, box, batch, stone, brick, trim, glass, dark),
-    ),
-  );
+  addBrookRoof(kit, brookBase, brook.points.slice(0, -1));
+  colliders.push(bounds(addBrookEntrance(kit, brookBase)));
 
   addValleyMillCupola(kit, data, terrain);
   return colliders;

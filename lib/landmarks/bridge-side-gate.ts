@@ -1,22 +1,6 @@
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
-type Helpers = {
-  box: (
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    m: T.Material,
-    rot?: number,
-  ) => void;
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  stone: T.Material;
-  dark: T.Material;
-  paving: T.Material;
-  ground: (x: number, z: number) => number;
-};
 export const gateWorld = (u: number, v: number): P => [
   115.41 + u * 0.595 + v * 0.804,
   21.28 - u * 0.804 + v * 0.595,
@@ -30,14 +14,21 @@ export function gateLocal(x: number, z: number): P {
   ];
 }
 // June 2024 Hough Lane/Eagley Way view. Approximate position on mapped access 655432309.
-export function addBridgeSideGate({
-  box,
-  batch,
-  stone,
-  dark,
-  paving,
-  ground,
-}: Helpers): { a: P; b: P }[] {
+export function addBridgeSideGate(
+  kit: Kit,
+  {
+    wallStone,
+    paving,
+    ground,
+  }: {
+    wallStone: T.Material;
+    paving: T.Material;
+    ground: (x: number, z: number) => number;
+  },
+): { a: P; b: P }[] {
+  const { box, batch } = kit;
+  const { dark } = kit.m;
+  const stone = wallStone;
   const world = gateWorld,
     barriers: { a: P; b: P }[] = [],
     rot = Math.atan2(0.804, 0.595),
@@ -138,10 +129,9 @@ export function addBridgeSideGate({
 }
 
 // User-confirmed separate entrance to the cobbled passage. Dimensions are interpreted.
-export function addPassageGate(
-  { box, dark }: Pick<Helpers, 'box' | 'dark'>,
-  floor: number,
-): { a: P; b: P }[] {
+export function addPassageGate(kit: Kit, floor: number): { a: P; b: P }[] {
+  const { box } = kit;
+  const { dark } = kit.m;
   const x = 110,
     z0 = 23.05,
     z1 = 24.4,

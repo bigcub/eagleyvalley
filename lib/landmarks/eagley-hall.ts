@@ -5,12 +5,8 @@ import {
 } from '../materials/building-surfaces';
 import { masonryTexture } from '../materials/masonry-texture';
 import * as T from 'three';
+import type { Kit } from '../core/kit';
 type P = [number, number];
-type Helpers = {
-  batch: (g: T.BufferGeometry, m: T.Material) => void;
-  glass: T.Material;
-  base: number;
-};
 // Eagley Hall: the stone western part of OSM footprint 549512305 at the Hough Lane /
 // Threadfold Way junction. Evidence: Google Street View June 2024 (DQl_iPlCOrF2ekkB6nUQbQ,
 // headings 62-65) from the junction; August 2022 panoramas on Hough Lane (138/139 Hough Ln)
@@ -60,7 +56,9 @@ export function hallBrickPolygon(): P[] {
   ];
 }
 
-export function addEagleyHall({ batch, glass, base }: Helpers) {
+export function addEagleyHall(kit: Kit, base: number) {
+  const { batch } = kit;
+  const { glass } = kit.m;
   const rot = Math.atan2(-HALL_U[1], HALL_U[0]);
   const W = HALL_W,
     D = HALL_D,
@@ -165,8 +163,7 @@ export function addEagleyHall({ batch, glass, base }: Helpers) {
     batch(g, m);
   }
   const outNW = rot + Math.PI,
-    outSW = rot - Math.PI / 2,
-    outNE = rot + Math.PI / 2;
+    outSW = rot - Math.PI / 2;
 
   // Main body with a buried foundation so the lower ground stays closed on the falling side.
   B(W / 2, (eave - 1.8) / 2, D / 2, W, eave + 1.8, D, rock, 3);
@@ -299,9 +296,8 @@ export function addEagleyHall({ batch, glass, base }: Helpers) {
       m: T.Material,
     ) => {
       const [u, v] = at(off);
-      side === 'NW'
-        ? B(u, y, v, width, height, depth, m)
-        : B(u, y, v, depth, height, width, m);
+      if (side === 'NW') B(u, y, v, width, height, depth, m);
+      else B(u, y, v, depth, height, width, m);
     };
     box(0.05, y, w + 0.36, h + 0.36, 0.1, dress);
     box(0.09, y, w, h, 0.12, frame);
@@ -310,9 +306,8 @@ export function addEagleyHall({ batch, glass, base }: Helpers) {
       for (let i = 1; i < lights; i++) {
         const [u, v] = at(0.15);
         const d = (i / lights - 0.5) * w;
-        side === 'NW'
-          ? B(u + d, y, v, 0.07, h - 0.1, 0.1, frame)
-          : B(u, y, v + d, 0.1, h - 0.1, 0.07, frame);
+        if (side === 'NW') B(u + d, y, v, 0.07, h - 0.1, 0.1, frame);
+        else B(u, y, v + d, 0.1, h - 0.1, 0.07, frame);
       }
     box(0.15, y + h * 0.18, w - 0.1, 0.07, 0.1, frame);
     box(0.08, y + h / 2 + 0.17, w + 0.5, 0.32, 0.16, dress);
