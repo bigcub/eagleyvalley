@@ -16,6 +16,7 @@ import {
 import { roadWidth, type WorldData } from './data';
 import { OSM } from './layout';
 import type { Surface } from './surface';
+import type { RoadNetwork } from './road-network';
 
 const { lerp, clamp } = T.MathUtils;
 type Wall = { a: P; b: P };
@@ -28,7 +29,13 @@ export type PlantingHints = {
 // Walls, fences, rails and gates. Every solid boundary registers a collision
 // line in `walls`. Heights and offsets are interpreted from Street View unless
 // a comment says otherwise.
-export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
+export function addBoundaries(
+  kit: Kit,
+  surface: Surface,
+  data: WorldData,
+  net: RoadNetwork,
+  houghIsland: P[],
+) {
   const { box, batch, beam, mat } = kit;
   const { stone, dark, trim, kerb } = kit.m;
   const {
@@ -472,20 +479,29 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     const a: P = [ba[0] + bnx * 2.175 * side, ba[1] + bnz * 2.175 * side],
       b: P = [bb[0] + bnx * 2.175 * side, bb[1] + bnz * 2.175 * side];
     masonry(a, b, roadY(...a), roadY(...b), 1.05, 1.05, stone, false, false);
-    const end: P = side === -1 ? [141.1, -18.0] : [144.6, -15.4];
-    masonry(
-      b,
-      end,
-      roadY(...b),
-      roadY(...end),
-      1.05,
-      1.05,
-      stone,
-      false,
-      false,
-    );
+    // West parapet turns back along the end of the west pavement, which stops
+    // at the bridge (DQl heading 250). The east side opens onto the footbridge.
+    if (side === -1)
+      for (const [from, to] of [
+        [b, [138.3, -15.3]],
+        [
+          [138.3, -15.3],
+          [138.1, -16.8],
+        ],
+      ] as [P, P][])
+        masonry(
+          from,
+          to,
+          ground(...from) - 0.12,
+          ground(...to) - 0.12,
+          1.05,
+          1.05,
+          stone,
+          false,
+          false,
+        );
   }
-  walls.push(...addHoughJunction(kit, ground, surface.junctionPavementY));
+  walls.push(...addHoughJunction(kit, net, ground, houghIsland));
   walls.push(
     ...addHoughFootbridge(
       kit,

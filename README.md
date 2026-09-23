@@ -2,7 +2,7 @@
 
 A browser prototype for driving, walking and flying around Eagley, Bolton. The route starts at Blackburn Road/Eagley Way, runs down the valley and round Threadfold Way, and ends at Bridge Mill's car park and cobbled passage.
 
-**World v0.3.40.** Playable, but geographically unfinished. The user has rejected the Hough Lane junction and several walls, car parks and planting areas. Passing the tests doesn't mean it's accurate.
+**World v0.4.0.** Playable, but geographically unfinished. The Hough Lane junction has just been rebuilt and awaits review; several walls, car parks and planting areas remain rejected. Passing the tests doesn't mean it's accurate.
 
 ## Run locally
 

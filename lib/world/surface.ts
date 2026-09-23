@@ -12,7 +12,7 @@ import {
   BRIDGE_MILL_COURT,
   HOUGH_DECK_NORTH,
   HOUGH_DECK_SOUTH,
-  HOUGH_JUNCTION_BOX,
+  HOUGH_FOOTBRIDGE_NORTH,
   OSM,
 } from './layout';
 import { rearFormation } from '../landmarks/bridge-rear';
@@ -21,10 +21,7 @@ import { gateLocal, gateWorld } from '../landmarks/bridge-side-gate';
 import { brookTerrace } from '../landmarks/brook-terrace';
 import { brookParking } from '../landmarks/brook-mill-grounds';
 import { courtHouseGround } from '../landmarks/court-houses';
-import {
-  onJunctionPavement,
-  junctionGroundWeight,
-} from '../landmarks/hough-junction';
+import type { RoadNetwork } from './road-network';
 
 // One place for every height in the world.
 //
@@ -235,19 +232,40 @@ export function createSurface(data: WorldData) {
       y: (x, z) => (inPoly(x, z, court) ? courtY(x, z) - 0.18 : undefined),
     },
     { name: 'parking-banks', y: parkingBank },
+    // Road verges (see roadVerge) apply here, before the Eagley Way cutting.
     { name: 'eagley-way-cutting', y: eagleyCutting },
   ];
-  function terrain(x: number, z: number) {
-    for (const zone of terrainZones) {
-      const y = zone.y(x, z);
+  const vergeAt = terrainZones.findIndex(
+    (z) => z.name === 'eagley-way-cutting',
+  );
+  /** Landform without road verges: what roads and the brook are built on. */
+  function landform(x: number, z: number, from = 0) {
+    for (let i = from; i < terrainZones.length; i++) {
+      const y = terrainZones[i].y(x, z);
       if (y !== undefined) return y;
     }
     return sampledTerrain(x, z);
   }
+  /** Grass surface: landform with verges graded up or down to the road edge. */
+  function terrain(x: number, z: number) {
+    for (let i = 0; i < vergeAt; i++) {
+      const y = terrainZones[i].y(x, z);
+      if (y !== undefined) return y;
+    }
+    const v = roadVerge(x, z);
+    return v ?? landform(x, z, vergeAt);
+  }
+  function roadVerge(x: number, z: number) {
+    const v = network?.verge(x, z);
+    if (!v) return undefined;
+    // Leave the brook banks and bridge approaches to the landform.
+    if (nearest(x, z, riverSeg).d < 6) return undefined;
+    return v.t >= 1 ? undefined : lerp(v.y, landform(x, z, vergeAt), v.t);
+  }
 
   function riverY(x: number, z: number) {
     const n = nearest(x, z, riverSeg);
-    return terrain(n.x, n.z) + 0.12;
+    return landform(n.x, n.z) + 0.12;
   }
   // Bridge deck datum: sample beyond both abutments, never the bare-earth river bank.
   // June 2024 GXaLJ6-lQQXM-ZBvWlBeyw shows a continuous modest descent northward.
@@ -281,63 +299,39 @@ export function createSurface(data: WorldData) {
         : undefined;
     if (deck !== undefined) return deck;
     if (r.s?.f.id === OSM.riversidePath && x > 18 && x < 70)
-      return terrain(r.x, r.z) + 0.13;
+      return landform(r.x, r.z) + 0.13;
     if (inPoly(x, z, brookParking)) return brookParkingY(x, z) + 0.025;
     if (r.s?.f.tags.bridge) {
       const p = r.s.f.points,
         a = p[0],
         b = p[p.length - 1],
         n = nearest(x, z, [{ a, b }]);
-      return lerp(terrain(a[0], a[1]), terrain(b[0], b[1]), n.t) + 0.38;
+      return lerp(landform(a[0], a[1]), landform(b[0], b[1]), n.t) + 0.38;
     }
-    return terrain(r.x, r.z) + 0.38;
-  }
-  const J = HOUGH_JUNCTION_BOX;
-  function inJunctionBox(x: number, z: number) {
-    return x > J.x0 && x < J.x1 && z > J.z0 && z < J.z1;
-  }
-  function junctionBaseY(z: number) {
-    const n = nearest(143.4, -38.8, roadSeg);
-    return lerp(
-      terrain(n.x, n.z) + 0.38,
-      houghDeck(145.9, -13.64)!,
-      clamp((z + 38.8) / 25.16, 0, 1),
-    );
-  }
-  function junctionPavementY(x: number, z: number) {
-    const drop =
-      smoothstep(z, -27.5, -26.7) * (1 - smoothstep(z, -20.4, -19.6));
-    return junctionBaseY(z) + 0.08 * (1 - drop);
+    return landform(r.x, r.z) + 0.38;
   }
   function roadY(x: number, z: number, r = nearest(x, z, roadSeg)) {
-    const original = rawRoadY(x, z, r);
-    if (
-      !(x >= J.x0 && x <= J.x1 && z >= J.z0 && z <= J.z1) ||
-      [OSM.houghFootbridge, OSM.houghFootbridgeSouthPath].includes(r.s?.f.id)
-    )
-      return original;
-    return lerp(original, junctionBaseY(z), junctionGroundWeight(x, z));
+    return rawRoadY(x, z, r);
   }
+  // Set once the road network exists; see attachRoads().
+  let network: RoadNetwork | undefined;
 
   const groundZones: Zone[] = [
     {
       name: 'hough-footbridge',
       y: (x, z) => {
         const foot = nearest(x, z, houghFootSegments);
-        return foot.d <= 0.95 ? roadY(x, z, foot) : undefined;
+        if (foot.d > 0.95) return undefined;
+        // The deck eases into the pavement it lands on at the north end.
+        const deck = roadY(x, z, foot),
+          landing = network?.pavement(x, z);
+        if (landing === undefined) return deck;
+        const fromEnd = Math.hypot(
+          x - HOUGH_FOOTBRIDGE_NORTH[0],
+          z - HOUGH_FOOTBRIDGE_NORTH[1],
+        );
+        return lerp(landing, deck, smoothstep(fromEnd, 0.5, 3));
       },
-    },
-    {
-      name: 'hough-junction-pavement',
-      y: (x, z) =>
-        onJunctionPavement(x, z) ? junctionPavementY(x, z) : undefined,
-    },
-    {
-      name: 'hough-junction-road',
-      y: (x, z) =>
-        inJunctionBox(x, z) && junctionGroundWeight(x, z) > 0
-          ? roadY(x, z)
-          : undefined,
     },
     {
       name: 'brook-parking',
@@ -354,6 +348,16 @@ export function createSurface(data: WorldData) {
     {
       name: 'bridge-mill-court',
       y: (x, z) => (inPoly(x, z, court) ? courtY(x, z) : undefined),
+    },
+    // Carriageway polygons are exact; pavement bands can overlap them at
+    // acute corners, so the road wins.
+    {
+      name: 'carriageways',
+      y: (x, z) => network?.carriageway(x, z),
+    },
+    {
+      name: 'pavements',
+      y: (x, z) => network?.pavement(x, z),
     },
   ];
   function ground(x: number, z: number) {
@@ -384,7 +388,9 @@ export function createSurface(data: WorldData) {
     riverY,
     courtY,
     brookParkingY,
-    junctionPavementY,
+    attachRoads(roadNetwork: RoadNetwork) {
+      network = roadNetwork;
+    },
     gateApproach,
     inPassage,
     passageWallHeight,

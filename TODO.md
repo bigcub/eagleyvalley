@@ -12,15 +12,16 @@ Original wording kept. Positions are game metres; headings are viewing direction
 - [ ] **34419932-5612-483f-8db5-91f162263206, bus turning circle.** v0.3.29, X132.6 Z34.6, ground Y18.9, heading 68°. "this is known as the turning circle and it where the bus turns around. it looks a complete joke right now, no detail at all". v0.3.30 added block paving, kerbs and a low island hedge at an estimated 6.4m width. Still open: island outline, clipped hedge shape, trees, bus stop furniture, edge paint, a bus turning check.
 - [ ] **ae46b280-22e3-4388-9178-9650d042680a, Hough Lane side of Bridge Mill.** v0.3.29, X114.5 Z25.6, ground Y19.3, heading 267°. "what on earth is going on here at side of Bridge Mill - there are two gates and the wall sections should be completed". v0.3.31/32 connected the frontage wall and added the separate passage gate. Positions and dimensions of both gates remain interpreted.
 - [ ] **2c38ae18-90f7-4282-898b-d92ba0f3bc6d, Hough Lane road dip.** v0.3.30, X132.5 Z6.6, ground Y17.5, heading 169°. "strange dip in road". v0.3.31 samples the deck beyond both abutments, and rendering and movement share it. Deck levels are estimates. Needs the user to confirm.
-- [ ] **9217d4a4-b7d3-41cd-9c9a-c4fbfe51a208, Threadfold Way/Hough Lane junction.** v0.3.30, X146.4 Z-28.7, ground Y16.4, heading 154°. "this bit where is meets Hough Lane is awful - nothing like real life. model is properly with detail". Rejected again after v0.3.36. See the junction section below.
+- [ ] **9217d4a4-b7d3-41cd-9c9a-c4fbfe51a208, Threadfold Way/Hough Lane junction.** v0.3.30, X146.4 Z-28.7, ground Y16.4, heading 154°. "this bit where is meets Hough Lane is awful - nothing like real life. model is properly with detail". Rejected again after v0.3.36. v0.4.0 rebuilt it from the road network and four Street View panoramas: continuous kerbs, pavements and double yellows, the paved island, bollard line with dropped crossing, tapered posts, 20/30 signs, guardrail and lamp. Needs the user's review.
 
 Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the road, were fixed in v0.3.30.
 
 ## Hough Lane and the Threadfold Way junction
 
-- [ ] Trace the exact kerb outline, pavement radii and old-lane mouth from DQl_iPlCOrF2ekkB6nUQbQ, CD44JCXYHZPTLGAoXPEVlg and aerial imagery, then rebuild road, pavement, kerbs and walls as one layout.
-- [ ] Model the four tapered stone posts on the footbridge approach (SURVEY.md, v0.3.38 references).
-- [ ] Verify bollard line and angle, railing and parapet joins, double yellow returns, tactile paving and signs beyond the 30mph pair.
+- [x] Rebuild road, pavements, kerbs and island as one layout (v0.4.0, road network plus SURVEY.md 23 September references).
+- [x] Four tapered stone posts along the Eagley Hall lane kerb (v0.4.0).
+- [ ] User review of v0.4.0. Still interpreted: pavement widths, corner radii, bollard line position, island outline towards the brook.
+- [ ] West corner raised shrub bed with its large tree; no-motor-vehicles roundel and plate; litter bin by the guardrail.
 - [ ] Eagley Hall (lib/landmarks/eagley-hall.ts): user comparison. Interpreted: 16m plan depth, storey heights, bay spacing, tower size, porch position, gable shapes, unlettered name board.
 - [ ] Wooded and ivy corner planting from references, not guessed clusters.
 
@@ -79,6 +80,8 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 ## Engineering
 
 - [ ] Move remaining hand-placed coordinates in `lib/world/boundaries.ts` and the landmark modules into named records in `lib/world/layout.ts` with their evidence.
-- [ ] Rebuild road surfaces, kerbs and pavements from centrelines plus a per-road width spec, with proper junction meshes, so the Hough and Blackburn junctions come out of one system rather than patches.
+- [x] Road network from centrelines with per-road specs and junction meshes (v0.4.0, lib/world/road-network.ts and road-spec.ts).
+- [ ] Record per-road pavement presence and widths from Street View. Most roads use the default of 1.8m pavements both sides; the spec file says which are observed.
+- [ ] Dropped kerbs and tactile paving at other crossings (only the Hough old-lane crossing has them).
 - [ ] A spatial index for `nearest()` if load time grows. It's about 2.5s now.
 - [ ] Photo requests, one group at a time as each section starts: both directions along the passage; wide court and garage views; engine house from court and brook; wide rear elevation and gardens; School House forecourt and sides.

@@ -165,3 +165,18 @@ Overhead view at 53.61412,-2.4267, zoom 20 and 19: low grey roof, perimeter para
 ## Bridge Mill road wall, v0.3.2
 
 June 2024: revisited 53.6135558,-2.426847 facing 30 degrees; advanced to 53.6135367,-2.426537 and inspected forward/reverse. Low flat-coped wall directly borders the descending passage; taller upright-coped wall steps down beside lamp column. Overhead roof-relative trace cannot establish an independent wall foot reliably. Removed duplicate inner wall and grass strip, extending roadside retaining mesh to passage level. Paving follows revised shared boundary. Exact plan offset, passage width, step point and end joins still need local photo review. This is partial coverage, not the full run audit.
+
+## Hough Lane junction rebuild, 23 September 2026, v0.4.0
+
+Viewed in the browser pane at the recorded camera positions, converted to game coordinates. Google satellite imagery at zoom 20 and 21 was overlaid with a game grid and the OSM centrelines, which match the visible roads to within about 1-2m. The junction itself is in deep shadow from above, so kerbs were placed from Street View, not traced from the aerial.
+
+| Panorama | Camera (game X, Z) | Date / headings | Observations |
+| --- | --- | --- | --- |
+| DQl_iPlCOrF2ekkB6nUQbQ | 142.5, -26.0 | June 2024 / 65, 154, 250, 340 | 65: old Hough Lane continues NE to School Street; bollards and a short stone post close its mouth; galvanised guardrail on the NW pavement; Eagley Hall frontage pavement. 154: bridge parapet ahead-right, west pavement with double yellows, east island with bollards, stone posts, 30 sign, footbridge railing. 250: west pavement kerb curves round the corner in front of a raised shrub bed with a large tree and a car park behind; 30 sign at the parapet end. 340: Threadfold Way with pavements both sides, double yellows, guardrail and black heritage lamp on the east side, shrub bed on the west. |
+| _odWeZzd3Ye8T0rGT_epug | 142.2, -16.4 | June 2024 / 20, 95 | 20: "20" sign facing traffic coming off the bridge (the other face reads 30); old lane straight ahead with black bollards and stone posts; west shrub bed. 95: paved island with sign post, no-motor-vehicles roundel, red "CHANGED PRIORITIES" plate by the parapet end, stone posts, tactile paving, footbridge railing behind. |
+| CD44JCXYHZPTLGAoXPEVlg | 154.9, -28.7 | Aug 2022 / 230 | From inside the old lane: four black bollards with white bands in a row across the mouth, red tactile paving at both ends, a stone post at the island end, double yellows on both kerbs. |
+| J2OzBk7ztAD0mx85G5KuCg | 153.9, -20.2 | Aug 2022 / 230 | From the Eagley Hall car-park lane: four short tapered stone posts in a row along the lane kerb, stopping vehicles entering the island; double yellows on the lane kerb. |
+
+Speed sign correction: earlier models showed two 30 signs. The posts carry 30 facing north and 20 facing the bridge.
+
+Still open: exact kerb radii and pavement widths (1.8m assumed), the shrub bed and tree on the west corner, the no-motor-vehicles roundel and bin, and whether the bollard row is exactly on Threadfold Way's east kerb line.

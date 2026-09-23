@@ -49,9 +49,12 @@ The Git repository and app root is this directory. Vinext (Vite) static export, 
 | `lib/eagley-game.ts` | Orchestrator: renderer, lights, builds the world in order, game loop, test hooks |
 | `lib/core/geo.ts` | Points, segments, `nearest`, `inPoly`, `densify`, bounds |
 | `lib/core/kit.ts` | Mesh kit: `box`, `beam`, `ribbon`, `polygon`, batching by material, shared materials in `kit.m` |
+| `lib/core/mesh.ts` | Path sweeps (kerbs, walls), strips and draped polygons |
 | `lib/world/layout.ts` | Named OSM IDs and hand-traced footprints. Put new magic IDs and polygons here |
 | `lib/world/surface.ts` | Every height: `sampledTerrain`, `terrain`, `roadY`, `ground`. Ordered, named zones |
-| `lib/world/roads.ts` | Carriageways, footways, kerbs, markings, parking surfaces |
+| `lib/world/road-spec.ts` | Per-road cross-section: width, pavement and kerb per side, yellow lines, surface, corner radius |
+| `lib/world/road-network.ts` | Road topology, junction polygons, kerb paths, carriageway/pavement/verge height queries |
+| `lib/world/roads.ts` | Draws the network: surfaces, kerbs, pavements, markings; footways; parking surfaces |
 | `lib/world/buildings.ts` | Generic building generator plus dispatch to landmark models, building colliders |
 | `lib/world/boundaries.ts` | Walls, fences, rails, gates; every solid boundary registers a collision line |
 | `lib/world/vegetation.ts` | Trees, hedges, ivy, shrubs, street lights |
@@ -65,6 +68,7 @@ The Git repository and app root is this directory. Vinext (Vite) static export, 
 Rules for changes:
 
 - A new building or place gets its own module in `lib/landmarks/`, taking `(kit, options)`. Don't grow the generic generator with per-building special cases.
+- Road changes go in the road spec (widths, pavements, kerbs, lines) or as network additions (`addPaved`, `addDroppedKerb`), not as overlays drawn on top of the road.
 - A new level change is a named zone in `lib/world/surface.ts`. `terrain` drives the grass mesh and `ground` drives movement; both must agree with the rendered surface. A wall that looks right but traps the car, or paving the player sinks through, is unfinished.
 - Batch repeated geometry through the kit or instancing. Reuse materials via `kit.mat(name, colour)`. Preserve cleanup of GPU resources and listeners.
 - Don't edit `dist/`.

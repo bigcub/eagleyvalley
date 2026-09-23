@@ -16,6 +16,10 @@ export const OSM = {
   houghFootbridge: '655432306',
   houghFootbridgeSouthPath: '655432307',
   riversidePath: '655432309',
+  /** Forecourt lane in front of the cottages beside Threadfold Way's guardrail. */
+  cottageForecourt: '727434502',
+  /** Service lane along the south-west side of Eagley Hall to its car park. */
+  eagleyHallLane: '328981148',
   bridgeMillCourtAccess: '655432311',
   busTurningLoop: '549204394',
   gatehouse: '571633838',
@@ -62,9 +66,8 @@ export const BRIDGE_MILL_FOOTPRINT: P[] = [
 /** Hough Lane road-bridge deck ends, sampled beyond both abutments. */
 export const HOUGH_DECK_SOUTH: P = [128.32, 13.36];
 export const HOUGH_DECK_NORTH: P = [146.1, -20];
-
-/** Bounding box of the reconstructed Hough/Threadfold junction surface. */
-export const HOUGH_JUNCTION_BOX = { x0: 141, x1: 153, z0: -40, z1: -13.1 };
+/** North end of the Hough footbridge, where it lands on the pavement. */
+export const HOUGH_FOOTBRIDGE_NORTH: P = [145.9, -13.64];
 
 /** Playable limits for walking and driving. */
 export const WORLD_LIMITS = { x0: -420, x1: 340, z0: -250, z1: 260 };
