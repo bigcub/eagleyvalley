@@ -15,9 +15,21 @@ import {
 import { ReviewFlags } from '@/components/review-flags';
 import { WORLD_VERSION } from '@/lib/world-version';
 import { Button } from '@/components/ui/button';
+import type { createGame } from '@/lib/eagley-game';
+
+type Game = Awaited<ReturnType<typeof createGame>>;
+type Action =
+  | 'start'
+  | 'interact'
+  | 'bird'
+  | 'overhead'
+  | 'reset'
+  | 'resume'
+  | 'fullscreen';
 export default function Home() {
   const mount = useRef<HTMLDivElement>(null);
-  const engine = useRef<any>(null);
+  const engine = useRef<Game | null>(null);
+  const [game, setGame] = useState<Game | null>(null);
   const [ready, setReady] = useState(false),
     [started, setStarted] = useState(false),
     [error, setError] = useState('');
@@ -48,15 +60,16 @@ export default function Home() {
           return;
         }
         engine.current = game;
+        setGame(game);
         setReady(true);
       })
-      .catch((e) => setError(e.message));
+      .catch((e: Error) => setError(e.message));
     return () => {
       gone = true;
       engine.current?.dispose();
     };
   }, []);
-  const action = (name: string) => engine.current?.[name]?.();
+  const action = (name: Action) => engine.current?.[name]();
   return (
     <main className="world">
       <div className="world-version" aria-label="World version">
@@ -294,7 +307,7 @@ export default function Home() {
           </div>
         </>
       )}
-      {started && engine.current && <ReviewFlags engine={engine.current} />}
+      {started && game && <ReviewFlags engine={game} />}
       {help && (
         <div className="help-panel">
           <Button

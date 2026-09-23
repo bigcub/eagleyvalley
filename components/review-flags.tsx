@@ -14,28 +14,36 @@ type Engine = {
   reviewSpot: () => ReviewSpot;
   setReviewFlags: (flags: ReviewFlag[]) => void;
 };
+// Read-only on load: the user's notes are never rewritten until they save.
+function loadSavedFlags(): { flags: ReviewFlag[]; failed: boolean } {
+  try {
+    const saved: unknown = JSON.parse(
+      localStorage.getItem(FLAG_STORAGE) || '[]',
+    );
+    if (!Array.isArray(saved) || !saved.every(isReviewFlag)) throw Error();
+    return { flags: saved, failed: false };
+  } catch {
+    return { flags: [], failed: true };
+  }
+}
 export function ReviewFlags({ engine }: { engine: Engine }) {
-  const [flags, setFlags] = useState<ReviewFlag[]>([]),
+  const [initial] = useState(loadSavedFlags);
+  const [flags, setFlags] = useState<ReviewFlag[]>(initial.flags),
     [panel, setPanel] = useState<'add' | 'list' | 'export' | null>(null),
     [draft, setDraft] = useState(''),
     [spot, setSpot] = useState<ReviewSpot | null>(null),
     [editing, setEditing] = useState<string | null>(null),
-    [message, setMessage] = useState('');
+    [message, setMessage] = useState(
+      initial.failed
+        ? 'Saved flags could not be loaded. Export any new notes before leaving.'
+        : '',
+    );
   const dialog = useRef<HTMLDialogElement>(null),
     input = useRef<HTMLTextAreaElement>(null),
     trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(FLAG_STORAGE) || '[]');
-      if (!Array.isArray(saved) || !saved.every(isReviewFlag)) throw Error();
-      setFlags(saved);
-      engine.setReviewFlags(saved);
-    } catch {
-      setMessage(
-        'Saved flags could not be loaded. Export any new notes before leaving.',
-      );
-    }
-  }, [engine]);
+    engine.setReviewFlags(initial.flags);
+  }, [engine, initial]);
   useEffect(() => {
     engine.reviewLock(!!panel);
     if (panel) {
@@ -65,7 +73,7 @@ export function ReviewFlags({ engine }: { engine: Engine }) {
     setEditing(null);
     setPanel('add');
   }
-  function submit(e: React.FormEvent) {
+  function submit(e: React.SyntheticEvent) {
     e.preventDefault();
     if (!spot || !draft.trim()) return;
     const previous = flags.find((f) => f.id === editing);
@@ -218,7 +226,7 @@ export function ReviewFlags({ engine }: { engine: Engine }) {
             </button>
           </>
         )}
-        <p role="status">{message}</p>
+        <output className="review-status">{message}</output>
       </dialog>
     </>
   );
