@@ -1,6 +1,6 @@
 # Street View coverage and discrepancy register
 
-Current coverage and resume instructions: [docs/STREETVIEW_STATUS.md](docs/STREETVIEW_STATUS.md). Later entries supersede earlier resume points; no section is accepted.
+Coverage summary and the resume point are in [docs/STATUS.md](docs/STATUS.md). Later entries supersede earlier resume points. No section is accepted.
 
 Survey begun 12 September 2026. All views below were actually inspected in Google Maps through the browser. Capture date shown by Maps: June 2024. This is an unfinished survey, not certification of the existing world.
 
@@ -123,3 +123,45 @@ Inspected through the browser, starting at DQl_iPlCOrF2ekkB6nUQbQ heading65, the
 Model discrepancy established: generic 6.4m road bridge and its parapet overlapped the independently mapped pedestrian deck. Local correction uses interpreted 3.8m carriageway and 1.05m parapet height, tapered approaches, separate continuous footbridge and consistent southern approach levels. Neither dimension is measured. Mapped centrelines retained. Crossing pavement and adjacent road heights now share a datum, with kerbs dropping toward the crossing. Duplicate generic paving behind the north railing removed.
 
 Matching coordinate/heading comparisons saved locally as outputs/hough-reference-1..4.png. These are bird views at 3m above ground, not exact camera-height matches. Ground-level walking views: outputs/hough-walk-north.png and hough-walk-south.png. Reference IDs map to DQl, Xfq, _od and CD44 respectively. Four-direction panorama coverage remains incomplete; no imagery is distributed. Missing details include the four tapered posts, precise kerb curves, tactile paving, sign inventory, Eagley Hall and vegetation. Junction remains open for further modelling and user review.
+
+## Earlier Bridge Mill road boundary audit
+
+Moved from docs/street-view-audit.md.
+## Bridge Mill road boundary, 9 September 2026
+
+Status: partial survey. June 2024 imagery. These two inspected panoramas are not a frame-by-frame completion of the full route.
+
+| Position | View | Observations | Remaining work |
+| --- | --- | --- | --- |
+| 53.6135722, -2.4262459, roughly X116 Z25 | West uphill, heading 285 | Low dark rubble boundary curves around planted gate approach. Broad flat stone coping with moss. Dense broadleaf shrubs behind it. | Match curved return and vegetation; retain separate passage levels. |
+| 53.6135367, -2.4265370, roughly X97 Z29 | West uphill, heading 285 | Low wall beside the mill becomes taller further uphill. Thin roadside strip, no full pavement on mill side. Coping is broad and flat. Lamp column stands by wall. | Trace where height changes; compare reverse view and intermediate panoramas before altering profile again. |
+
+References:
+- https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135722,-2.4262459&heading=285
+- https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135367,-2.426537&heading=285
+
+The current v0.2.5 model removes the oversized wall but is not accepted as accurate. Do not infer a uniform height from these views. Continue uphill through each available panorama, inspect both sides and reverse views, and record matched game views before marking this section complete. Exact dimensions remain unmeasured.
+
+## Uphill continuation and reverse view
+
+Inspected the next navigated panorama at 53.6135558,-2.426847, June 2024, approximately X76 Z27. Forward uphill shows a taller dark wall with rough upright coping. Rotating toward the mill shows the taller section ending abruptly near the lamp/sign column, then a lower section with flat slabs. The mill and former engine-house roof are visible behind it. This resolves the coping distinction and confirms a step rather than a uniform low wall. The interpreted transition X94 and heights are not measured.
+
+Reference: https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=53.6135558,-2.426847&heading=30
+
+v0.2.6 models the taller west roadside section, individual upright coping stones and lower flat-coped east section. Further intermediate panoramas, exact alignment/transition measurements and matching gate-end planting remain open.
+
+## Gate returns, v0.2.7
+
+Revisited June 2024 at 53.6135722,-2.4262459, rotating east from the uphill view. Narrow iron gate is recessed from the road; stone returns flare out and curve into the roadside boundary, with broad flat coping. Left bank is densely planted; right side is lawn around a mature tree. Model now flares the low returns rather than using parallel block rows. Exact entrance levels, paving and connection to the long boundary remain unresolved. The bank between mill wall faces now has an explicit continuous surface to eliminate terrain-grid gaps; this is a rendering correction, not a new elevation measurement.
+
+## Brook Mill north and west, v0.3.0
+
+Surveyed two consecutive June 2024 positions from the northeast bend to 53.6143587,-2.4265031, rotating south/up at the second. The street-facing north elevation has alternating windows and balcony recesses, stone lowest storey, dark frames, thin rails and a cornice above storey three. The near northeast road surface is asphalt. Foliage obscures some bays and the entrance; this is not an every-panorama completion.
+
+Overhead view at 53.61412,-2.4267, zoom 20 and 19: low grey roof, perimeter parapet, eight fixtures, four-facet tower cap; west parking aisles, north entrance and hedge islands. Existing OSM access lanes provide the layout anchors. Modelled north elevation, roof details and initial parking formation. West/east/south opening schedules, exact tower/porch, all bay counts, drains and planted beds remain open. Do not mark Brook Mill fully accurate.
+
+2026-09-10 entrance follow-up: rotated at the northeast Brook Mill bend and advanced toward Hough Lane. June 2024 trees obscure the central east elevation; did not establish a new complete window schedule from these views. Used saved local brook-mill-front.jpg for the visible historic 3 + central tower + 3 arrangement and offset pointed porch. Exact dimensions and present-day changes remain unresolved. West elevation survey remains pending.
+
+## Bridge Mill road wall, v0.3.2
+
+June 2024: revisited 53.6135558,-2.426847 facing 30 degrees; advanced to 53.6135367,-2.426537 and inspected forward/reverse. Low flat-coped wall directly borders the descending passage; taller upright-coped wall steps down beside lamp column. Overhead roof-relative trace cannot establish an independent wall foot reliably. Removed duplicate inner wall and grass strip, extending roadside retaining mesh to passage level. Paving follows revised shared boundary. Exact plan offset, passage width, step point and end joins still need local photo review. This is partial coverage, not the full run audit.
