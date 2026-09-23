@@ -1,5 +1,9 @@
-import { slateMaterial, roofUV, masonryUV } from './building-surfaces';
-import { masonryTexture } from './masonry-texture';
+import {
+  slateMaterial,
+  roofUV,
+  masonryUV,
+} from '../materials/building-surfaces';
+import { masonryTexture } from '../materials/masonry-texture';
 import * as T from 'three';
 type P = [number, number];
 type Helpers = {

@@ -1,6 +1,6 @@
-import { slateMaterial, roofUV } from './building-surfaces';
-import { createPottedTopiary } from './potted-topiary';
-import { settMaterials } from './sett-material';
+import { slateMaterial, roofUV } from '../materials/building-surfaces';
+import { createPottedTopiary } from '../vegetation/potted-topiary';
+import { settMaterials } from '../materials/sett-material';
 import { passageWallZ } from './bridge-passage';
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';

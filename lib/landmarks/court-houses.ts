@@ -1,4 +1,4 @@
-import { slateMaterial, roofUV } from './building-surfaces';
+import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,

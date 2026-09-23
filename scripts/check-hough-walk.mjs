@@ -29,7 +29,7 @@ await page.waitForFunction(
 await page.screenshot({ path: 'outputs/hough-title.png' });
 const expectedVersion = fs
   .readFileSync('lib/world-version.ts', 'utf8')
-  .match(/WORLD_VERSION = "([^"]+)"/)[1];
+  .match(/WORLD_VERSION = ['"]([^'"]+)['"]/)[1];
 assert.ok(
   (await page.locator('body').innerText()).includes(expectedVersion),
   'Wrong preview world',

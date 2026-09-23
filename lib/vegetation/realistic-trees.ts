@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { barkTexture } from './landscape-materials';
+import { barkTexture } from '../materials/landscape-materials';
 export function addTrees(
   scene: T.Scene,
   trees: { x: number; z: number; h: number }[],

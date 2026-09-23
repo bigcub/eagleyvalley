@@ -1,4 +1,4 @@
-import { slateMaterial, roofUV } from './building-surfaces';
+import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 type P = [number, number];
 type Helpers = {
