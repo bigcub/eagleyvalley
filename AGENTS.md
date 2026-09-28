@@ -35,7 +35,7 @@ These override older notes, photos and map data. Keep them.
 - **Brook Mill and its car park** need individual reconstruction. Count windows per floor and elevation from evidence on every building; don't derive counts from wall length. The current bushes need replacing, not multiplying.
 - Don't bring back the "Find your way to Bridge Mill" objective box.
 - No road signs or double yellow lines. Pillars, bollards, lamp posts and street name plates are fine.
-- Driving must stay smooth. Pavements are walked and driven at road level; no raised kerbs under the car. The reverted v0.4.0 road network (commit 85eb221) rocked the car and slowed loading.
+- Driving must stay smooth. Pavements are walked and driven at road level; no raised kerbs under the car. The reverted v0.4.0 road network (commit 8cc9bfe) rocked the car and slowed loading.
 - Warm light in the winter photo at X127, Z27 is not a stone colour change.
 
 ## Coordinates and heights

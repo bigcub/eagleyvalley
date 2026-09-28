@@ -1,6 +1,6 @@
 # Backlog
 
-Open work only. Order and priorities are in [docs/STATUS.md](docs/STATUS.md). Finished items and the old section-by-section checklist are in Git history (commit d809cf0 and earlier).
+Open work only. Order and priorities are in [docs/STATUS.md](docs/STATUS.md). Finished items and the old section-by-section checklist are in Git history (commit 83b7520 and earlier).
 
 Nothing here is accepted as accurate until the user has reviewed it.
 
@@ -80,7 +80,7 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 ## Engineering
 
 - [ ] Move remaining hand-placed coordinates in `lib/world/boundaries.ts` and the landmark modules into named records in `lib/world/layout.ts` with their evidence.
-- [ ] Other junctions (Blackburn Road first) could reuse the Hough approach: layout as fixed data, smooth road plane, pavements walked at road level. A map-wide generated network (reverted v0.4.0, commit 85eb221) made the car rock and must not return in that form.
+- [ ] Other junctions (Blackburn Road first) could reuse the Hough approach: layout as fixed data, smooth road plane, pavements walked at road level. A map-wide generated network (reverted v0.4.0, commit 8cc9bfe) made the car rock and must not return in that form.
 - [ ] Bumpiest remaining spot on the route: X119.4 Z24.3, where Eagley Way meets the bus loop (`npm run test:ride`).
 - [ ] A spatial index for `nearest()` if load time grows. It's about 2.5s now.
 - [ ] Photo requests, one group at a time as each section starts: both directions along the passage; wide court and garage views; engine house from court and brook; wide rear elevation and gardens; School House forecourt and sides.

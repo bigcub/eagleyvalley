@@ -1,6 +1,6 @@
 # Progress
 
-One entry per world version, newest first. Add a line for every user-visible change, plus what you checked. The full earlier log, with validation details, is in Git history up to commit d809cf0.
+One entry per world version, newest first. Add a line for every user-visible change, plus what you checked. The full earlier log, with validation details, is in Git history up to commit 83b7520.
 
 ## Unreleased (no world change)
 

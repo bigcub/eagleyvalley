@@ -32,7 +32,7 @@ const CROSSING: P[] = [
   [147.55, -17.9],
 ];
 
-// Generated from the v0.4.0 road network (commit 85eb221), heights removed.
+// Generated from the v0.4.0 road network (commit 8cc9bfe), heights removed.
 export const JUNCTION_OUTLINE: P[] = [
   [140.52, -27.33],
   [146.85, -28.27],
