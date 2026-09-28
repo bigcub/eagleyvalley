@@ -128,15 +128,12 @@ const north = [
   [140.865, -3.655],
   [143.38, -8.65],
   [145.9, -13.64],
-  // Off the footbridge, over the island and across the old-lane mouth at the
-  // dropped kerbs beside the bollards, onto Threadfold Way's east pavement.
-  [146.9, -14.6],
-  [147.9, -16.6],
-  [147.4, -18.3],
-  [147.3, -21.5],
-  [147.1, -25.0],
-  [147.0, -27.8],
-  [147.2, -29.8],
+  [146.4, -16.2],
+  [146.8, -19],
+  [146.6, -21.2],
+  [146.6, -24.3],
+  [146.5, -26.2],
+  [146.8, -28.5],
 ];
 for (const [label, points] of [
   ['north', north],

@@ -11,8 +11,6 @@ import { createCollision } from './world/collision';
 import { loadWorldData } from './world/data';
 import { addLand, addWater } from './world/land';
 import { addRoads } from './world/roads';
-import { buildRoadNetwork } from './world/road-network';
-import { registerHoughIsland } from './landmarks/hough-junction';
 import { createSurface } from './world/surface';
 import { addStreetLights, addVegetation } from './world/vegetation';
 
@@ -61,21 +59,12 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
 
   // ---- World ----
   const surface = createSurface(data);
-  const roads = buildRoadNetwork(data.roads, surface.roadY);
-  const houghIsland = registerHoughIsland(roads);
-  surface.attachRoads(roads);
   const kit = createKit();
   addLand(scene, surface);
   const water = addWater(scene, kit, surface, data);
-  addRoads(kit, surface, data, roads);
+  addRoads(kit, surface, data);
   const buildingBounds = addBuildings(kit, surface, data);
-  const { walls, plants } = addBoundaries(
-    kit,
-    surface,
-    data,
-    roads,
-    houghIsland,
-  );
+  const { walls, plants } = addBoundaries(kit, surface, data);
   const collision = createCollision(surface, buildingBounds, walls);
   addVegetation(scene, kit, surface, data, plants, collision.hitBuilding);
   addStreetLights(kit, surface, data);
@@ -205,10 +194,6 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
     ground: surface.ground,
     terrain: surface.terrain,
     canStand: collision.canStand,
-    road: (x, z) => ({
-      carriageway: roads.carriageway(x, z),
-      pavement: roads.pavement(x, z),
-    }),
   });
   const context = modelContext();
   if (context?.registerTool) {

@@ -61,7 +61,7 @@ export function addLand(scene: T.Scene, surface: Surface) {
         const ids = [old.getX(i), old.getX(i + 1), old.getX(i + 2)],
           x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
           z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
-        if (x > 0 && x < 176 && z > -46 && z < 60) continue;
+        if (x > 0 && x < 140 && z > -40 && z < 60) continue;
         indices.push(...ids);
       }
       g.setIndex(indices);
@@ -85,7 +85,7 @@ export function addLand(scene: T.Scene, surface: Surface) {
     scene.add(mesh);
   }
   makeLand(-750, -650, 1500, 1300, 2, true);
-  makeLand(0, -46, 176, 106, 0.5);
+  makeLand(0, -40, 140, 100, 0.5);
 }
 
 /** Eagley Brook: soil bed, water surface and drifting ripple lines. */

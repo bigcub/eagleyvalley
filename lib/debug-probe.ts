@@ -12,7 +12,6 @@ type Probe = {
   ground: (x: number, z: number) => number;
   terrain: (x: number, z: number) => number;
   canStand: (x: number, z: number, r: number) => boolean;
-  road?: (x: number, z: number) => unknown;
 };
 
 function materialKey(m: T.Material) {
@@ -104,11 +103,6 @@ function surfaceGrid(
 export function installDebugProbe(probe: Probe) {
   testHooks().eagley_debug = {
     fingerprint: () => sceneFingerprint(probe.scene),
-    at: (x: number, z: number) => ({
-      ground: probe.ground(x, z),
-      terrain: probe.terrain(x, z),
-      road: probe.road?.(x, z),
-    }),
     surface: (which: 'wide' | 'core') =>
       which === 'wide'
         ? surfaceGrid(probe, -420, 340, -250, 260, 2)

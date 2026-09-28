@@ -1,215 +1,230 @@
 import * as T from 'three';
-import { densify, nearest, segments, type P } from '../core/geo';
+import { densify, nearest, segments, type Feature, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { gravelTexture } from '../materials/gravel-texture';
 import { addBrookParking } from '../landmarks/brook-mill-grounds';
+import { onJunctionPavement } from '../landmarks/hough-junction';
 import { roadWidth, type WorldData } from './data';
 import { OSM } from './layout';
-import { KERB, isCarriageway } from './road-spec';
-import {
-  normalAt,
-  pointAt,
-  stations,
-  type KerbPath,
-  type RoadNetwork,
-} from './road-network';
 import type { Surface } from './surface';
-import { drape, strip, sweep } from '../core/mesh';
 
-// Draws the carriageway network (surfaces, kerbs, pavements, markings),
-// footways, the Bridge Mill parking court and the Brook Mill car park.
-export function addRoads(
-  kit: Kit,
-  surface: Surface,
-  data: WorldData,
-  net: RoadNetwork,
-) {
-  const { box, mat, m } = kit;
-  const { courtY } = surface;
-  const { asphalt, blockPaving, paving, kerb, paint, soil } = m;
-  const yellow = mat('yellowLines', '#c7af65');
+const { lerp } = T.MathUtils;
 
-  // ---- Carriageways ----
-  for (const e of net.edges) {
-    const s0 = e.trim[0],
-      s1 = e.length - e.trim[1];
-    if (s1 - s0 < 0.05) continue;
-    const left: P[] = [],
-      right: P[] = [],
-      ys: [number, number][] = [];
-    for (const s of stations(e, s0, s1)) {
-      const at = pointAt(e, s),
-        n = normalAt(e, s),
-        hw = e.spec.width(...at.p) / 2;
-      const l: P = [at.p[0] - n[0] * hw, at.p[1] - n[1] * hw],
-        r: P = [at.p[0] + n[0] * hw, at.p[1] + n[1] * hw];
-      left.push(l);
-      right.push(r);
-      ys.push([net.edgeY(e, ...l), net.edgeY(e, ...r)]);
-    }
-    kit.batch(
-      strip(left, right, ys),
-      e.spec.surface === 'blocks' ? blockPaving : asphalt,
-    );
-    // Dashed centre line, kept clear of junction mouths.
-    if (e.spec.centreDashes)
-      for (let s = s0 + 1.5; s + 3 < s1 - 1.5; s += 10) {
-        const pts = [0, 1, 2, 3].map((k) => pointAt(e, s + k).p);
-        const outs = [0, 1, 2, 3].map((k) => normalAt(e, s + k));
-        kit.batch(
-          sweep(pts, outs, (i) => net.edgeY(e, ...pts[i]) + 0.02, [
-            [-0.05, 0],
-            [0.05, 0],
-          ]),
-          paint,
-        );
-      }
-  }
-  for (const j of net.junctions) {
-    const main = j.arms.reduce((a, b) => (b.hw > a.hw ? b : a)).edge;
-    kit.batch(
-      drape(j.polygon, (x, z) => net.junctionY(j, x, z), 1),
-      main.spec.surface === 'blocks' ? blockPaving : asphalt,
-    );
-  }
-
-  // ---- Kerbs, pavements, skirts and yellow lines ----
-  for (const k of net.kerbPaths) addKerbPath(k);
-  function addKerbPath(k: KerbPath) {
-    const base = k.pts.map((p, i) => net.kerbBaseY(p, k.out[i]) ?? 0);
-    // Profiles use the full kerb height; dropped crossings shift them down.
-    const lift = k.pts.map((p) => net.kerbLift(...p) - KERB.height);
-    const y = (i: number) => base[i] + (k.kerb ? lift[i] : 0);
-    const h = KERB.height,
-      w = KERB.width;
-    if (k.kerb) {
-      kit.batch(
-        sweep(k.pts, k.out, y, [
-          [0, -0.3],
-          [0, h],
-          [w, h],
-        ]),
-        kerb,
-      );
-      if (k.pavement) {
-        const outer = w + k.pavement;
-        kit.batch(
-          sweep(k.pts, k.out, y, [
-            [w, h],
-            [outer, h],
-            [outer, h - 0.55],
-          ]),
-          paving,
-        );
-      } else
-        kit.batch(
-          sweep(k.pts, k.out, y, [
-            [w, h],
-            [w, -0.45],
-          ]),
-          kerb,
-        );
-    } else if (!k.service) {
-      // Unkerbed edge: a skirt hides the gap to lower ground. Service roads
-      // mostly run inside paved courts, where a skirt would show.
-      kit.batch(
-        sweep(k.pts, k.out, y, [
-          [0, 0],
-          [0, -0.5],
-        ]),
-        soil,
-      );
-    }
-    // Double yellow lines, 0.12m and 0.31m in from the kerb face.
-    let run: number[] = [];
-    const flush = () => {
-      if (run.length > 1) {
-        const pts = run.map((i) => k.pts[i]),
-          outs = run.map((i) => k.out[i]),
-          ys = run.map((i) => base[i] + 0.012);
-        for (const d of [0.12, 0.31])
-          kit.batch(
-            sweep(pts, outs, (i) => ys[i], [
-              [-d - 0.0375, 0],
-              [-d + 0.0375, 0],
-            ]),
-            yellow,
-          );
-      }
-      run = [];
-    };
-    k.yellow.forEach((on, i) => (on ? run.push(i) : flush()));
-    flush();
-  }
-
-  // ---- Footways and paths ----
+// Carriageways, footways, kerbs, markings and parking surfaces, generated from
+// OSM centrelines. Widths are inferred; see roadWidth().
+export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
+  const { ribbon, box, mat, m } = kit;
+  const { roadY, courtY, roadSeg, gateApproach } = surface;
+  const { asphalt, blockPaving, paving, kerb, paint } = m;
   const gravel = mat('riversideGravel', '#aaa99a');
   gravel.map = gravelTexture();
   gravel.bumpMap = gravel.map;
   gravel.bumpScale = 0.025;
-  const onNetwork = (x: number, z: number) =>
-    net.carriageway(x, z) !== undefined || net.nearPavement(x, z, 0.6);
-  for (const f of data.roads) {
-    if (isCarriageway(f) || f.id === OSM.houghJunctionFootway) continue;
-    const own = segments([f]);
-    // The footbridge deck follows the walking surface, which eases it onto
-    // the pavement at its north end.
-    const yfn =
-      f.id === OSM.houghFootbridge
-        ? surface.ground
-        : (x: number, z: number) => surface.roadY(x, z, nearest(x, z, own));
-    kit.ribbon(
-      densify(f.points, 0.35),
-      roadWidth(f),
-      f.id === OSM.riversidePath ? gravel : paving,
-      yfn,
-      0,
-      (a, b) => {
-        // Footways stop where any part meets a carriageway or pavement; OSM
-        // often maps pavements again as separate footways.
-        const mx = (a[0] + b[0]) / 2,
-          mz = (a[1] + b[1]) / 2;
-        if (f.id === OSM.houghFootbridge) return true;
-        if (
-          f.id === OSM.riversidePath &&
-          surface.gateApproach(mx, mz) !== undefined
-        )
-          return false;
-        const d = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1,
-          nx = (-(b[1] - a[1]) / d) * 0.9,
-          nz = ((b[0] - a[0]) / d) * 0.9;
-        return ![
-          [mx, mz],
-          [mx + nx, mz + nz],
-          [mx - nx, mz - nz],
-          [a[0], a[1]],
-          [b[0], b[1]],
-        ].some(([x, z]) => onNetwork(x, z));
-      },
-    );
+
+  // Trim pavement/marking segments wherever another mapped carriageway joins them.
+  function roadEdge(
+    points: P[],
+    w: number,
+    material: T.Material,
+    yfn: (x: number, z: number) => number,
+    offset: number,
+    f: Feature,
+  ) {
+    const others = roadSeg.filter((s) => s.f.id !== f.id && roadWidth(s.f) > 2);
+    ribbon(points, w, material, yfn, offset, (a, b) => {
+      const dx = b[0] - a[0],
+        dz = b[1] - a[1],
+        len = Math.hypot(dx, dz) || 1;
+      const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
+        z = (a[1] + b[1]) / 2 + (dx / len) * offset;
+      // The Hough junction has its own reconstructed pavements and kerbs.
+      if (
+        (material === paving || material === kerb) &&
+        ((x > 137 && x < 151 && z > -28 && z < -12) ||
+          (x > 142 && x < 151 && z > -39 && z <= -28))
+      )
+        return false;
+      const n = nearest(
+        x,
+        z,
+        others.filter((s) => {
+          const ox = s.b[0] - s.a[0],
+            oz = s.b[1] - s.a[1];
+          return (
+            Math.abs((dx * ox + dz * oz) / (len * (Math.hypot(ox, oz) || 1))) <
+            0.96
+          );
+        }),
+      );
+      return !n.s || n.d >= roadWidth(n.s.f) / 2 + w / 2 + 0.15;
+    });
   }
 
-  // Generic stone parapets on mapped road bridges without a dedicated model.
-  for (const e of net.edges) {
-    if (!e.f.tags.bridge || e.f.id === OSM.houghRoadBridge) continue;
-    for (let i = 1; i < e.pts.length; i++) {
-      const a = e.pts[i - 1],
-        b = e.pts[i],
-        dx = b[0] - a[0],
-        dz = b[1] - a[1],
-        len = Math.hypot(dx, dz),
-        rot = Math.atan2(dx, dz),
-        w = e.spec.width(...a);
+  /** Hough Lane narrows from 6.4m to the 3.8m bridge over the last 6m. */
+  function taperedWidth(f: Feature) {
+    const end =
+      f.id === OSM.houghLaneSouth ? f.points[f.points.length - 1] : f.points[0];
+    const run = Math.min(
+      6,
+      Math.hypot(
+        f.points[0][0] - f.points[f.points.length - 1][0],
+        f.points[0][1] - f.points[f.points.length - 1][1],
+      ),
+    );
+    return (x: number, z: number) =>
+      lerp(3.8, 6.4, Math.min(1, Math.hypot(x - end[0], z - end[1]) / run));
+  }
+
+  function surfaceMaterial(f: Feature, foot: boolean) {
+    if (foot) return f.id === OSM.riversidePath ? gravel : paving;
+    return f.id === OSM.busTurningLoop ||
+      (f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop)
+      ? blockPaving
+      : asphalt;
+  }
+
+  for (const f of data.roads) {
+    if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
+    const w = roadWidth(f),
+      foot = w < 2,
+      p = densify(f.points, foot || f.id === OSM.threadfoldWayLoop ? 0.35 : 3);
+    const own = segments([f]);
+    const yfn = (x: number, z: number) => roadY(x, z, nearest(x, z, own));
+
+    // Footways and kerbs. Eagley Way has a single north-side pavement near the mill.
+    if (!foot && f.id !== OSM.houghRoadBridge) {
       for (const side of [-1, 1]) {
-        const x = (a[0] + b[0]) / 2 + Math.cos(rot) * (w / 2 + 0.45) * side,
-          z = (a[1] + b[1]) / 2 - Math.sin(rot) * (w / 2 + 0.45) * side;
-        box(x, net.edgeY(e, x, z) + 0.7, z, 0.55, 1.4, len + 0.1, m.stone, rot);
+        if (
+          (f.tags.highway === 'service' && f.id !== OSM.busTurningLoop) ||
+          (f.name === 'Eagley Way' && side === 1)
+        )
+          continue;
+        const walkPoints =
+          f.name === 'Eagley Way' ? p.filter((q) => q[0] < 18) : p;
+        if (walkPoints.length < 2) continue;
+        if (f.id !== OSM.busTurningLoop)
+          roadEdge(
+            walkPoints,
+            1.1,
+            paving,
+            (x, z) => yfn(x, z) + 0.07,
+            side * (w / 2 + 0.7),
+            f,
+          );
+        roadEdge(
+          walkPoints,
+          0.16,
+          kerb,
+          (x, z) => yfn(x, z) + 0.08,
+          side * (w / 2 + 0.08),
+          f,
+        );
+      }
+    }
+
+    ribbon(
+      p,
+      f.id === OSM.houghLaneSouth || f.id === OSM.houghLaneNorth
+        ? taperedWidth(f)
+        : w,
+      surfaceMaterial(f, foot),
+      yfn,
+      0,
+      foot
+        ? (a, b) => {
+            // OSM paths meet road centrelines; their paving must stop at the carriageway edge.
+            const mx = (a[0] + b[0]) / 2,
+              mz = (a[1] + b[1]) / 2;
+            if (f.id === OSM.houghFootbridge) return true;
+            if (
+              f.id === OSM.riversidePath &&
+              gateApproach(mx, mz) !== undefined
+            )
+              return false;
+            const n = nearest(
+              mx,
+              mz,
+              roadSeg.filter((s) => roadWidth(s.f) > 2),
+            );
+            return !n.s || n.d > roadWidth(n.s.f) / 2 + 0.12;
+          }
+        : undefined,
+    );
+
+    // Dashed centre line.
+    if (f.tags.highway === 'trunk' || f.name === 'Eagley Way') {
+      let walked = 0;
+      for (let i = 1; i < p.length; i++) {
+        walked += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
+        if (walked % 10 < 3)
+          roadEdge(
+            [p[i - 1], p[i]],
+            0.1,
+            paint,
+            (x, z) => yfn(x, z) + 0.035,
+            0,
+            f,
+          );
+      }
+    }
+    // Double yellow lines: only on the surveyed upper Eagley Way and Threadfold Way.
+    const yellowRun =
+      f.name === 'Eagley Way'
+        ? {
+            points: p.filter((q) => q[0] <= -118),
+            m: mat('surveyYellowLines', '#b5a365'),
+            lift: 0.03,
+          }
+        : f.name === 'Threadfold Way'
+          ? { points: p, m: mat('yellowLines', '#c7af65'), lift: 0.025 }
+          : undefined;
+    if (yellowRun && yellowRun.points.length > 1)
+      for (const side of [-1, 1])
+        for (const d of [0.12, 0.31])
+          roadEdge(
+            yellowRun.points,
+            0.075,
+            yellowRun.m,
+            (x, z) => yfn(x, z) + yellowRun.lift,
+            side * (w / 2 - d),
+            f,
+          );
+
+    // Generic stone parapets on mapped bridges without a dedicated model.
+    if (
+      f.tags.bridge &&
+      ![OSM.houghFootbridge, OSM.houghRoadBridge].includes(f.id)
+    ) {
+      for (let i = 1; i < p.length; i++) {
+        const a = p[i - 1],
+          b = p[i],
+          dx = b[0] - a[0],
+          dz = b[1] - a[1],
+          len = Math.hypot(dx, dz),
+          rot = Math.atan2(dx, dz);
+        for (const side of [-1, 1]) {
+          const x = (a[0] + b[0]) / 2 + Math.cos(rot) * (w / 2 + 0.45) * side,
+            z = (a[1] + b[1]) / 2 - Math.sin(rot) * (w / 2 + 0.45) * side;
+          box(x, yfn(x, z) + 0.7, z, 0.55, 1.4, len + 0.1, m.stone, rot);
+        }
       }
     }
   }
 
   addParkingCourt(kit, surface);
   addBrookParking(kit, surface.brookParkingY);
+
+  // Asphalt crossing of the filtered old lane, following the mapped centreline.
+  const oldLane = data.roads.find((f) => f.id === OSM.houghOldLane)!;
+  ribbon(
+    densify(oldLane.points, 0.3),
+    5.2,
+    asphalt,
+    (x, z) =>
+      (onJunctionPavement(x, z)
+        ? surface.junctionPavementY(x, z)
+        : roadY(x, z)) + 0.018,
+  );
 
   // Grass-island kerbs and the short perimeter at the western court.
   for (const p of [
@@ -239,13 +254,50 @@ export function addRoads(
       );
 }
 
-/** Graded Bridge Mill parking surface with three bay groups. */
+/** Triangulated, graded Bridge Mill parking surface with three bay groups. */
 function addParkingCourt(kit: Kit, surface: Surface) {
   const { court, courtY } = surface;
-  kit.batch(
-    drape(court, (x, z) => courtY(x, z) + 0.05, 2),
-    kit.m.asphalt,
-  );
+  const shape = new T.Shape(court.map((p) => new T.Vector2(p[0], -p[1]))),
+    raw = new T.ShapeGeometry(shape).toNonIndexed(),
+    rawPos = raw.getAttribute('position'),
+    pv: number[] = [],
+    pu: number[] = [];
+  // Subdivide until triangles are under 2m so the surface follows the grade.
+  function triangle(a: P, b: P, c: P, depth = 0) {
+    if (
+      depth < 4 &&
+      Math.max(
+        Math.hypot(a[0] - b[0], a[1] - b[1]),
+        Math.hypot(a[0] - c[0], a[1] - c[1]),
+        Math.hypot(c[0] - b[0], c[1] - b[1]),
+      ) > 2
+    ) {
+      const ab: P = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
+        bc: P = [(b[0] + c[0]) / 2, (b[1] + c[1]) / 2],
+        ca: P = [(c[0] + a[0]) / 2, (c[1] + a[1]) / 2];
+      triangle(a, ab, ca, depth + 1);
+      triangle(ab, b, bc, depth + 1);
+      triangle(ca, bc, c, depth + 1);
+      triangle(ab, bc, ca, depth + 1);
+    } else
+      for (const p of [a, b, c]) {
+        pv.push(p[0], courtY(...p) + 0.05, p[1]);
+        pu.push(p[0] / 8, p[1] / 8);
+      }
+  }
+  for (let i = 0; i < rawPos.count; i += 3)
+    triangle(
+      [rawPos.getX(i), -rawPos.getY(i)],
+      [rawPos.getX(i + 1), -rawPos.getY(i + 1)],
+      [rawPos.getX(i + 2), -rawPos.getY(i + 2)],
+    );
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(pv, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(pu, 2));
+  g.computeVertexNormals();
+  kit.batch(g, kit.m.asphalt);
+  raw.dispose();
+
   // Three short parking groups leave the eastern garage lane clear.
   for (const row of [
     { x: 13, z: 5, n: 6, yaw: 0 },

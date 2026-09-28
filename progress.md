@@ -8,8 +8,6 @@ One entry per world version, newest first. Add a line for every user-visible cha
 
 ## World versions
 
-- **v0.4.0** (23 Sep). Roads rebuilt as one network generated from the OSM centrelines: carriageways trimmed at junctions and joined by junction surfaces with filleted kerb corners; real kerbs with a face; pavements raised 0.12m; double yellows following kerbs round corners; verges graded to the pavement edge; OSM footways that duplicate pavements dropped. Hough Lane / Threadfold Way junction rebuilt on it from four Street View panoramas: paved island, bollard line with dropped kerbs and tactile paving, tapered posts on the Hall lane, 20/30 double-sided signs (was two 30s), CHANGED PRIORITIES plate, guardrail and heritage lamp; west parapet return moved behind the pavement. Checked: journey 55/55 with the same frontage position, car switch, locations, Hough walk both ways (largest step 0.067m, test now crosses at the dropped kerbs), fixed views and junction screenshots at Blackburn Road, the bus loop, Threadfold west end and Brook Mill car park. Load 2.8s (was 2.4s).
-
 - **v0.3.40** (19 Sep). Bridge Mill rear: paired French doors with transoms, sashes, lanterns, flag patios and timber dividers with collision, from IMG_8274. Plot widths estimated.
 - **v0.3.39** (19 Sep). Merged the Claude branch: dedicated Eagley Hall stone model and brick block; generic buildings get one road-facing door instead of doors on every wall.
 - **v0.3.38** (19 Sep). Separated the 3.8m road bridge from the footbridge, joined approach levels, dropped kerbs. Added `npm run test:hough`.
