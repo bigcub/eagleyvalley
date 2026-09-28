@@ -472,20 +472,30 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     const a: P = [ba[0] + bnx * 2.175 * side, ba[1] + bnz * 2.175 * side],
       b: P = [bb[0] + bnx * 2.175 * side, bb[1] + bnz * 2.175 * side];
     masonry(a, b, roadY(...a), roadY(...b), 1.05, 1.05, stone, false, false);
-    const end: P = side === -1 ? [141.1, -18.0] : [144.6, -15.4];
-    masonry(
-      b,
-      end,
-      roadY(...b),
-      roadY(...end),
-      1.05,
-      1.05,
-      stone,
-      false,
-      false,
-    );
+    // West parapet turns back along the end of the west pavement, which
+    // stops at the bridge (DQl heading 250). The east side opens onto the
+    // footbridge, so it has no return.
+    if (side === -1)
+      for (const [from, to] of [
+        [b, [139.0, -15.0]],
+        [
+          [139.0, -15.0],
+          [138.9, -16.5],
+        ],
+      ] as [P, P][])
+        masonry(
+          from,
+          to,
+          ground(...from) - 0.12,
+          ground(...to) - 0.12,
+          1.05,
+          1.05,
+          stone,
+          false,
+          false,
+        );
   }
-  walls.push(...addHoughJunction(kit, ground, surface.junctionPavementY));
+  walls.push(...addHoughJunction(kit, surface.vehicleRoadY, ground));
   walls.push(
     ...addHoughFootbridge(
       kit,

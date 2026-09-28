@@ -34,6 +34,8 @@ These override older notes, photos and map data. Keep them.
 - **The Hough Lane/Threadfold Way junction is rejected.** Rebuild it as one connected layout from references.
 - **Brook Mill and its car park** need individual reconstruction. Count windows per floor and elevation from evidence on every building; don't derive counts from wall length. The current bushes need replacing, not multiplying.
 - Don't bring back the "Find your way to Bridge Mill" objective box.
+- No road signs or double yellow lines. Pillars, bollards, lamp posts and street name plates are fine.
+- Driving must stay smooth. Pavements are walked and driven at road level; no raised kerbs under the car. The reverted v0.4.0 road network (commit 85eb221) rocked the car and slowed loading.
 - Warm light in the winter photo at X127, Z27 is not a stone colour change.
 
 ## Coordinates and heights
@@ -49,6 +51,7 @@ The Git repository and app root is this directory. Vinext (Vite) static export, 
 | `lib/eagley-game.ts` | Orchestrator: renderer, lights, builds the world in order, game loop, test hooks |
 | `lib/core/geo.ts` | Points, segments, `nearest`, `inPoly`, `densify`, bounds |
 | `lib/core/kit.ts` | Mesh kit: `box`, `beam`, `ribbon`, `polygon`, batching by material, shared materials in `kit.m` |
+| `lib/core/mesh.ts` | Path sweeps (kerbs), strips and draped polygons |
 | `lib/world/layout.ts` | Named OSM IDs and hand-traced footprints. Put new magic IDs and polygons here |
 | `lib/world/surface.ts` | Every height: `sampledTerrain`, `terrain`, `roadY`, `ground`. Ordered, named zones |
 | `lib/world/roads.ts` | Carriageways, footways, kerbs, markings, parking surfaces |
@@ -79,6 +82,7 @@ npm run preview            # static server on port 3000
 npm run test:journey       # full route, car switch, frontage walk, reset
 npm run test:locations     # three flagged viewpoints
 npm run test:hough         # Hough approach drive and footbridge walks
+npm run test:ride          # car height jerk, pitch and frame cost along the route
 ```
 
 Set `GAME_URL` to test another port. Check the visible world version first: an old checkout on port 3000 has fooled earlier checks.

@@ -62,9 +62,8 @@ export const BRIDGE_MILL_FOOTPRINT: P[] = [
 /** Hough Lane road-bridge deck ends, sampled beyond both abutments. */
 export const HOUGH_DECK_SOUTH: P = [128.32, 13.36];
 export const HOUGH_DECK_NORTH: P = [146.1, -20];
-
-/** Bounding box of the reconstructed Hough/Threadfold junction surface. */
-export const HOUGH_JUNCTION_BOX = { x0: 141, x1: 153, z0: -40, z1: -13.1 };
+/** North end of the Hough footbridge, where it lands on the junction island. */
+export const HOUGH_FOOTBRIDGE_NORTH: P = [145.9, -13.64];
 
 /** Playable limits for walking and driving. */
 export const WORLD_LIMITS = { x0: -420, x1: 340, z0: -250, z1: 260 };

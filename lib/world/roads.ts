@@ -3,7 +3,11 @@ import { densify, nearest, segments, type Feature, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { gravelTexture } from '../materials/gravel-texture';
 import { addBrookParking } from '../landmarks/brook-mill-grounds';
-import { onJunctionPavement } from '../landmarks/hough-junction';
+import {
+  HOUGH_CENTRE,
+  HOUGH_RADIUS,
+  inHoughCarriageway,
+} from '../landmarks/hough-junction';
 import { roadWidth, type WorldData } from './data';
 import { OSM } from './layout';
 import type { Surface } from './surface';
@@ -37,11 +41,10 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         len = Math.hypot(dx, dz) || 1;
       const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
         z = (a[1] + b[1]) / 2 + (dx / len) * offset;
-      // The Hough junction has its own reconstructed pavements and kerbs.
+      // The Hough junction draws its own kerbs and pavements.
       if (
         (material === paving || material === kerb) &&
-        ((x > 137 && x < 151 && z > -28 && z < -12) ||
-          (x > 142 && x < 151 && z > -39 && z <= -28))
+        Math.hypot(x - HOUGH_CENTRE[0], z - HOUGH_CENTRE[1]) < HOUGH_RADIUS
       )
         return false;
       const n = nearest(
@@ -89,7 +92,12 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
       foot = w < 2,
       p = densify(f.points, foot || f.id === OSM.threadfoldWayLoop ? 0.35 : 3);
     const own = segments([f]);
-    const yfn = (x: number, z: number) => roadY(x, z, nearest(x, z, own));
+    // The footbridge deck follows the walking surface, which eases it onto
+    // the junction island at its north end.
+    const yfn =
+      f.id === OSM.houghFootbridge
+        ? surface.ground
+        : (x: number, z: number) => roadY(x, z, nearest(x, z, own));
 
     // Footways and kerbs. Eagley Way has a single north-side pavement near the mill.
     if (!foot && f.id !== OSM.houghRoadBridge) {
@@ -148,7 +156,9 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
             );
             return !n.s || n.d > roadWidth(n.s.f) / 2 + 0.12;
           }
-        : undefined,
+        : (a, b) =>
+            // The Hough junction surface replaces road strips wholly inside it.
+            !(inHoughCarriageway(...a) && inHoughCarriageway(...b)),
     );
 
     // Dashed centre line.
@@ -167,29 +177,6 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
           );
       }
     }
-    // Double yellow lines: only on the surveyed upper Eagley Way and Threadfold Way.
-    const yellowRun =
-      f.name === 'Eagley Way'
-        ? {
-            points: p.filter((q) => q[0] <= -118),
-            m: mat('surveyYellowLines', '#b5a365'),
-            lift: 0.03,
-          }
-        : f.name === 'Threadfold Way'
-          ? { points: p, m: mat('yellowLines', '#c7af65'), lift: 0.025 }
-          : undefined;
-    if (yellowRun && yellowRun.points.length > 1)
-      for (const side of [-1, 1])
-        for (const d of [0.12, 0.31])
-          roadEdge(
-            yellowRun.points,
-            0.075,
-            yellowRun.m,
-            (x, z) => yfn(x, z) + yellowRun.lift,
-            side * (w / 2 - d),
-            f,
-          );
-
     // Generic stone parapets on mapped bridges without a dedicated model.
     if (
       f.tags.bridge &&
@@ -213,18 +200,6 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
 
   addParkingCourt(kit, surface);
   addBrookParking(kit, surface.brookParkingY);
-
-  // Asphalt crossing of the filtered old lane, following the mapped centreline.
-  const oldLane = data.roads.find((f) => f.id === OSM.houghOldLane)!;
-  ribbon(
-    densify(oldLane.points, 0.3),
-    5.2,
-    asphalt,
-    (x, z) =>
-      (onJunctionPavement(x, z)
-        ? surface.junctionPavementY(x, z)
-        : roadY(x, z)) + 0.018,
-  );
 
   // Grass-island kerbs and the short perimeter at the western court.
   for (const p of [

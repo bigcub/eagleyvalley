@@ -10,9 +10,11 @@ Geographically it's unfinished and the user has rejected parts of it. Mapped roa
 
 The engine was restructured on 23 September 2026 (see `AGENTS.md` for the layout). The world is unchanged, and the regression capture confirms it. Ground heights now live in one module as named zones, and every landmark takes the same kit. Future fixes should be quicker and less likely to leave overlapping strips or mismatched levels.
 
+Driving feel comes first. A generated road network with raised kerbs (v0.4.0) made the car rock and was reverted on 28 September. Road signs and double yellow lines are not modelled, at the user's request; posts, bollards, lamps and street name plates are fine. Run `npm run test:ride` before and after any road or terrain change.
+
 ## Rejected by the user, still open
 
-- The Hough Lane/Threadfold Way junction (flag 9217d4a4). Several passes adjusted bollards, railings and parapets. The connected kerb and pavement layout is still wrong.
+- The Hough Lane/Threadfold Way junction (flag 9217d4a4). v0.3.41 rebuilt it as one connected layout from four Street View panoramas; it needs the user's review.
 - The Bridge Mill wall as seen from Eagley Way. The road-facing boundary and the passage retaining face need auditing separately.
 - The bus turning circle (flag 34419932) has one rough pass and needs a real island outline, hedge and furniture.
 - The Blackburn Road junction (flag 88bc3dbf). The wall no longer sticks into the road, but the corner, pavement and markings are unchecked.
@@ -20,7 +22,7 @@ The engine was restructured on 23 September 2026 (see `AGENTS.md` for the layout
 
 ## Next, in order
 
-1. **Hough Lane junction as one section.** Trace road edges, kerbs, pavement, bollard line, railings, walls and entrances from the recorded panoramas and aerial imagery, then build them as one shared layout for visuals and collision. Add the four tapered stone posts on the footbridge approach. Compare road-level views both ways at the flagged points. Review the Eagley Hall model against references.
+1. **Hough Lane junction review.** v0.3.41 is built; fix what the user flags. Review the Eagley Hall model at the same time.
 2. **Bridge Mill boundaries and entrances.** Both gates and their approaches, the sloping roadside wall, engine house, turning circle, garage court and the court-house door bridges. Use user photos where Street View can't reach.
 3. **Continuous route audit.** Resume at EAG-026 (below), finish lower Eagley Way, then the Hough and Threadfold loop and the mill approaches, backfilling side and reverse views. Correct one section fully before moving on.
 4. **Buildings and landscape.** Per-building massing and opening schedules, starting with Brook Mill, the School House and the gatehouse. Then walls, brook edges, and tree and shrub positions. Replace the generic foliage only once positions and sizes are known.

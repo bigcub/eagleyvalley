@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test:journey": "node scripts/check-journey.mjs",
     "test:locations": "node scripts/check-locations.mjs",
-    "test:hough": "node scripts/check-hough-walk.mjs"
+    "test:hough": "node scripts/check-hough-walk.mjs",
+    "test:ride": "node scripts/check-ride.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

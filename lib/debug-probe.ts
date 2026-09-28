@@ -103,6 +103,10 @@ function surfaceGrid(
 export function installDebugProbe(probe: Probe) {
   testHooks().eagley_debug = {
     fingerprint: () => sceneFingerprint(probe.scene),
+    at: (x: number, z: number) => ({
+      ground: probe.ground(x, z),
+      terrain: probe.terrain(x, z),
+    }),
     surface: (which: 'wide' | 'core') =>
       which === 'wide'
         ? surfaceGrid(probe, -420, 340, -250, 260, 2)

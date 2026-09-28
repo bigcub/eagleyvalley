@@ -8,6 +8,8 @@ One entry per world version, newest first. Add a line for every user-visible cha
 
 ## World versions
 
+- **v0.3.41** (28 Sep). v0.4.0 road network reverted (car rocked, slower). Hough Lane / Threadfold Way junction rebuilt locally instead: one asphalt surface over the junction mouth, kerbs with a face and 1.1m pavements following filleted corners, paved island by the footbridge, five bollards between stone posts with dropped kerbs, four tapered posts on the Eagley Hall lane, guardrail and heritage lamp; west parapet return moved behind the pavement. The junction road is one smooth fitted plane blending into each approach over 7 to 14m. All double yellow lines and the junction's road signs removed. Checked with the new `npm run test:ride`: through the junction the worst height jolt fell from 0.190 to 0.007 and the worst pitch change per frame from 3.66 to 0.16 degrees; whole route worst 0.032 (was 0.190). Journey 55/55 with unchanged frontage position, car switch, locations, Hough walk both ways (largest step 0.066m). Ground changes confined to x137 to 160, z-40 to -9. Load CPU time indistinguishable from v0.3.40.
+
 - **v0.3.40** (19 Sep). Bridge Mill rear: paired French doors with transoms, sashes, lanterns, flag patios and timber dividers with collision, from IMG_8274. Plot widths estimated.
 - **v0.3.39** (19 Sep). Merged the Claude branch: dedicated Eagley Hall stone model and brick block; generic buildings get one road-facing door instead of doors on every wall.
 - **v0.3.38** (19 Sep). Separated the 3.8m road bridge from the footbridge, joined approach levels, dropped kerbs. Added `npm run test:hough`.

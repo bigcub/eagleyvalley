@@ -12,7 +12,7 @@ import {
   BRIDGE_MILL_COURT,
   HOUGH_DECK_NORTH,
   HOUGH_DECK_SOUTH,
-  HOUGH_JUNCTION_BOX,
+  HOUGH_FOOTBRIDGE_NORTH,
   OSM,
 } from './layout';
 import { rearFormation } from '../landmarks/bridge-rear';
@@ -22,8 +22,10 @@ import { brookTerrace } from '../landmarks/brook-terrace';
 import { brookParking } from '../landmarks/brook-mill-grounds';
 import { courtHouseGround } from '../landmarks/court-houses';
 import {
-  onJunctionPavement,
-  junctionGroundWeight,
+  HOUGH_CENTRE,
+  PAVE_H,
+  inHoughArea,
+  outsideIsland,
 } from '../landmarks/hough-junction';
 
 // One place for every height in the world.
@@ -195,7 +197,32 @@ export function createSurface(data: WorldData) {
     return undefined;
   }
 
+  // Guards the junction terrain zone against re-entry: road heights sample
+  // terrain on centrelines that lie inside the junction.
+  let inJunctionTerrain = false;
   const terrainZones: Zone[] = [
+    {
+      name: 'hough-junction',
+      y: (x, z) => {
+        if (inJunctionTerrain || !inHoughArea(x, z)) return undefined;
+        inJunctionTerrain = true;
+        const y = Math.min(sampledTerrain(x, z), vehicleRoadY(x, z) - 0.35);
+        inJunctionTerrain = false;
+        return y;
+      },
+    },
+    {
+      // Grass rises to meet the island's brook-side edge over 2m.
+      name: 'hough-island-bank',
+      y: (x, z) => {
+        const d = outsideIsland(x, z);
+        if (d === undefined || d > 2.2 || inJunctionTerrain) return undefined;
+        inJunctionTerrain = true;
+        const edge = vehicleRoadY(x, z) + PAVE_H - 0.06;
+        inJunctionTerrain = false;
+        return lerp(edge, sampledTerrain(x, z), smoothstep(d, 0.2, 2.2));
+      },
+    },
     {
       name: 'bridge-rear-patios',
       y: (x, z) => rearFormation(x, z, bridgeBase, sampledTerrain(x, z)),
@@ -292,31 +319,62 @@ export function createSurface(data: WorldData) {
     }
     return terrain(r.x, r.z) + 0.38;
   }
-  const J = HOUGH_JUNCTION_BOX;
-  function inJunctionBox(x: number, z: number) {
-    return x > J.x0 && x < J.x1 && z > J.z0 && z < J.z1;
-  }
-  function junctionBaseY(z: number) {
-    const n = nearest(143.4, -38.8, roadSeg);
-    return lerp(
-      terrain(n.x, n.z) + 0.38,
-      houghDeck(145.9, -13.64)!,
-      clamp((z + 38.8) / 25.16, 0, 1),
-    );
-  }
-  function junctionPavementY(x: number, z: number) {
-    const drop =
-      smoothstep(z, -27.5, -26.7) * (1 - smoothstep(z, -20.4, -19.6));
-    return junctionBaseY(z) + 0.08 * (1 - drop);
+  // Hough junction: one smooth surface. Arm heights come from different
+  // sources (bridge deck, terrain under each centreline), which disagree where
+  // the arms meet and jolted the car. Inside 7m the road follows a plane
+  // fitted to the arms between 7m and 14m out; it blends back to each arm's
+  // own height by 14m.
+  const JR0 = 7,
+    JR1 = 14;
+  const vehicleSeg = roadSeg.filter((s) => roadWidth(s.f) > 2);
+  let plane: [number, number, number] | undefined;
+  function junctionPlane() {
+    if (plane) return plane;
+    inJunctionTerrain = true;
+    const rows: [number, number, number][] = [];
+    for (const s of vehicleSeg) {
+      const len = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
+      for (let d = 0; d <= len; d += 0.5) {
+        const x = s.a[0] + ((s.b[0] - s.a[0]) * d) / (len || 1),
+          z = s.a[1] + ((s.b[1] - s.a[1]) * d) / (len || 1);
+        const r = Math.hypot(x - HOUGH_CENTRE[0], z - HOUGH_CENTRE[1]);
+        if (r < JR0 || r > JR1) continue;
+        rows.push([
+          x - HOUGH_CENTRE[0],
+          z - HOUGH_CENTRE[1],
+          rawRoadY(x, z, nearest(x, z, [s])),
+        ]);
+      }
+    }
+    inJunctionTerrain = false;
+    // Least squares for y = a + b*dx + c*dz.
+    const m = [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      v = [0, 0, 0];
+    for (const [dx, dz, y] of rows) {
+      const f = [1, dx, dz];
+      for (let r = 0; r < 3; r++) {
+        v[r] += f[r] * y;
+        for (let c = 0; c < 3; c++) m[r * 3 + c] += f[r] * f[c];
+      }
+    }
+    plane = solve3(m, v);
+    return plane;
   }
   function roadY(x: number, z: number, r = nearest(x, z, roadSeg)) {
     const original = rawRoadY(x, z, r);
+    const d = Math.hypot(x - HOUGH_CENTRE[0], z - HOUGH_CENTRE[1]);
     if (
-      !(x >= J.x0 && x <= J.x1 && z >= J.z0 && z <= J.z1) ||
+      d >= JR1 ||
       [OSM.houghFootbridge, OSM.houghFootbridgeSouthPath].includes(r.s?.f.id)
     )
       return original;
-    return lerp(original, junctionBaseY(z), junctionGroundWeight(x, z));
+    const [a, b, c] = junctionPlane();
+    const flat = a + b * (x - HOUGH_CENTRE[0]) + c * (z - HOUGH_CENTRE[1]);
+    return lerp(flat, original, smoothstep(d, JR0, JR1));
+  }
+  /** Road height using the nearest carriageway, ignoring paths. */
+  function vehicleRoadY(x: number, z: number) {
+    return roadY(x, z, nearest(x, z, vehicleSeg));
   }
 
   const groundZones: Zone[] = [
@@ -324,20 +382,22 @@ export function createSurface(data: WorldData) {
       name: 'hough-footbridge',
       y: (x, z) => {
         const foot = nearest(x, z, houghFootSegments);
-        return foot.d <= 0.95 ? roadY(x, z, foot) : undefined;
+        if (foot.d > 0.95) return undefined;
+        // The deck eases onto the junction pavement at its north end.
+        const deck = roadY(x, z, foot);
+        if (!inHoughArea(x, z)) return deck;
+        const fromEnd = Math.hypot(
+          x - HOUGH_FOOTBRIDGE_NORTH[0],
+          z - HOUGH_FOOTBRIDGE_NORTH[1],
+        );
+        return lerp(vehicleRoadY(x, z), deck, smoothstep(fromEnd, 0.5, 3));
       },
     },
+    // Junction carriageway, island and pavements: walked and driven at road
+    // level, like pavements elsewhere.
     {
-      name: 'hough-junction-pavement',
-      y: (x, z) =>
-        onJunctionPavement(x, z) ? junctionPavementY(x, z) : undefined,
-    },
-    {
-      name: 'hough-junction-road',
-      y: (x, z) =>
-        inJunctionBox(x, z) && junctionGroundWeight(x, z) > 0
-          ? roadY(x, z)
-          : undefined,
+      name: 'hough-junction',
+      y: (x, z) => (inHoughArea(x, z) ? vehicleRoadY(x, z) : undefined),
     },
     {
       name: 'brook-parking',
@@ -384,7 +444,7 @@ export function createSurface(data: WorldData) {
     riverY,
     courtY,
     brookParkingY,
-    junctionPavementY,
+    vehicleRoadY,
     gateApproach,
     inPassage,
     passageWallHeight,
@@ -396,3 +456,15 @@ function offset(y: number | undefined, d: number) {
 }
 
 export type Surface = ReturnType<typeof createSurface>;
+
+/** Solve a 3x3 linear system (row-major m) by Cramer's rule. */
+function solve3(m: number[], v: number[]): [number, number, number] {
+  const det = (a: number[]) =>
+    a[0] * (a[4] * a[8] - a[5] * a[7]) -
+    a[1] * (a[3] * a[8] - a[5] * a[6]) +
+    a[2] * (a[3] * a[7] - a[4] * a[6]);
+  const d = det(m) || 1;
+  const col = (k: number) =>
+    m.map((x, i) => (i % 3 === k ? v[Math.floor(i / 3)] : x));
+  return [det(col(0)) / d, det(col(1)) / d, det(col(2)) / d];
+}
