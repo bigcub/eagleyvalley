@@ -53,4 +53,4 @@ A section is finished when every available panorama and direction is recorded wi
 
 ## Publishing and local state
 
-Sites publishing has been paused since 10 September 2026. The live site is v0.3.3 (Sites version 9). GitHub `origin` is a private backup, updated only when the user asks. `npm run preview` serves `dist/client` on port 3000; rebuild after source changes and check the visible world version.
+The game is public at https://eagleyvalley.com, served by GitHub Pages from the public repo bigcub/eagleyvalley (`origin`); each push to `main` deploys. The old private repo is the `private` remote. OpenAI Sites stays paused at v0.3.3. `npm run preview` serves `dist/client` on port 3000; rebuild after source changes and check the visible world version.

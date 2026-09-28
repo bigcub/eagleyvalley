@@ -72,6 +72,6 @@ The first three drive and walk with normal inputs and fail on browser errors. Th
 
 ## Publishing and rights
 
-GitHub is a private source backup. Sites deployment is paused until the user resumes it; the live site is v0.3.3. `.openai/hosting.json` is Sites project metadata, not a credential.
+The game is published at https://eagleyvalley.com by GitHub Pages from the public repository bigcub/eagleyvalley; every push to `main` rebuilds and deploys it (`.github/workflows/pages.yml`). The old OpenAI Sites deployment is paused at v0.3.3. `.openai/hosting.json` is Sites project metadata, not a credential.
 
 Keep the OpenStreetMap and Environment Agency attribution. Google Street View and the user's photos are references only, never game textures. There is no software licence yet, so don't assume the code or references can be distributed publicly.
