@@ -3,13 +3,16 @@ import { densify, nearest, segments, type Feature, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { gravelTexture } from '../materials/gravel-texture';
 import { addBrookParking } from '../landmarks/brook-mill-grounds';
+import { addEagleyBrowSurface } from '../landmarks/eagley-brow';
+import { addEagleyHoughBend } from '../landmarks/eagley-hough-bend';
+import { addTurningCircle } from '../landmarks/turning-circle';
 import {
   HOUGH_CENTRE,
   HOUGH_RADIUS,
   inHoughCarriageway,
 } from '../landmarks/hough-junction';
 import { roadWidth, type WorldData } from './data';
-import { OSM } from './layout';
+import { EAGLEY_HOUGH_BEND, LOWER_EAGLEY, OSM } from './layout';
 import type { Surface } from './surface';
 
 const { lerp } = T.MathUtils;
@@ -41,6 +44,9 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         len = Math.hypot(dx, dz) || 1;
       const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
         z = (a[1] + b[1]) / 2 + (dx / len) * offset;
+      // M01 draws the connected outer kerb up to this loop's west node.
+      if (f.id === OSM.busTurningLoop && offset < 0 && x < 126.8 && z > 26)
+        return false;
       // The Hough junction draws its own kerbs and pavements.
       if (
         (material === paving || material === kerb) &&
@@ -80,13 +86,14 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
 
   function surfaceMaterial(f: Feature, foot: boolean) {
     if (foot) return f.id === OSM.riversidePath ? gravel : paving;
-    return f.id === OSM.busTurningLoop ||
-      (f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop)
+    return f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop
       ? blockPaving
       : asphalt;
   }
 
   for (const f of data.roads) {
+    if (f.id === OSM.busTurningLoop) continue; // M02 draws one connected loop.
+    if (f.id === OSM.eagleyBrow) continue; // Dedicated woodland entrance below.
     if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
     const w = roadWidth(f),
       foot = w < 2,
@@ -99,16 +106,23 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         ? surface.ground
         : (x: number, z: number) => roadY(x, z, nearest(x, z, own));
 
-    // Footways and kerbs. Eagley Way has a single north-side pavement near the mill.
+    // EAG-032..040: the valley pavement ends before the mill; the uphill
+    // pavement starts at the woodland steps and continues beside the low bank.
     if (!foot && f.id !== OSM.houghRoadBridge) {
       for (const side of [-1, 1]) {
-        if (
-          (f.tags.highway === 'service' && f.id !== OSM.busTurningLoop) ||
-          (f.name === 'Eagley Way' && side === 1)
-        )
+        if (f.id === OSM.houghMillApproach && side === 1) continue;
+        if (f.id === OSM.houghTurningApproach && side === 1) continue;
+        if (f.tags.highway === 'service' && f.id !== OSM.busTurningLoop)
           continue;
         const walkPoints =
-          f.name === 'Eagley Way' ? p.filter((q) => q[0] < 18) : p;
+          f.name === 'Eagley Way'
+            ? p.filter((q) =>
+                side === -1
+                  ? q[0] < LOWER_EAGLEY.valleyBarrierEnd
+                  : q[0] >= LOWER_EAGLEY.uphillPavementStart &&
+                    q[0] <= EAGLEY_HOUGH_BEND.startX,
+              )
+            : p;
         if (walkPoints.length < 2) continue;
         if (f.id !== OSM.busTurningLoop)
           roadEdge(
@@ -199,6 +213,9 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   }
 
   addParkingCourt(kit, surface);
+  addEagleyBrowSurface(kit, { surface, data });
+  addEagleyHoughBend(kit, { surface, data });
+  addTurningCircle(kit, { surface });
   addBrookParking(kit, surface.brookParkingY);
 
   // Grass-island kerbs and the short perimeter at the western court.

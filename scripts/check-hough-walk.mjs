@@ -133,11 +133,30 @@ const north = [
   [146.6, -21.2],
   [146.6, -24.3],
   [146.5, -26.2],
-  [146.8, -28.5],
+  [147.15, -26.9],
+  [148.1, -27.1],
+  [148.25, -28.5],
+];
+// The filtered old-lane crossing and rebuilt pavement returns, using normal
+// walking controls. Pass between the removable bollards, then leave between
+// the stone posts onto the separate bridge landing.
+const crossing = [
+  ...north,
+  [148.8, -27.1],
+  [149.2, -29.2],
+  [150.2, -28.5],
+  [150.1, -23.9],
+  [147.1, -23.9],
+  [149.8, -23.9],
+  [149.6, -20.8],
+  [149.3, -18.6],
+  [148.3, -16.8],
+  [146.1, -14.9],
 ];
 for (const [label, points] of [
   ['north', north],
   ['south', north.slice().reverse()],
+  ['crossing', crossing],
 ]) {
   const result = await page.evaluate((points) => {
     const press = (code, down) =>

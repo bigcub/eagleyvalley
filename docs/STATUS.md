@@ -1,6 +1,6 @@
 # Status
 
-Updated 23 September 2026. World v0.3.40.
+Updated 3 October 2026. Local world v0.3.47; public v0.3.41.
 
 ## Where it stands
 
@@ -14,19 +14,17 @@ Driving feel comes first. A generated road network with raised kerbs (v0.4.0) ma
 
 ## Rejected by the user, still open
 
-- The Hough Lane/Threadfold Way junction (flag 9217d4a4). v0.3.41 rebuilt it as one connected layout from four Street View panoramas; it needs the user's review.
-- The Bridge Mill wall as seen from Eagley Way. The road-facing boundary and the passage retaining face need auditing separately.
-- The bus turning circle (flag 34419932) has one rough pass and needs a real island outline, hedge and furniture.
+- The Hough Lane/Threadfold Way junction (flag 9217d4a4). M04 in local v0.3.46 corrects the north pavement fill, narrower asphalt landing, low back wall, three bollards, stone posts and Threadfold rail. Both bridge directions and crossing walks pass. Exact widths, planting and the user's review remain open.
+- The Bridge Mill wall as seen from Eagley Way. M05 in local v0.3.47 rebuilds the road-facing profile, coping transition and gate-side return. Dimensions and user acceptance remain open; M06 audits the separate passage retaining face.
+- The bus turning circle (flag 34419932): M02 rebuilds the connected road, island and kerbs in local v0.3.44; estimated dimensions need user review. M03 adds the closed hedge, taller planting, shelter, bin, brick bed, post and lamps in v0.3.45. Their dimensions and concealed details remain estimates; review is open.
 - The Blackburn Road junction (flag 88bc3dbf). The wall no longer sticks into the road, but the corner, pavement and markings are unchecked.
 - The Brook Mill car park, the bushes, and window counts on every building.
 
 ## Next, in order
 
-1. **Hough Lane junction review.** v0.3.41 is built; fix what the user flags. Review the Eagley Hall model at the same time.
-2. **Bridge Mill boundaries and entrances.** Both gates and their approaches, the sloping roadside wall, engine house, turning circle, garage court and the court-house door bridges. Use user photos where Street View can't reach.
-3. **Continuous route audit.** Resume at EAG-026 (below), finish lower Eagley Way, then the Hough and Threadfold loop and the mill approaches, backfilling side and reverse views. Correct one section fully before moving on.
-4. **Buildings and landscape.** Per-building massing and opening schedules, starting with Brook Mill, the School House and the gatehouse. Then walls, brook edges, and tree and shrub positions. Replace the generic foliage only once positions and sizes are known.
-5. **Rendering.** Sky, lighting, ground and road materials, better trees and a proper car. This lifts the whole map but shouldn't come before the layout fixes above.
+The ordered modelling jobs **M01 to M20** are in [TODO.md](../TODO.md), each with a bounded change and completion check. **M01 is modelled and tested locally in v0.3.43:** continuous pavement, kerb, low wall end and road-edge return at the Eagley Way/Hough bend. EAG-041..044 have all four directions recorded. Normal-input walking reaches X124 and returns; user acceptance remains open.
+
+**M02 is modelled and tested locally in v0.3.44:** five August 2022 panoramas cover the complete loop in all four directions; the road, island, south footway and kerbs now join the asphalt approaches. Full car circuit/return and pavement/island walks pass. **M03 is modelled and tested locally in v0.3.45:** a continuous clipped hedge, mixed-height island planting, panelled shelter in a paved recess, bin, brick bed, concrete post and lamps. Hidden trunks and dimensions remain estimated. **M04 is modelled and tested locally in v0.3.46:** corrected asphalt pavement returns, bridge landing/back wall, three bollards, stone post tops and pedestrian rail. Both bridge walks and the filtered crossing pass. **M05 is modelled and tested locally in v0.3.47:** separate road-facing height profiles, coping drop estimated at X89.7, stone slabs, gutter, lamp and joined gate-side return. Road and passage movement heights remain unchanged. **M06 is next:** the separate tall passage retaining face, its slope and steps. The two gates follow as separate jobs. Woodland steps, Brook Mill parking and individual elevations, garages, court levels and the start buildings follow. Continue the route survey within each job and record missing views. Rendering improvements follow the layout and building corrections.
 
 For each pass, name the evidence and the scope, build it, check the changed views and movement, then update TODO.md, progress.md and the sources file. Leave unverified details marked open.
 
@@ -36,16 +34,17 @@ No section is accepted as accurate. [SURVEY.md](../SURVEY.md) is the panorama-by
 
 | Area | Inspected | Missing |
 | --- | --- | --- |
-| Blackburn entrance, upper and middle Eagley Way | EAG-001 to 026 plus 002A/B/C, June 2024. Forward sequence, some side and reverse views | All four directions at every panorama, object inventory, matched game views |
-| Lower Eagley Way past EAG-026 | Isolated mill-end views only | Continuous sequence to Bridge Mill; where the plain wall really ends |
-| Bridge Mill roadside and passage boundary | Views around X76, 97 and 116 (June 2024); user passage photos | Every intermediate and reverse view, heights, joins, gate alignment |
-| Hough Lane bridge and junction | GXaLJ6-lQQXM-ZBvWlBeyw, DQl_iPlCOrF2ekkB6nUQbQ (June 2024); CD44JCXYHZPTLGAoXPEVlg (Aug 2022); three approach panoramas; aerial bend | Full approach, reverse and side sequence; overhead kerb trace |
-| Bus turning circle | o630WlJgG1IIouCJdb9kHw (Aug 2022), one June 2024 view | Full loop, island trace, bus furniture, trees |
+| Blackburn entrance, upper and middle Eagley Way | EAG-001 to 044 plus 002A/B/C, June 2024. Forward sequence, some side and reverse views | All four directions at every earlier panorama, object inventory, matched game views |
+| Lower Eagley Way EAG-027..040 | Continuous June 2024 forward sequence; both sides/reverse at main transitions. v0.3.42 corrects panels, Eagley Brow opening, barriers and mill-side pavement; M05 backfills all four EAG-039 directions | EAG-033 reverse/uphill side; 034/036 sides/reverse; stair flight and accurate dimensions |
+| Eagley Way/Hough bend EAG-041..044, M01 | June 2024, all four directions at each panorama. v0.3.43 joins pavement, kerb, wall end and road formation | Measured widths/levels; exact drains and furniture; user acceptance; vegetation/furniture |
+| Bridge Mill roadside and passage boundary | M05 rechecks June 2024 EAG-038..043, including four directions at 039/040; earlier four-direction coverage at 038/041..043. v0.3.47 road-facing profile and return; user passage photos | Measured alignment/heights, coping-drop position, passage face/steps, planting, gate thresholds and user acceptance |
+| Hough Lane bridge and junction | M04 rechecks all four DQl directions, bridge reverse GXa, old-lane reverse CD44, Hall-lane reverse J2Oz and bridge-mouth sides _odWe. June 2024 and August 2022. v0.3.46 corrects pavement and boundary geometry | Full continuous four-direction approach sequence; measured kerb trace/widths, tactile paving and wooded planting; user acceptance |
+| Bus turning circle, M02 | EAG-045..049, August 2022, all four directions; June 2024 asphalt approaches; north-up aerial trace. v0.3.44 connects road, island, paving and kerbs | Measured dimensions/levels, present-day surface confirmation, measured planting/furniture positions and dimensions, hidden trunks/rear bed, herringbone texture, drains; user acceptance |
 | Threadfold Way | Isolated north-boundary and junction views | Whole loop, every frontage, entrance, wall and planting |
 | Mill courts, garages, gardens | User photos, aerial interpretation | Boundaries, bay counts, hidden elevations, levels. Street View doesn't reach the private court |
 | Wider area | Mapped footprints, terrain, a few landmarks | Systematic street, building and vegetation audit |
 
-Forward resume point: **EAG-026**, June 2024, camera 53.6131045, -2.4285779 (about X-38, Z77), panorama `RJ78tVUTMnIxHbpiwCJFJQ`, headings 82 and 172 done. [Open it](https://www.google.com/maps/@?api=1&map_action=pano&pano=RJ78tVUTMnIxHbpiwCJFJQ&heading=82). The modelled plain retaining wall ends at an estimated X-40. Don't extend the yellow lines into this stretch by guesswork.
+Next reference for **M06**: user passage photographs and the tall retaining face opposite the doors. Keep its passage-level base separate from M05’s road-relative height profile; compare the slope and steps from both passage directions. The existing lower datum is retained, not accepted. Check the western bank patch and gate-side joins while preserving the complete frontage walk. Earlier missing views and woodland steps remain provisional.
 
 Junction references: [Hough/Threadfold junction](https://www.google.com/maps/@?api=1&map_action=pano&pano=DQl_iPlCOrF2ekkB6nUQbQ&heading=154), [bridge reverse view](https://www.google.com/maps/@?api=1&map_action=pano&pano=GXaLJ6-lQQXM-ZBvWlBeyw&heading=349), [Bridge Mill gates](https://www.google.com/maps/@?api=1&map_action=pano&pano=Ol5x2LtTib6ZgLsg_puNUA&heading=315).
 

@@ -1,7 +1,8 @@
 import * as T from 'three';
 import type { Kit } from '../core/kit';
-import { inPoly, type P } from '../core/geo';
+import { inPoly, nearest, outline, type P } from '../core/geo';
 import { drape, sweep } from '../core/mesh';
+import { HOUGH_JUNCTION as D } from '../world/layout';
 
 type Wall = { a: P; b: P };
 type V = [number, number];
@@ -16,8 +17,9 @@ type KerbLine = { pavement: boolean; pts: P[]; out: V[] };
 // Kerb lines follow the OSM centrelines with 6.4m roads (5.5m old lane),
 // filleted corners and 1.1m pavements; widths and radii are estimates.
 //
-// Pavements here, as elsewhere in the game, are drawn raised but walked at
-// road level, so nothing in this module changes how the car rides.
+// M04 closes the north pavement return, narrows the bridge landing and
+// corrects the filter/rail against the same panoramas. Surfaces share the
+// smooth junction grade; visual kerbs do not lift cars or walking players.
 
 export const HOUGH_CENTRE: P = [146.8, -21.0];
 /** Generic road edges give way to this module inside this radius. */
@@ -27,10 +29,7 @@ const PAVEMENT = 1.1,
   KERB_H = 0.09;
 export const PAVE_H = 0.08;
 /** Ends of the pedestrian crossing beside the bollard line (dropped kerbs). */
-const CROSSING: P[] = [
-  [147.35, -27.6],
-  [147.55, -17.9],
-];
+const CROSSING = D.crossingEnds;
 
 // Generated from the v0.4.0 road network (commit 8cc9bfe), heights removed.
 export const JUNCTION_OUTLINE: P[] = [
@@ -453,6 +452,26 @@ export const KERB_LINES: KerbLine[] = [
 
 const lines = KERB_LINES.map((k) => clip(k));
 const island = islandOutline();
+const northPavement: P[] = [
+  ...KERB_LINES[7].pts.slice(0, 4).reverse(),
+  ...KERB_LINES[0].pts.slice(1),
+  KERB_LINES[10].pts[1],
+  ...D.northBack,
+];
+const northPavementEdges = outline(northPavement);
+
+/** Lower adjacent coarse grass cells as well as the filled return, so their
+ * triangles cannot cut through the asphalt. Movement uses the actual outline. */
+export function inHoughFoundation(x: number, z: number) {
+  return (
+    inHoughArea(x, z) ||
+    (x > 145 &&
+      x < 153 &&
+      z > -32.5 &&
+      z < -25 &&
+      nearest(x, z, northPavementEdges).d < 1.4)
+  );
+}
 
 /** Clip a kerb line to the module's radius. */
 function clip(k: KerbLine): KerbLine {
@@ -482,12 +501,7 @@ function islandOutline(): P[] {
         ] as P,
     );
   // Back edge towards the brook, interpreted from _odWe heading 95.
-  const outer: P[] = [
-    [155.6, -11.9],
-    [151.6, -12.3],
-    [148.6, -13.2],
-    [146.6, -14.2],
-  ];
+  const outer = D.islandBack;
   const start =
     back[0][0] < back[back.length - 1][0] ? back : [...back].reverse();
   return [...start, ...along, ...outer];
@@ -505,7 +519,12 @@ export function inHoughCarriageway(x: number, z: number) {
 export function inHoughArea(x: number, z: number) {
   if (Math.hypot(x - HOUGH_CENTRE[0], z - HOUGH_CENTRE[1]) > HOUGH_RADIUS + 4)
     return false;
-  if (inPoly(x, z, JUNCTION_OUTLINE) || inPoly(x, z, island)) return true;
+  if (
+    inPoly(x, z, JUNCTION_OUTLINE) ||
+    inPoly(x, z, island) ||
+    inPoly(x, z, northPavement)
+  )
+    return true;
   for (const k of lines)
     for (let i = 1; i < k.pts.length; i++) {
       const a = k.pts[i - 1],
@@ -572,7 +591,14 @@ export function addHoughJunction(
   ground: (x: number, z: number) => number,
 ) {
   const { box, batch, mat } = kit;
-  const { dark, stone, kerb, paving, asphalt } = kit.m;
+  const { dark, kerb, asphalt } = kit.m;
+  // The junction pavements are asphalt, not pale slabs. Shared procedural
+  // road texture; a slightly lighter tint separates the footway from the road.
+  const paving = mat('houghFootwayAsphalt', '#c1beb6');
+  paving.map = asphalt.map;
+  const stone = mat('houghWeatheredStone', '#73746a');
+  stone.map = kit.m.stone.map;
+  const postStone = mat('houghPosts', '#999786');
   const walls: Wall[] = [];
 
   // Carriageway fill over the whole junction mouth, just above the road
@@ -615,9 +641,18 @@ export function addHoughJunction(
       );
   }
 
+  batch(
+    drape(northPavement, (x, z) => roadY(x, z) + kerbHeight(x, z) - 0.006, 0.6),
+    paving,
+  );
+
   // Paved island with a skirt along its brook side.
   batch(
-    drape(island, (x, z) => roadY(x, z) + PAVE_H + 0.004, 0.8),
+    drape(
+      island,
+      (x, z) => roadY(x, z) + Math.min(PAVE_H, kerbHeight(x, z)) + 0.004,
+      0.8,
+    ),
     paving,
   );
   const rim = island.slice(-5);
@@ -639,47 +674,32 @@ export function addHoughJunction(
   // posts (CD44, DQl heading 65).
   const bollard = mat('bollardBlack', '#1d2120', 0.6),
     band = mat('bollardBand', '#e8e6de', 0.5);
-  for (const z of [-24.9, -23.7, -22.5, -21.3, -20.1]) {
-    const x = 148.05,
-      y = ground(x, z);
+  for (const [x, z] of D.bollards) {
+    const y = ground(x, z);
     const g = new T.CylinderGeometry(0.075, 0.09, 0.9, 12);
     g.translate(x, y + 0.45, z);
     batch(g, bollard);
-    const ring = new T.CylinderGeometry(0.08, 0.08, 0.07, 12);
-    ring.translate(x, y + 0.78, z);
+    const ring = new T.CylinderGeometry(0.08, 0.08, 0.018, 12);
+    ring.translate(x, y + 0.9, z);
     batch(ring, band);
+    box(x, y + 0.015, z, 0.25, 0.03, 0.25, kerb);
     walls.push({ a: [x, z - 0.1], b: [x, z + 0.1] });
   }
-  for (const [x, z] of [
-    [147.95, -26.1],
-    [148.4, -19.1],
-  ] as P[]) {
+  for (const [x, z] of D.crossingPosts) {
     stonePost(x, z, 0.8);
     walls.push({ a: [x, z - 0.15], b: [x, z + 0.15] });
   }
   // Four tapered stone posts along the Hall lane kerb stop vehicles entering
   // the island from the lane (J2Oz).
-  for (const [x, z] of [
-    [150.3, -18.5],
-    [151.6, -17.4],
-    [152.9, -16.3],
-    [154.2, -15.2],
-  ] as P[]) {
+  for (const [x, z] of D.hallPosts) {
     stonePost(x, z, 0.7, true);
     walls.push({ a: [x - 0.15, z], b: [x + 0.15, z] });
   }
 
-  // Galvanised guardrail round the north corner, stopping short of the
-  // crossing (DQl headings 65 and 340).
+  // Guardrail follows the Threadfold pavement, rather than curling across
+  // the old-lane return. Stops before the dropped crossing.
   const rail = mat('guardrail', '#8e9a92', 0.55);
-  const tip = lines[0];
-  const railLine = tip.pts
-    .map(
-      (p, i) => [p[0] + tip.out[i][0] * 1.05, p[1] + tip.out[i][1] * 1.05] as P,
-    )
-    .filter(
-      (p) => Math.hypot(p[0] - CROSSING[0][0], p[1] - CROSSING[0][1]) > 2.4,
-    );
+  const railLine = D.rail;
   for (let i = 1; i < railLine.length; i++) {
     const a = railLine[i - 1],
       b = railLine[i];
@@ -712,6 +732,42 @@ export function addHoughJunction(
     if (i % 4 === 1) box(a[0], ya + 0.5, a[1], 0.06, 1.0, 0.06, rail);
     walls.push({ a, b });
   }
+  // The wooded bank has a low stone face behind the footbridge landing.
+  // Join it to the landing's back edge, leaving the bridge entrance clear.
+  for (let i = 1; i < D.islandBack.length; i++) {
+    const a = D.islandBack[i - 1],
+      b = i === D.islandBack.length - 1 ? D.wallEnd : D.islandBack[i];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const rot = Math.atan2(b[0] - a[0], b[1] - a[1]);
+    const n = Math.ceil(len / 0.7);
+    for (let j = 0; j < n; j++) {
+      const t = (j + 0.5) / n,
+        x = T.MathUtils.lerp(a[0], b[0], t),
+        z = T.MathUtils.lerp(a[1], b[1], t);
+      const y = roadY(x, z) + PAVE_H;
+      box(
+        x,
+        y + D.wallHeight / 2,
+        z,
+        0.4,
+        D.wallHeight,
+        len / n + 0.025,
+        stone,
+        rot,
+      );
+      box(
+        x,
+        y + D.wallHeight + 0.045,
+        z,
+        0.46,
+        0.09,
+        len / n - 0.01,
+        stone,
+        rot,
+      );
+    }
+    walls.push({ a, b });
+  }
   // Black heritage lamp on Threadfold Way's east pavement (DQl heading 340).
   {
     const x = 147.7,
@@ -727,20 +783,9 @@ export function addHoughJunction(
 
   function stonePost(x: number, z: number, h: number, tapered = false) {
     const y = roadY(x, z) + PAVE_H;
-    const g = new T.CylinderGeometry(tapered ? 0.12 : 0.15, 0.17, h, 10);
+    const g = new T.CylinderGeometry(tapered ? 0.13 : 0.14, 0.21, h, 12);
     g.translate(x, y + h / 2, z);
-    batch(g, stone);
-    const cap = new T.SphereGeometry(
-      tapered ? 0.12 : 0.15,
-      10,
-      6,
-      0,
-      Math.PI * 2,
-      0,
-      Math.PI / 2,
-    );
-    cap.translate(x, y + h, z);
-    batch(cap, stone);
+    batch(g, postStone);
   }
 }
 

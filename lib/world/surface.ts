@@ -10,13 +10,28 @@ import {
 import { roadWidth, type WorldData } from './data';
 import {
   BRIDGE_MILL_COURT,
+  EAGLEY_BROW_ENTRANCE,
+  EAGLEY_HOUGH_BEND,
   HOUGH_DECK_NORTH,
   HOUGH_DECK_SOUTH,
   HOUGH_FOOTBRIDGE_NORTH,
+  LOWER_EAGLEY,
   OSM,
+  TURNING_CIRCLE,
+  TURNING_CIRCLE_DETAILS,
 } from './layout';
+import {
+  createEagleyHoughBendPlan,
+  inEagleyHoughBendPavement,
+} from '../landmarks/eagley-hough-bend';
+import {
+  createTurningCirclePlan,
+  inTurningCircle,
+  turningCircleEdgeDistance,
+} from '../landmarks/turning-circle';
 import { rearFormation } from '../landmarks/bridge-rear';
 import { passageWallZ } from '../landmarks/bridge-passage';
+import { bridgeRoadWallHeight } from '../landmarks/bridge-road-wall';
 import { gateLocal, gateWorld } from '../landmarks/bridge-side-gate';
 import { brookTerrace } from '../landmarks/brook-terrace';
 import { brookParking } from '../landmarks/brook-mill-grounds';
@@ -25,6 +40,7 @@ import {
   HOUGH_CENTRE,
   PAVE_H,
   inHoughArea,
+  inHoughFoundation,
   outsideIsland,
 } from '../landmarks/hough-junction';
 
@@ -46,6 +62,7 @@ export function createSurface(data: WorldData) {
   const roadSeg = segments(roads),
     riverSeg = segments(water),
     eagleySegments = segments(roads.filter((f) => f.name === 'Eagley Way')),
+    browSegments = segments(roads.filter((f) => f.id === OSM.eagleyBrow)),
     courtAccess = segments(
       roads.filter((f) => f.id === OSM.bridgeMillCourtAccess),
     ),
@@ -93,7 +110,7 @@ export function createSurface(data: WorldData) {
       0.7,
       sampledTerrain(n.x, n.z) +
         0.2 +
-        (x < 94 ? 1.42 : 0.92) -
+        (bridgeRoadWallHeight(x) + 0.18) -
         (passageY - 0.25),
     );
   }
@@ -197,6 +214,198 @@ export function createSurface(data: WorldData) {
     return undefined;
   }
 
+  const eagleyHoughBendPlan = createEagleyHoughBendPlan();
+  const bendRoads = roadSeg.filter((s) =>
+    [
+      OSM.eagleyWay,
+      OSM.houghMillApproach,
+      OSM.houghTurningApproach,
+      OSM.busTurningLoop,
+    ].includes(s.f.id),
+  );
+  // Local grade fitted to existing approach-end levels. Blend it into the
+  // original roads; do not carry the old cutting's flat shelf into the bend.
+  const mill = roads.find((f) => f.id === OSM.eagleyWay)!;
+  const hough = roads.find((f) => f.id === OSM.houghTurningApproach)!;
+  const loop = roads.find((f) => f.id === OSM.busTurningLoop)!;
+  const bendAnchors = [
+    mill.points.at(-2)!,
+    hough.points.at(-1)!,
+    loop.points.at(-2)!,
+  ];
+  const bendOrigin = mill.points.at(-1)!;
+  function originalBendY(x: number, z: number, n = nearest(x, z, bendRoads)) {
+    const deck = n.s.f.name === 'Hough Lane' ? houghDeck(x, z) : undefined;
+    return deck ?? (eagleyCutting(n.x, n.z) ?? sampledTerrain(n.x, n.z)) + 0.38;
+  }
+  const bendPlane = solve3(
+    bendAnchors.flatMap(([x, z]) => [1, x - bendOrigin[0], z - bendOrigin[1]]),
+    bendAnchors.map((p) => originalBendY(...p)),
+  );
+  function bendLevel(x: number, z: number, supplied?: Nearest) {
+    const b = EAGLEY_HOUGH_BEND.bounds;
+    if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return undefined;
+    const n = supplied ?? nearest(x, z, bendRoads);
+    if (!bendRoads.some((s) => s.f.id === n.s.f.id)) return undefined;
+    const blend = EAGLEY_HOUGH_BEND.gradeBlend;
+    const weight =
+      smoothstep(x, blend.west0, blend.west1) *
+      (1 - smoothstep(x, blend.east0, blend.east1)) *
+      smoothstep(z, blend.north0, blend.north1);
+    const [a, dx, dz] = bendPlane;
+    return lerp(
+      originalBendY(x, z, n),
+      a + dx * (x - bendOrigin[0]) + dz * (z - bendOrigin[1]),
+      weight,
+    );
+  }
+  function eagleyHoughBendY(x: number, z: number) {
+    return circleLevel(x, z) ?? bendLevel(x, z) ?? originalBendY(x, z);
+  }
+  function bendFormation(x: number, z: number) {
+    const b = EAGLEY_HOUGH_BEND.bounds;
+    if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return undefined;
+    if (inEagleyHoughBendPavement(x, z, eagleyHoughBendPlan))
+      return eagleyHoughBendY(x, z) - 0.38;
+    const n = nearest(x, z, bendRoads);
+    return n.d < roadWidth(n.s.f) / 2 + 0.4
+      ? eagleyHoughBendY(x, z) - 0.38
+      : undefined;
+  }
+
+  const turningCirclePlan = createTurningCirclePlan();
+  // One grade across both arms and the exit. The previous nearest-centreline
+  // switch dropped the car at the exit. These EA-derived datums are estimated,
+  // not surveyed road levels; the east anchor retains the loop's existing level.
+  const circleOrigin = TURNING_CIRCLE.outer[0];
+  const circleAnchors = [circleOrigin, HOUGH_DECK_SOUTH, loop.points[4]];
+  const circlePlane = solve3(
+    circleAnchors.flatMap(([x, z]) => [
+      1,
+      x - circleOrigin[0],
+      z - circleOrigin[1],
+    ]),
+    [
+      bendLevel(...circleOrigin) ?? originalBendY(...circleOrigin),
+      sampledTerrain(...HOUGH_DECK_SOUTH) + 0.38,
+      sampledTerrain(...loop.points[4]) + 0.38,
+    ],
+  );
+  function circleLevel(x: number, z: number) {
+    const b = TURNING_CIRCLE.bounds;
+    if (x < b.x0 || x > b.x1 || z < HOUGH_DECK_SOUTH[1] || z > b.z1)
+      return undefined;
+    const blend = TURNING_CIRCLE.gradeBlend;
+    const [a, dx, dz] = circlePlane;
+    const flat = a + dx * (x - circleOrigin[0]) + dz * (z - circleOrigin[1]);
+    const [ba, bx, bz] = bendPlane;
+    const west = ba + bx * (x - bendOrigin[0]) + bz * (z - bendOrigin[1]);
+    const across = lerp(west, flat, smoothstep(x, blend.west0, blend.west1));
+    const mouth = nearest(x, HOUGH_DECK_SOUTH[1], [
+      { a: HOUGH_DECK_SOUTH, b: HOUGH_DECK_NORTH },
+    ]);
+    return lerp(
+      // Match the inclined deck across the whole mouth, including its east
+      // kerb. A single centreline datum left a small overlapping surface seam.
+      lerp(
+        sampledTerrain(...HOUGH_DECK_SOUTH),
+        sampledTerrain(...HOUGH_DECK_NORTH),
+        mouth.t,
+      ) + 0.38,
+      across,
+      smoothstep(z, blend.north0, blend.north1),
+    );
+  }
+  function turningCircleY(x: number, z: number) {
+    return circleLevel(x, z) ?? houghDeck(x, z) ?? originalBendY(x, z);
+  }
+  function circleFormation(x: number, z: number) {
+    if (inTurningCircle(x, z, turningCirclePlan))
+      return (
+        turningCircleY(x, z) +
+        (inPoly(x, z, turningCirclePlan.grass) ? 0.04 : -0.35)
+      );
+    const distance = turningCircleEdgeDistance(x, z, turningCirclePlan);
+    if (distance > 2) return undefined;
+    return lerp(
+      turningCircleY(x, z) - 0.35,
+      sampledTerrain(x, z),
+      smoothstep(distance, 0, 2),
+    );
+  }
+  const bedBounds = {
+    x0: Math.min(...turningCirclePlan.bed.map((p) => p[0])),
+    x1: Math.max(...turningCirclePlan.bed.map((p) => p[0])),
+    z0: Math.min(...turningCirclePlan.bed.map((p) => p[1])),
+    z1: Math.max(...turningCirclePlan.bed.map((p) => p[1])),
+  };
+  function circleBedLevel(x: number, z: number) {
+    const b = bedBounds;
+    if (
+      x < b.x0 ||
+      x > b.x1 ||
+      z < b.z0 ||
+      z > b.z1 ||
+      !inPoly(x, z, turningCirclePlan.bed)
+    )
+      return undefined;
+    return turningCircleY(x, z) + TURNING_CIRCLE_DETAILS.bed.height;
+  }
+  const bedFace = turningCirclePlan.bedFront.slice(1).map((b, i) => ({
+    a: turningCirclePlan.bedFront[i],
+    b,
+  }));
+  function bedFoundation(x: number, z: number) {
+    const b = bedBounds;
+    if (x < b.x0 - 1.5 || x > b.x1 + 1.5 || z < b.z0 - 1.5 || z > b.z1 + 1.5)
+      return undefined;
+    if (!inPoly(x, z, turningCirclePlan.bed) && nearest(x, z, bedFace).d > 1.5)
+      return undefined;
+    // Include the grid cells beside the wall, so their triangles cannot rise
+    // through the footway when an adjoining terrain vertex is on the bank.
+    return Math.min(sampledTerrain(x, z), turningCircleY(x, z) - 0.35);
+  }
+  function shelterApronLevel(x: number, z: number) {
+    const s = TURNING_CIRCLE_DETAILS.shelter;
+    if (Math.abs(x - s.centre[0]) > 3 || Math.abs(z - s.centre[1]) > 3)
+      return undefined;
+    return inPoly(x, z, turningCirclePlan.shelterApron)
+      ? turningCircleY(x, z)
+      : undefined;
+  }
+
+  /**
+   * EAG-030..032: the old lane rises out of the cutting. Ease its first 14m
+   * onto the carriageway edge, using EA levels beyond the mouth. The blend
+   * and width are estimates, not measured path levels. Never claims the road.
+   */
+  function browRoadY(x: number, z: number) {
+    const lane = nearest(x, z, browSegments);
+    const road = nearest(lane.x, lane.z, eagleySegments);
+    const original = sampledTerrain(lane.x, lane.z) + 0.38;
+    const edge = sampledTerrain(road.x, road.z) + 0.38;
+    return lerp(edge, original, smoothstep(road.d, 3.4, 10));
+  }
+  function browApproach(x: number, z: number) {
+    const b = EAGLEY_BROW_ENTRANCE.formationBounds;
+    if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return undefined;
+    const road = nearest(x, z, eagleySegments);
+    if (road.d <= 3.4 || road.d > 16) return undefined;
+    const lane = nearest(x, z, browSegments);
+    if (lane.d > EAGLEY_BROW_ENTRANCE.width / 2 + 0.2) return undefined;
+    let along = 0;
+    for (const s of browSegments) {
+      const length = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
+      if (s === lane.s) {
+        along += length * lane.t;
+        break;
+      }
+      along += length;
+    }
+    if (along > EAGLEY_BROW_ENTRANCE.formationLength) return undefined;
+    return browRoadY(x, z);
+  }
+
   // Guards the junction terrain zone against re-entry: road heights sample
   // terrain on centrelines that lie inside the junction.
   let inJunctionTerrain = false;
@@ -204,7 +413,7 @@ export function createSurface(data: WorldData) {
     {
       name: 'hough-junction',
       y: (x, z) => {
-        if (inJunctionTerrain || !inHoughArea(x, z)) return undefined;
+        if (inJunctionTerrain || !inHoughFoundation(x, z)) return undefined;
         inJunctionTerrain = true;
         const y = Math.min(sampledTerrain(x, z), vehicleRoadY(x, z) - 0.35);
         inJunctionTerrain = false;
@@ -262,6 +471,22 @@ export function createSurface(data: WorldData) {
       y: (x, z) => (inPoly(x, z, court) ? courtY(x, z) - 0.18 : undefined),
     },
     { name: 'parking-banks', y: parkingBank },
+    {
+      name: 'eagley-brow-entrance',
+      y: (x, z) => offset(browApproach(x, z), -0.18),
+    },
+    {
+      // The earth plate supplies the raised bed. Keep the coarse 2m grass
+      // mesh below the adjacent paving rather than interpolating through it.
+      name: 'turning-circle-brick-bed-foundation',
+      y: bedFoundation,
+    },
+    {
+      name: 'turning-circle-shelter-apron',
+      y: (x, z) => offset(shelterApronLevel(x, z), -0.35),
+    },
+    { name: 'bus-turning-circle', y: circleFormation },
+    { name: 'eagley-hough-bend', y: bendFormation },
     { name: 'eagley-way-cutting', y: eagleyCutting },
   ];
   function terrain(x: number, z: number) {
@@ -291,6 +516,7 @@ export function createSurface(data: WorldData) {
     );
   }
   function rawRoadY(x: number, z: number, r: Nearest) {
+    if (r.s?.f.id === OSM.eagleyBrow) return browRoadY(x, z);
     if (r.s?.f.id === OSM.houghFootbridgeSouthPath) {
       const p: P[] = r.s.f.points,
         a = p[0],
@@ -361,6 +587,22 @@ export function createSurface(data: WorldData) {
     return plane;
   }
   function roadY(x: number, z: number, r = nearest(x, z, roadSeg)) {
+    // All overlapping approach meshes share the finished formation, including
+    // the narrow bridge-side mouth north of the loop's grade blend.
+    if (inTurningCircle(x, z, turningCirclePlan)) return turningCircleY(x, z);
+    const circle = circleLevel(x, z);
+    if (
+      circle !== undefined &&
+      [
+        OSM.eagleyWay,
+        OSM.houghMillApproach,
+        OSM.houghTurningApproach,
+        OSM.busTurningLoop,
+      ].includes(r.s?.f.id)
+    )
+      return circle;
+    const bend = bendLevel(x, z, r);
+    if (bend !== undefined) return bend;
     const original = rawRoadY(x, z, r);
     const d = Math.hypot(x - HOUGH_CENTRE[0], z - HOUGH_CENTRE[1]);
     if (
@@ -378,6 +620,18 @@ export function createSurface(data: WorldData) {
   }
 
   const groundZones: Zone[] = [
+    { name: 'turning-circle-shelter-apron', y: shelterApronLevel },
+    {
+      name: 'turning-circle-brick-bed',
+      y: circleBedLevel,
+    },
+    {
+      name: 'bus-turning-circle-road-and-pavement',
+      y: (x, z) =>
+        inTurningCircle(x, z, turningCirclePlan)
+          ? turningCircleY(x, z)
+          : undefined,
+    },
     {
       name: 'hough-footbridge',
       y: (x, z) => {
@@ -415,6 +669,30 @@ export function createSurface(data: WorldData) {
       name: 'bridge-mill-court',
       y: (x, z) => (inPoly(x, z, court) ? courtY(x, z) : undefined),
     },
+    { name: 'eagley-brow-entrance', y: browApproach },
+    {
+      name: 'eagley-hough-bend-pavement',
+      y: (x, z) =>
+        inEagleyHoughBendPavement(x, z, eagleyHoughBendPlan)
+          ? eagleyHoughBendY(x, z)
+          : undefined,
+    },
+    {
+      // EAG-037..040 pavement and its carriageway use the Eagley datum.
+      // The nearest woodland-step centreline previously stole ground here,
+      // causing a 0.37m drop through the newly opened pavement approach.
+      // Existing eagley-way-cutting terrain already uses this same centreline.
+      name: 'lower-eagley-road-and-pavement',
+      y: (x, z) => {
+        if (
+          x < LOWER_EAGLEY.uphillPavementStart ||
+          x > eagleySegments[eagleySegments.length - 1].b[0]
+        )
+          return undefined;
+        const n = nearest(x, z, eagleySegments);
+        return n.d < roadWidth(n.s.f) / 2 + 1.3 ? roadY(x, z, n) : undefined;
+      },
+    },
   ];
   function ground(x: number, z: number) {
     for (const zone of groundZones) {
@@ -444,6 +722,11 @@ export function createSurface(data: WorldData) {
     riverY,
     courtY,
     brookParkingY,
+    browRoadY,
+    eagleyHoughBendPlan,
+    eagleyHoughBendY,
+    turningCirclePlan,
+    turningCircleY,
     vehicleRoadY,
     gateApproach,
     inPassage,

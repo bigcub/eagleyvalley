@@ -1,14 +1,16 @@
 import * as T from 'three';
-import { densify, inPoly, nearest } from '../core/geo';
+import { inPoly, nearest } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { addTrees } from '../vegetation/realistic-trees';
 import { addWoodlandFerns } from '../vegetation/woodland-ferns';
 import { addRoadsideShrubs } from '../vegetation/roadside-shrubs';
 import { addBrookHedges, brookParking } from '../landmarks/brook-mill-grounds';
 import { addBridgeGardens } from '../landmarks/bridge-gardens';
+import { inTurningCircle } from '../landmarks/turning-circle';
+import { addTurningCirclePlanting } from '../landmarks/turning-circle-details';
 import { passageWallZ } from '../landmarks/bridge-passage';
 import { roadWidth, type WorldData } from './data';
-import { OSM } from './layout';
+import { BRIDGE_ROAD_WALL } from './layout';
 import type { PlantingHints } from './boundaries';
 import type { Surface } from './surface';
 
@@ -32,14 +34,18 @@ export function addVegetation(
         rd.d > roadWidth(rd.s.f) / 2 + 1.5 &&
         !hitBuilding(t.x, t.z, 3) &&
         !inPoly(t.x, t.z, court) &&
-        !inPoly(t.x, t.z, brookParking)
+        !inPoly(t.x, t.z, brookParking) &&
+        (!inTurningCircle(t.x, t.z, surface.turningCirclePlan) ||
+          inPoly(t.x, t.z, surface.turningCirclePlan.grass))
       );
     });
   const leaf = addTrees(
     scene,
     trees.filter((t) => !inPassage(t.x, t.z)),
     terrain,
+    (t) => inPoly(t.x, t.z, surface.turningCirclePlan.island),
   );
+  addTurningCirclePlanting(kit, { scene, surface, leaf });
 
   // Small overlapping foliage cards form hanging ivy on the retaining wall face.
   for (const [i, p] of plants.ivy.entries())
@@ -79,28 +85,6 @@ export function addVegetation(
     }
   }
 
-  // Bus turning island: clipped hedge inside the mapped loop, per 2022/2024 views.
-  const turning = data.roads.find((f) => f.id === OSM.busTurningLoop);
-  if (turning) {
-    const path = densify(turning.points, 1.6);
-    const vehicleSeg = roadSeg.filter((s) => roadWidth(s.f) > 2);
-    for (let i = 1; i < path.length - 1; i++) {
-      const a = path[i - 1],
-        b = path[i + 1],
-        dx = b[0] - a[0],
-        dz = b[1] - a[1],
-        len = Math.hypot(dx, dz) || 1;
-      const x = path[i][0] - (dz / len) * 5.1,
-        z = path[i][1] + (dx / len) * 5.1;
-      if (x < 128 || nearest(x, z, vehicleSeg).d < 4.2) continue;
-      plants.shrubs.push({
-        x,
-        z,
-        y: terrain(x, z),
-        h: 0.85 + 0.08 * Math.sin(i * 2.1),
-      });
-    }
-  }
   addWoodlandFerns(scene, plants.ferns);
   addRoadsideShrubs(scene, plants.shrubs, leaf);
   addBrookHedges(scene, leaf, surface.brookParkingY);
@@ -136,6 +120,12 @@ export function addStreetLights(kit: Kit, surface: Surface, data: WorldData) {
         x = b[0] + Math.cos(th) * 5,
         z = b[1] - Math.sin(th) * 5,
         y = surface.ground(x, z);
+      // M05 places the lamp beside the coping drop on the road-side datum.
+      if (
+        f.name === 'Eagley Way' &&
+        Math.abs(x - BRIDGE_ROAD_WALL.lamp.point[0]) < 2
+      )
+        continue;
       kit.box(x, y + 3.5, z, 0.1, 7, 0.1, dark);
       kit.box(x, y + 7, z, 0.7, 0.13, 0.3, trim, th);
     }

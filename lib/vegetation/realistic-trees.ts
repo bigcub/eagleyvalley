@@ -4,6 +4,7 @@ export function addTrees(
   scene: T.Scene,
   trees: { x: number; z: number; h: number }[],
   height: (x: number, z: number) => number,
+  omit?: (tree: { x: number; z: number; h: number }) => boolean,
 ) {
   let seed = 8192;
   const rand = () => {
@@ -112,6 +113,15 @@ export function addTrees(
           ),
         );
       }
+    }
+    // Consume the same random sequence for omitted local placeholders. Trees
+    // elsewhere keep their existing crowns when a landmark replaces its trees.
+    if (omit?.(t)) {
+      dummy.scale.set(0, 0, 0);
+      dummy.updateMatrix();
+      trunk.setMatrixAt(i, dummy.matrix);
+      for (let j = 0; j < 5; j++) branches.setMatrixAt(i * 5 + j, dummy.matrix);
+      for (let j = 0; j < 36; j++) crowns.setMatrixAt(i * 36 + j, dummy.matrix);
     }
   });
   trunk.castShadow = branches.castShadow = crowns.castShadow = true;

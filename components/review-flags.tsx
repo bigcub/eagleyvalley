@@ -50,8 +50,9 @@ export function ReviewFlags({ engine }: { engine: Engine }) {
       if (!dialog.current?.open) dialog.current?.showModal();
       input.current?.focus();
     } else {
+      const wasOpen = dialog.current?.open;
       dialog.current?.close();
-      trigger.current?.focus();
+      if (wasOpen) trigger.current?.focus();
     }
     return () => engine.reviewLock(false);
   }, [panel, engine]);
@@ -94,7 +95,7 @@ export function ReviewFlags({ engine }: { engine: Engine }) {
   return (
     <>
       <div className="review-controls">
-        <button ref={trigger} onClick={add}>
+        <button className="review-flag-trigger" ref={trigger} onClick={add}>
           ⚑ Flag this spot
         </button>
         <button onClick={() => setPanel('list')}>Notes ({flags.length})</button>

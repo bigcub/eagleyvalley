@@ -4,6 +4,10 @@ import type { Kit } from '../core/kit';
 import { masonryTexture } from '../materials/masonry-texture';
 import { retainingTexture } from '../materials/landscape-materials';
 import { addBridgeRear } from '../landmarks/bridge-rear';
+import { addBridgeRoadWall } from '../landmarks/bridge-road-wall';
+import { addEagleyBrowPosts } from '../landmarks/eagley-brow';
+import { addEagleyHoughBendWall } from '../landmarks/eagley-hough-bend';
+import { addTurningCircleFurniture } from '../landmarks/turning-circle-details';
 import {
   addBridgeSideGate,
   addPassageGate,
@@ -14,7 +18,12 @@ import {
   addHoughJunction,
 } from '../landmarks/hough-junction';
 import { roadWidth, type WorldData } from './data';
-import { OSM } from './layout';
+import {
+  BRIDGE_ROAD_WALL,
+  EAGLEY_HOUGH_BEND,
+  LOWER_EAGLEY,
+  OSM,
+} from './layout';
 import type { Surface } from './surface';
 
 const { lerp, clamp } = T.MathUtils;
@@ -46,6 +55,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
+  walls.push(...addEagleyBrowPosts(kit, { surface, data }));
+  walls.push(...addTurningCircleFurniture(kit, { surface }));
 
   const boundaryStone = mat('boundaryStone', '#b2ad98');
   boundaryStone.map = masonryTexture(true);
@@ -55,6 +66,10 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   passageStone.map = masonryTexture(true);
   passageStone.bumpMap = passageStone.map;
   passageStone.bumpScale = 0.16;
+  walls.push(...addEagleyHoughBendWall(kit, { surface }));
+  walls.push(
+    ...addBridgeRoadWall(kit, { surface, data, lowerStone: passageStone }),
+  );
   const bendRetaining = mat('bendRetaining', '#969b83');
   bendRetaining.map = retainingTexture();
   bendRetaining.bumpMap = bendRetaining.map;
@@ -131,7 +146,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const v3 = (p: P, y: number) => new T.Vector3(p[0], y, p[1]);
 
   // ---- Eagley Way, both sides, from Blackburn Road to Bridge Mill ----
-  // June 2024 Street View, EAG-001..026. Side +1 is uphill (right when
+  // June 2024 Street View, EAG-001..040. Side +1 is uphill (right when
   // travelling from Blackburn Road); side -1 is the valley side.
   const eagley = data.roads.find((f) => f.name === 'Eagley Way')!,
     edgePath = densify(eagley.points, 2.3);
@@ -144,6 +159,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     return [edgePath[i][0] - (dz / l) * d, edgePath[i][1] + (dx / l) * d];
   }
   const blackburn = roadSeg.filter((s) => s.f.name === 'Blackburn Road');
+  const browEntrance = roadSeg
+    .filter((s) => s.f.id === OSM.eagleyBrow)
+    .slice(0, 1);
   for (let j = 1; j < edgePath.length; j++) {
     const a = edgePath[j - 1],
       b = edgePath[j],
@@ -154,7 +172,20 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       nz = dx / len,
       x = (a[0] + b[0]) / 2;
     for (const side of [-1, 1]) {
-      const offset = side * (side === -1 && x < 18 ? 5.0 : 3.7),
+      if (side === 1 && x >= EAGLEY_HOUGH_BEND.startX) continue;
+      if (
+        side === -1 &&
+        x > BRIDGE_ROAD_WALL.startX &&
+        x < BRIDGE_ROAD_WALL.endX
+      )
+        continue;
+      const offset =
+          side *
+          (side === -1 && x < LOWER_EAGLEY.valleyBarrierEnd
+            ? 5.0
+            : side === 1 && x >= LOWER_EAGLEY.uphillLowWallStart
+              ? LOWER_EAGLEY.uphillLowWallOffset
+              : 3.7),
         aa = offsetRoadPoint(j - 1, offset),
         bb = offsetRoadPoint(j, offset),
         ya = roadY(...a),
@@ -169,7 +200,24 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       )
         continue;
       if (x < -279 && side === -1) continue; // Preserve gatehouse entrance; opposite corner has stone boundary.
-      if (side === -1 && x >= -279 && x <= -40) {
+      // EAG-030..032: the plain wall ends at an OPEN Eagley Brow entrance.
+      // Clip both endpoints so no short collision line crosses the lane mouth.
+      if (
+        side === 1 &&
+        x > -5 &&
+        x < 18 &&
+        [aa, bb].some((p) => nearest(...p, browEntrance).d < 2.7)
+      )
+        continue;
+      // EAG-037/038: tall wall ends at woodland steps, then the bank wall
+      // resumes behind the pavement. Its unseen stair flight remains open work.
+      if (
+        side === 1 &&
+        x >= LOWER_EAGLEY.uphillPavementStart &&
+        x < LOWER_EAGLEY.uphillLowWallStart
+      )
+        continue;
+      if (side === -1 && x >= -279 && x < LOWER_EAGLEY.valleyBarrierEnd) {
         // EAG-002..006: steel rail stands in front of a separate timber fence.
         const fa = offsetRoadPoint(j - 1, offset - 0.22),
           fb = offsetRoadPoint(j, offset - 0.22),
@@ -180,12 +228,6 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         box(fa[0], ya + 0.6, fa[1], 0.13, 1.2, 0.13, weatheredTimber);
         beam(v3(sa, ya + 0.62), v3(sb, yb + 0.62), 0.08, 0.26, steel);
         box(sa[0], ya + 0.35, sa[1], 0.09, 0.7, 0.09, steel);
-        walls.push({ a: aa, b: bb });
-      } else if (side === -1 && x < 18) {
-        for (const h of [0.55, 1.12])
-          beam(v3(aa, ya + h), v3(bb, yb + h), 0.11, 0.12, weatheredTimber);
-        beam(v3(aa, ya + 0.62), v3(bb, yb + 0.62), 0.09, 0.3, steel);
-        box(aa[0], ya + 0.6, aa[1], 0.13, 1.2, 0.13, weatheredTimber);
         walls.push({ a: aa, b: bb });
       } else if (side === 1 && x < -279) {
         masonry(aa, bb, ya - 0.18, yb - 0.18, 1.25, 1.25);
@@ -208,7 +250,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
           );
         }
         walls.push({ a: aa, b: bb });
-      } else if (side === 1 && x >= -181 && x < -40) {
+      } else if (side === 1 && x >= -181 && x < LOWER_EAGLEY.plainWallEnd) {
         // EAG-012..019: plain retaining panels; height interpolation remains estimated.
         const retainingHeight = (px: number) =>
           0.82 + 0.33 * clamp((px + 145) / 33, 0, 1);
@@ -246,7 +288,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
             bendRetaining,
           );
         // Low fern layer on the open bank.
-        if (x > -106 && x < -40 && j % 5 !== 0)
+        if (x > -106 && x < LOWER_EAGLEY.plainWallEnd && j % 5 !== 0)
           for (let k = 0; k < 2; k++) {
             const t = (k + 0.5) / 2,
               d = 0.55 + 0.35 * Math.sin(j * 3.7 + k),
@@ -263,7 +305,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         if (
           (x > -146 && x < -121) ||
           (x > -117 && x < -94) ||
-          (x > -68 && x < -40)
+          (x > -68 && x < -40) ||
+          (x > -36 && x < -23) ||
+          (x > -19 && x < -5)
         ) {
           const h = retainingHeight(x);
           for (let k = 0; k < 5; k++) {
@@ -299,52 +343,23 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         for (const h of [0.35, 0.7, 1])
           beam(v3(aa, ya + h), v3(bb, yb + h), 0.016, 0.016, dark);
         walls.push({ a: aa, b: bb });
-      } else if (side === -1 && x > 59 && x < 110) {
-        // Bridge Mill roadside wall, also the passage retaining face below.
-        // June 2024 reverse view: upright coping on the taller west section, a
-        // sharp drop beside the mill. The x94 transition is interpreted.
-        const split = 94;
-        const wallBase = (y: number) =>
-          x >= 74 ? Math.min(passageY - 0.25, y - 0.18) : y - 0.18;
-        const wallBaseA = wallBase(ya),
-          wallBaseB = wallBase(yb);
-        if (aa[0] < split && bb[0] > split) {
-          const t = (split - aa[0]) / (bb[0] - aa[0]),
-            mid: P = [split, lerp(aa[1], bb[1], t)],
-            ym = lerp(ya, yb, t),
-            midBase = lerp(wallBaseA, wallBaseB, t);
-          masonry(
-            aa,
-            mid,
-            wallBaseA,
-            midBase,
-            ya - 0.18 + 1.42 - wallBaseA,
-            ym - 0.18 + 1.42 - midBase,
-            passageStone,
-            true,
-          );
-          masonry(
-            mid,
-            bb,
-            midBase,
-            wallBaseB,
-            ym - 0.18 + 0.92 - midBase,
-            yb - 0.18 + 0.92 - wallBaseB,
-            passageStone,
-          );
-        } else {
-          const top = x < split ? 1.42 : 0.92;
-          masonry(
-            aa,
-            bb,
-            wallBaseA,
-            wallBaseB,
-            ya - 0.18 + top - wallBaseA,
-            yb - 0.18 + top - wallBaseB,
-            passageStone,
-            x < split,
-          );
-        }
+      } else if (side === -1 && x >= LOWER_EAGLEY.valleyBarrierEnd && x <= 59) {
+        // EAG-033..038: upright coping continues from the barrier end,
+        // rather than appearing only beside the passage. Height is estimated.
+        masonry(aa, bb, ya - 0.18, yb - 0.18, 1.3, 1.3, passageStone, true);
+      } else if (side === 1 && x >= LOWER_EAGLEY.uphillLowWallStart) {
+        // EAG-038/040 side views: low rough retaining edge BEHIND a pavement.
+        masonry(
+          aa,
+          bb,
+          ya - 0.16,
+          yb - 0.16,
+          LOWER_EAGLEY.uphillLowWallHeight,
+          LOWER_EAGLEY.uphillLowWallHeight,
+          passageStone,
+          false,
+          false,
+        );
       } else {
         const h = side === 1 ? (x < -115 ? 0.85 : x < 18 ? 1.45 : 1.7) : 1.3;
         masonry(aa, bb, ya - 0.18, yb - 0.18, h, h);
@@ -358,6 +373,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         const plantingOffset = flowering ? 1.4 : 2.4;
         const hx = (aa[0] + bb[0]) / 2 + nx * side * plantingOffset,
           hz = (aa[1] + bb[1]) / 2 + nz * side * plantingOffset;
+        // Keep the photographed lane mouth clear of the old generated bushes.
+        if (nearest(hx, hz, browEntrance).d < 3) continue;
         plants.shrubs.push({
           x: hx,
           z: hz,
@@ -366,7 +383,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
           h: flowering
             ? 3.1 + 0.45 * Math.sin(j * 1.1)
             : side === 1
-              ? x > -106 && x < -40
+              ? x > -106 && x < LOWER_EAGLEY.plainWallEnd
                 ? 0.65 + 0.25 * Math.sin(j)
                 : x > -269 && x < -252
                   ? 0.48 + 0.18 * Math.sin(j * 1.7)
@@ -387,15 +404,6 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       ground,
     }),
   );
-  // June 2024: the low frontage wall wraps the planted corner into the gate returns.
-  // Keep the exact existing wall endpoint, so separate spans cannot leave a gap.
-  const cornerWall: P[] = [
-    offsetRoadPoint(edgePath.length - 1, -3.7),
-    [112, 26.38],
-    [114, 25.8],
-    [115.65, 25.15],
-    gateWorld(-1.6, 3.2),
-  ];
   const landscapeWall: P[] = [
     gateWorld(1.6, 3.2),
     [120.1, 20.6],
@@ -403,7 +411,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     [122.5, 17.1],
     [124.0, 14.8],
   ];
-  for (const path of [cornerWall, landscapeWall])
+  for (const path of [landscapeWall])
     for (let i = 1; i < path.length; i++) {
       const a = path[i - 1],
         b = path[i];
