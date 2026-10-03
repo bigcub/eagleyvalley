@@ -33,7 +33,7 @@ All are reference only; none are embedded or distributed. Positions are fitted t
 
 ## Still open
 
-- **Passage datum:** raw EA 2022 terrain puts the passage about 0.7m lower than the model's 19.98m at the west end, falling east to 17.5–18m. Lowering it would make the court slope gentler than the present ~12%, but it moves every front door and the frontage walk. Terrain beside tall walls is unreliable. Needs the user's view on whether the passage itself falls towards No.1.
+- **Passage datum:** the user confirms the passage is level, as modelled, so the terrain data's fall towards No.1 is discounted as wall noise. Raw EA terrain still suggests the whole level may sit about 0.7m lower than 19.98m at the west end. That is unverified; the datum is unchanged.
 - **Block well railings:** the court photos show hooped railings on a low stone kerb along the well's east end and front; the model uses straight bars.
 - Grass patch between the court and the engine house's north side (X73–78.8, Z9–12); surface unknown.
 - Frontage light wells: the photos show hooped railings round basement light wells in front of the window bays; the model has small rails beside the doors.
@@ -44,3 +44,11 @@ All are reference only; none are embedded or distributed. Positions are fitted t
 ## Checks
 
 Build, TypeScript and oxlint pass. Normal-input journey 55/55, car switch and frontage walk/reset pass. Court parking, ramp, garage reverse and 12-target walk pass (max step 0.025m). Locations, Hough (max 0.050m), landscaping gate (0.067m), passage gate (0.037m) and woodland steps (0.18m, unchanged) pass. New `npm run test:gardens` walks from the frontage through the Hough Lane gate, along the shared path, through No.3's brook-end gate to its patio and back: 66/66 targets, max step 0.078m. Ride 46/46 is unchanged at 0.0196m / 0.26° (Hough 0.0074m / 0.16°). The east well ramp was probed at 0.03m per walking step. Regression against v0.3.82 shows changed ground, terrain and collision confined to X38.5–112.5, Z−8.5–9.5. No browser errors. The photo-angle, overhead, No.3 garden, side-garden and frontage views were all inspected. Passing checks do not establish accuracy; user review is open.
+
+## M06 passage, v0.3.84
+
+Evidence: three user photos from No.3's door (east, west, and the wall opposite), plus a view into a light well and one from inside the basement. The passage is level (user). Opposite No.3 the wall is about 2.3m east of the coping step and about 3m west of it, with a raised dry-stone bed at its foot west of the step. The light well is about two flights deep.
+
+Change: passageY = bridgeBase + 2.8m (was + 3.6m). This matches EA terrain at the west end, the court's slight fall and the wall heights. The mill's eaves stay 7.2m above the passage. The setts run to the wall foot except at the bed (X82.4–89.7, about 1m deep and 0.75m high, with collision). Light wells are 2.5m deep. At the Hough Lane end, the corner bed rises to the road pavement, and the north-side Hough-approach pavement behind the wall return is removed.
+
+Limits: the 0.8m drop is fitted, not measured. Bed extent, wall coping heights and the passage's west-end grass strip are estimates. Trellis, pots and ivy are not placed from these photos.

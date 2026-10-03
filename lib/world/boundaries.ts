@@ -13,6 +13,7 @@ import { masonryTexture } from '../materials/masonry-texture';
 import { retainingTexture } from '../materials/landscape-materials';
 import { addBridgeRear } from '../landmarks/bridge-rear';
 import { addBridgeGardenFences } from '../landmarks/bridge-garden-fences';
+import { passageBedWalls } from '../landmarks/bridge-gardens';
 import { addCourtGardens } from '../landmarks/court-gardens';
 import { addBridgeRoadWall } from '../landmarks/bridge-road-wall';
 import { addBridgePassageGate } from '../landmarks/bridge-passage-gate';
@@ -50,14 +51,7 @@ export type PlantingHints = {
 export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { box, batch, beam, mat } = kit;
   const { stone, dark, trim } = kit.m;
-  const {
-    terrain,
-    ground,
-    roadY,
-    riverY,
-    roadSeg,
-    riverSeg,
-  } = surface;
+  const { terrain, ground, roadY, riverY, roadSeg, riverSeg } = surface;
   const walls: Wall[] = bridgeParkingWalls();
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
@@ -65,6 +59,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addBrookParkingBoundaries(kit, { surface }));
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
   walls.push(...addBridgeGardenFences(kit, { surface }));
+  walls.push(...passageBedWalls());
   walls.push(...addCourtGardens(kit, { surface }));
   walls.push(...addEagleyBrowPosts(kit, { surface, data }));
   walls.push(...addTurningCircleFurniture(kit, { surface }));

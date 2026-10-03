@@ -2,11 +2,34 @@ import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import { createPottedTopiary } from '../vegetation/potted-topiary';
 import { settMaterials } from '../materials/sett-material';
 import { passageWallZ } from './bridge-passage';
-import { BRIDGE_JUNCTION, BRIDGE_NO5_DOOR } from '../world/layout';
+import {
+  BRIDGE_JUNCTION,
+  BRIDGE_NO5_DOOR,
+  passageSettInset,
+} from '../world/layout';
+import { hoopRailing } from './garden-fences';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 type P = [number, number];
+
+/** User photos: a deep basement light well in front of each window bay
+ * (even bays), with rubble walls, coping, a flagged floor and a tall
+ * multi-pane window. Width, projection and depth estimated. */
+const lightWells = [0, 2, 4, 6, 8].map((bay) => 79.7 + bay * 3.12);
+const LIGHT_WELL = { width: 1.8, depth: 0.75, floor: 2.5 };
+const NO3_WELL = lightWells[2];
+const frontZ = (x: number) => 19.55 + (x - 80) * 0.041;
+/** Open well, for cutting the fine grass mesh. */
+export function inBridgeLightWell(x: number, z: number) {
+  const w = LIGHT_WELL.width / 2;
+  return lightWells.some(
+    (c) =>
+      Math.abs(x - c) < w &&
+      z > frontZ(x) - 0.05 &&
+      z < frontZ(x) + LIGHT_WELL.depth,
+  );
+}
 /** Junction setts west of the level passage follow this sloping surface. */
 type Junction = {
   inside: (x: number, z: number) => boolean;
@@ -14,6 +37,7 @@ type Junction = {
 };
 export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
   const { box, batch } = kit;
+  const wells: P[][] = [];
   const { stone, trim, dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
       color: '#eeeae0',
@@ -100,23 +124,11 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
     B(x, 0.72, 0.37, 0.09, 0.045, brass, 0.39);
     B(x + 0.48, 1.04, 0.06, 0.19, 0.04, brass, 0.4);
     B(x, -0.02, 1.98, 0.17, 0.65, stone, 0.34);
-    // Small front gates and potted topiary flank each entrance.
+    // Potted topiary flanks each entrance.
     for (const side of [-1, 1]) {
       const px = x + side * 1.04,
         pz = south(px) + 0.87;
       topiary(px, base, pz, bay * 2 + side, bay === 3);
-      for (let n = 0; n < 5; n++)
-        box(
-          px,
-          base + 0.53,
-          south(px) + 0.23 + n * 0.22,
-          0.025,
-          1.02,
-          0.025,
-          dark,
-        );
-      for (const y of [0.22, 0.85])
-        box(px, base + y, south(px) + 0.67, 0.035, 0.035, 1.05, dark);
     }
     B(x, 3.7, 0.17, 0.32, 0.18, dark, 0.18);
     B(
@@ -133,7 +145,8 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
       0.27,
     );
   }
-  for (const x of [77.8, 90.8, 104.4]) {
+  // No.3's downpipe runs east of its window into the light well (user photos).
+  for (const x of [77.8, 92.96, 104.4]) {
     B(x, 3.6, 0.075, 7.3, 0.075, dark, 0.22);
     B(x, 7.1, 0.12, 0.12, 0.28, dark, 0.22);
   }
@@ -142,7 +155,7 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
   const joints = new T.MeshStandardMaterial({ color: '#454638', roughness: 1 });
   for (let x = BRIDGE_JUNCTION.x1; x < 109; x += 0.43) {
     const z0 = south(x) + 1.15,
-      z1 = passageWallZ(x) - 0.7;
+      z1 = passageWallZ(x) - passageSettInset(x);
     box(x, base - 0.1, (z0 + z1) / 2, 0.45, 0.025, z1 - z0, joints);
   }
   // Cross-passage courses, with variable stone lengths and staggered joints.
@@ -159,7 +172,7 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
     const width = 0.23 + random() * 0.07,
       cx = x + width / 2,
       start = south(cx) + 1.2,
-      end = passageWallZ(cx) - 0.76;
+      end = passageWallZ(cx) - passageSettInset(cx);
     let z = start;
     while (z < end - 0.055) {
       const length = Math.min(
@@ -187,17 +200,82 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
     course++;
   }
   sett.dispose();
-  for (let x = BRIDGE_JUNCTION.x1 + 0.3; x < 108; x += 0.65)
+  for (let x = BRIDGE_JUNCTION.x1 + 0.3; x < 108; x += 0.65) {
+    // Flags stop at the light wells' railings.
+    const well = lightWells.some((w) => Math.abs(x - w) < LIGHT_WELL.width / 2);
+    const z0 = well ? LIGHT_WELL.depth + 0.05 : 0.1;
     box(
       x,
       base - 0.06,
-      south(x) + 0.65,
+      south(x) + (z0 + 1.2) / 2,
       0.62,
       0.12,
-      1.1,
+      1.2 - z0,
       stones[Math.floor(x) % 7],
       -0.041,
     );
+  }
+  // User frontage photos: a hoop-railed basement light well in front of each
+  // window bay, none beside the doors. Well size and depth estimated.
+  const rubble = kit.mat('bridgeLightWellRubble', '#8b8672');
+  rubble.map = stone.map;
+  const wellFlags = kit.mat('bridgeLightWellFloor', '#6d6a5e');
+  const rot = -0.041;
+  for (const x of lightWells) {
+    const w = LIGHT_WELL.width / 2,
+      d = LIGHT_WELL.depth,
+      h = LIGHT_WELL.floor,
+      z = south(x),
+      corners: P[] = [
+        [x - w, south(x - w) + 0.02],
+        [x - w, south(x - w) + d],
+        [x + w, south(x + w) + d],
+        [x + w, south(x + w) + 0.02],
+      ];
+    // Rubble side and outer walls, coping slabs, flagged floor.
+    for (const side of [-1, 1])
+      box(
+        x + side * (w + 0.08),
+        base - h / 2,
+        z + d / 2,
+        0.16,
+        h,
+        d,
+        rubble,
+        rot,
+      );
+    box(x, base - h / 2, z + d + 0.08, w * 2 + 0.32, h, 0.16, rubble, rot);
+    for (const side of [-1, 1])
+      box(
+        x + side * (w + 0.12),
+        base - 0.04,
+        z + d / 2,
+        0.26,
+        0.09,
+        d + 0.1,
+        stone,
+        rot,
+      );
+    box(x, base - 0.04, z + d + 0.12, w * 2 + 0.5, 0.09, 0.26, stone, rot);
+    box(x, base - h - 0.04, z + d / 2, w * 2, 0.08, d, wellFlags, rot);
+    // Tall white multi-pane basement window and a downpipe in the corner.
+    const sill = base - h + 0.35,
+      top = base - 0.5,
+      mid = (sill + top) / 2,
+      wh = top - sill;
+    box(x, mid, z + 0.03, 1.36, wh + 0.1, 0.08, white, rot);
+    box(x, mid, z + 0.06, 1.22, wh - 0.06, 0.04, glass, rot);
+    for (const dx of [-0.2, 0.2])
+      box(x + dx, mid, z + 0.09, 0.035, wh - 0.06, 0.03, white, rot);
+    for (let r = 1; r < 6; r++)
+      box(x, sill + (r * wh) / 6, z + 0.09, 1.22, 0.035, 0.03, white, rot);
+    // Only No.3's well (its window bay, east of the door) has the downpipe.
+    if (x === NO3_WELL)
+      box(x + w - 0.12, base - h / 2, z + 0.1, 0.1, h, 0.1, dark, rot);
+    for (let i = 1; i < corners.length; i++)
+      hoopRailing(kit, corners[i - 1], corners[i], base);
+    wells.push(corners);
+  }
   // Setts turn round the west end on the court's slope: in front of the engine
   // house, round No.5's door and along the road wall, meeting the asphalt.
   for (let x = 70.2; x < 78.8; x += 0.45)
@@ -212,6 +290,7 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
           0.27,
           stones[Math.floor(x + z) % 7],
         );
+  return wells;
 }
 
 /** No.5's panelled red door on the west wall, with stone surround, transom,

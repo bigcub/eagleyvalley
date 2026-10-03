@@ -22,6 +22,7 @@ import {
   BRIDGE_MILL_COURT,
   BRIDGE_PARKING,
   BRIDGE_JUNCTION,
+  BRIDGE_PASSAGE_RISE,
   inBridgeJunction,
   BROOK_WEST_ENTRANCE,
   BROOK_WEST,
@@ -127,7 +128,11 @@ export function createSurface(data: WorldData) {
       .find((f) => f.name === 'Bridge Mill')!
       .points.map((p) => sampledTerrain(...p)),
   );
-  const passageY = bridgeBase + 3.6;
+  // M06: the level passage sits 2.8m above the rear gardens, not 3.6m. EA
+  // terrain at the west end, the court's slight fall (user), the retaining
+  // wall heights in the user's passage photos and the light-well depth all
+  // place it about 0.8m below the earlier datum. Fitted, not surveyed.
+  const passageY = bridgeBase + BRIDGE_PASSAGE_RISE;
   const houseEntry = sampledTerrain(52, 11) + 0.38;
 
   /** Retaining height follows the road above the passage. */
@@ -169,7 +174,10 @@ export function createSurface(data: WorldData) {
   function millCornerGround(x: number, z: number) {
     if (x < 109 || x > 114.3 || z < 20.8 || z > 26.8) return undefined;
     const weight = (1 - smoothstep(x, 110, 114.3)) * smoothstep(z, 20.8, 21.5);
-    return lerp(sampledTerrain(x, z), passageY - 0.18, weight);
+    // The bed also rises to the Hough bend pavement it adjoins, so the
+    // pavement edge never stands proud of the lower passage datum.
+    const bed = Math.max(passageY - 0.18, vehicleRoadY(x, z) - 0.12);
+    return lerp(sampledTerrain(x, z), bed, weight);
   }
   /** Path from Hough Lane down through the landscaping gate. */
   function gateApproach(x: number, z: number) {

@@ -1,5 +1,6 @@
 import { schoolLocal } from '../landmarks/school-forecourt';
 import { stairLocal } from '../landmarks/woodland-steps';
+import { inBridgeLightWell } from '../landmarks/bridge-mill';
 import { WOODLAND_STEPS, GARAGE_BACKING } from './layout';
 import * as T from 'three';
 import { densify, nearest } from '../core/geo';
@@ -95,6 +96,8 @@ export function addLand(scene: T.Scene, surface: Surface) {
         const ids = [old.getX(i), old.getX(i + 1), old.getX(i + 2)],
           x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
           z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
+        // Open the frontage light wells; their rubble walls close the cut.
+        if (inBridgeLightWell(x, z)) continue;
         const [d, side] = stairLocal(x, z);
         if (
           d >= -0.12 &&

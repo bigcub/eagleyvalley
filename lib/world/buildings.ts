@@ -37,7 +37,9 @@ import { addGatehouse } from '../landmarks/gatehouse';
 import { addSchoolHouse } from '../landmarks/school-house';
 import type { WorldData } from './data';
 import {
+  BRIDGE_EAVES_ABOVE_PASSAGE,
   BRIDGE_JUNCTION,
+  BRIDGE_PASSAGE_RISE,
   BRIDGE_MILL_FOOTPRINT,
   inBridgeJunction,
   OSM,
@@ -143,7 +145,10 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
       : flat
         ? 3
         : Number(f.tags['building:levels']) || (garage ? 1 : 2);
-    const h = levels * (mill ? 3.6 : 2.8),
+    // Bridge Mill keeps its frontage proportions above the passage datum.
+    const h = bridge
+        ? BRIDGE_PASSAGE_RISE + BRIDGE_EAVES_ABOVE_PASSAGE
+        : levels * (mill ? 3.6 : 2.8),
       base = bridge
         ? surface.bridgeBase
         : garage && [OSM.garageRange, OSM.separateGarage].includes(f.id)
@@ -330,12 +335,13 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
   }
 
   // Bridge Mill frontage and engine house sit on the passage level.
-  addBridgeFront(kit, surface.passageY, {
+  const lightWells = addBridgeFront(kit, surface.passageY, {
     inside: (x, z) =>
       inBridgeJunction(x, z, surface.court, passageWallZ) ||
       (x > BRIDGE_JUNCTION.x1 - 0.5 && x < 78.6 && surface.inPassage(x, z)),
     y: surface.ground,
   });
+  for (const well of lightWells) colliders.push(bounds(well));
   colliders.push(bounds(addBridgeEngineHouse(kit, surface.passageY)));
   addBridgeNo5Door(kit, surface.passageY);
 

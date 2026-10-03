@@ -2,6 +2,7 @@ import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 import { COURT_HOUSE_EAST_END as E } from '../world/layout';
+import { hoopRailing } from './garden-fences';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,
   (x - 40.42) * 0.079 + (z - 7.45) * 0.997,
@@ -37,7 +38,7 @@ export function addCourtHouses(kit: Kit, entry: number) {
   const { stone, trim, dark, glass } = kit.m;
   const base = entry - 2.7,
     rot = Math.atan2(0.079, 0.997),
-    world = (u: number, v: number) => [
+    world = (u: number, v: number): [number, number] => [
       40.42 + u * 0.997 + v * 0.079,
       7.45 - u * 0.079 + v * 0.997,
     ];
@@ -149,12 +150,18 @@ export function addCourtHouses(kit: Kit, entry: number) {
   // East-end well: retaining face and rail beside the court, a floor joined
   // to the south well, open to the side garden at its north end.
   const W = COURT_EAST_WELL;
+  // Court photos: hooped railings stand on a low stone kerb round the well.
+  const kerbTop = entry + 0.27;
   for (let v = 3.3; v > W.north + 0.15; v -= 0.4) {
     B(W.u1 + 0.14, entry - 1.15, v, 0.28, 2.3, 0.42, stone);
-    B(W.u1 + 0.14, entry + 0.03, v, 0.36, 0.13, 0.43, stone);
-    B(W.u1 + 0.14, entry + 0.52, v, 0.025, 1, 0.025, dark);
-    B(W.u1 + 0.14, entry + 0.98, v, 0.04, 0.035, 0.43, dark);
+    B(W.u1 + 0.14, kerbTop - 0.15, v, 0.36, 0.3, 0.43, stone);
   }
+  hoopRailing(
+    kit,
+    world(W.u1 + 0.14, 3.3),
+    world(W.u1 + 0.14, W.north + 0.2),
+    kerbTop,
+  );
   for (let v = 2.75; v > W.open; v -= 0.5)
     B(
       (W.u0 + W.u1) / 2,
@@ -169,9 +176,14 @@ export function addCourtHouses(kit: Kit, entry: number) {
   for (let u = 0.2; u < W.u1 - 0.1; u += 0.4) {
     if (courtDoorPositions.some((d) => Math.abs(u - d) < 0.8)) continue;
     B(u, entry - 1.15, 3.1, 0.42, 2.3, 0.28, stone);
-    B(u, entry + 0.03, 3.1, 0.43, 0.13, 0.36, stone);
-    B(u, entry + 0.52, 3.1, 0.025, 1, 0.025, dark);
-    B(u, entry + 0.98, 3.1, 0.43, 0.035, 0.04, dark);
+    B(u, kerbTop - 0.15, 3.1, 0.43, 0.3, 0.36, stone);
+  }
+  let from = 0;
+  for (const d of [...courtDoorPositions, W.u1 + 0.6]) {
+    const to = d - 0.8;
+    if (to > from + 0.3)
+      hoopRailing(kit, world(from, 3.1), world(to, 3.1), kerbTop);
+    from = d + 0.8;
   }
   for (const u of [0, 7.86, 15.72, 23.6])
     B(u, entry + 2.7, 0.18, 0.075, 5.4, 0.075, dark);

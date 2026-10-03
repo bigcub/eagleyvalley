@@ -1128,6 +1128,19 @@ export const BRIDGE_NO5_DOOR = {
   forecourtZ: 17.05,
 };
 
+/** M06, user passage photos from No.3: a raised dry-stone bed at the foot
+ * of the taller retaining wall opposite Nos.3–4, west of the coping step;
+ * elsewhere setts run to the wall foot. Extent and size estimated. */
+export const PASSAGE_BED = { x0: 82.4, x1: 89.7, depth: 1.0, height: 0.75 };
+/** Gap left between the setts and the passage wall line at x. */
+export const passageSettInset = (x: number) =>
+  x > PASSAGE_BED.x0 && x < PASSAGE_BED.x1 ? PASSAGE_BED.depth + 0.04 : 0.03;
+
+/** Level frontage passage height above the rear gardens (bridgeBase). */
+export const BRIDGE_PASSAGE_RISE = 2.8;
+/** Old mill eaves above the passage: two storeys show on the frontage. */
+export const BRIDGE_EAVES_ABOVE_PASSAGE = 7.2;
+
 /** Court-to-passage junction west of old Bridge Mill. The court rises gently
  * east and south to passage level at x1 (user photos, EA terrain); the
  * engine house's north side drops to No.5's garden. Fitted, not surveyed. */
@@ -1214,8 +1227,12 @@ export function inBridgeJunction(
   court: P[],
   wallZ: (x: number) => number,
 ) {
-  if (x < 70 || z < 9 || z > wallZ(x) + 0.35 || inPoly(x, z, court))
+  // Run under the wall face: the mapped passage line sits short of the
+  // road-offset wall at the west end, which left a grass ramp in view.
+  if (x < 70 || z < 9 || z > wallZ(x) + 0.9 || inPoly(x, z, court))
     return false;
   const D = BRIDGE_NO5_DOOR;
-  return z < D.forecourtZ ? x < 75.4 : x < no5WallX(z);
+  if (z < D.forecourtZ) return x < 75.4;
+  // South of the mill corner there is no wall: meet the level passage.
+  return x < (z < D.wallA[1] ? no5WallX(z) : BRIDGE_JUNCTION.x1 + 0.05);
 }

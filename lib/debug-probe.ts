@@ -111,6 +111,22 @@ export function installDebugProbe(probe: Probe) {
       which === 'wide'
         ? surfaceGrid(probe, -420, 340, -250, 260, 2)
         : surfaceGrid(probe, 0, 160, -60, 40, 0.5),
+    /** Material, hit point and vertex count under a screen point (-1..1). */
+    pick(nx: number, ny: number) {
+      const ray = new T.Raycaster();
+      ray.setFromCamera(new T.Vector2(nx, ny), probe.camera);
+      const hit = ray.intersectObjects(probe.scene.children, true)[0];
+      if (!hit) return undefined;
+      const mesh = hit.object as T.Mesh;
+      const mats = Array.isArray(mesh.material)
+        ? mesh.material
+        : [mesh.material];
+      return {
+        material: mats.map(materialKey).join('+'),
+        point: hit.point.toArray().map((v) => Math.round(v * 100) / 100),
+        vertices: mesh.geometry.getAttribute('position').count,
+      };
+    },
     // Place the camera at eye height above the movement surface.
     view(x: number, z: number, h: number, tx: number, tz: number, th = h) {
       probe.freeze();

@@ -235,3 +235,39 @@ export function ironGate(
     kit.box(x, y + 0.55, z, 0.02, 0.86, 0.02, dark, angle);
   }
 }
+
+/** Hoop-topped iron railing, as at the Bridge Mill light wells and the
+ * modern block's well (user photos): close bars, a low rail and overlapping
+ * half-loops along the top. Spacing and height estimated. */
+export function hoopRailing(
+  kit: Kit,
+  a: P,
+  b: P,
+  base: number,
+  height = 0.95,
+): Wall {
+  const { dark } = kit.m;
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const n = Math.max(2, Math.round(len / 0.12)),
+    step = len / n,
+    r = step,
+    rot = Math.atan2(b[0] - a[0], b[1] - a[1]),
+    turn = Math.atan2(-(b[1] - a[1]), b[0] - a[0]);
+  const at = (i: number): P => [
+    a[0] + ((b[0] - a[0]) * i) / n,
+    a[1] + ((b[1] - a[1]) * i) / n,
+  ];
+  for (let i = 0; i <= n; i++) {
+    const [x, z] = at(i);
+    kit.box(x, base + (height - r) / 2, z, 0.018, height - r, 0.018, dark);
+    if (i + 2 > n) continue;
+    const arc = new T.TorusGeometry(r, 0.009, 3, 8, Math.PI);
+    arc.rotateY(turn);
+    const [cx, cz] = at(i + 1);
+    arc.translate(cx, base + height - r, cz);
+    kit.batch(arc, dark);
+  }
+  const [mx, mz] = at(n / 2);
+  kit.box(mx, base + 0.1, mz, 0.03, 0.03, len, dark, rot);
+  return { a, b };
+}

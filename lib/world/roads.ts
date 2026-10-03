@@ -148,7 +148,10 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
               )
             : p;
         if (walkPoints.length < 2) continue;
-        if (f.id !== OSM.busTurningLoop)
+        // The mill-side edge of the Hough approach is the M05 road wall's
+        // corner return; a pavement there lay behind it, over the passage.
+        const millSide = f.id === OSM.houghMillApproach && side === -1;
+        if (f.id !== OSM.busTurningLoop && !millSide)
           roadEdge(
             walkPoints,
             1.1,

@@ -187,8 +187,9 @@ User reported rear styling and apparent height mismatch; clarified the blank bro
 
 - [x] **No.5 side door, v0.3.83:** red door on the main west wall south of the engine house, from the user's 3D map view. Size estimated.
 - [x] **West-end court/passage junction, v0.3.83:** one slope across the east court to passage level at X77.6 (about 12% at its steepest) replaces the 31% ramp. Setts follow it; there's an edge and collision above No.5's garden. Garage walk max step 0.013m.
-- [ ] **Passage datum:** EA terrain suggests the passage is about 0.7m lower at the west end and falls east. Ask whether the passage falls towards No.1 before lowering it; it moves every front door.
-- [ ] **Block well railings:** hooped railings on a low stone kerb (court photos), not straight bars.
-- [ ] **Frontage light wells:** the user frontage photos (3 October) show hooped iron railings round basement light wells in front of the window bays. The model has small rails beside each door. Rebuild them as light wells.
+- [x] **Passage datum:** user confirms the passage is level (3 October), as modelled. The terrain data's eastward fall is wall noise and is discounted. Its absolute height (EA suggests about 0.7m lower at the west end) stays unverified and unchanged.
+- [x] **Block well railings, v0.3.84:** hooped railings on a low stone kerb.
+- [x] **M06, modelled v0.3.84:** passage datum lowered 0.8m; raised bed opposite Nos.3–4; setts to the wall foot elsewhere. Still open: trellis/pots placement, ivy, the grass strip at the west end, exact bed extent. Original evidence: the user's three passage photos from No.3 (3 October) show a dark rubble wall with stepped coping heights, a raised dry-stone planted bed at its foot opposite Nos.3–4, setts running to the wall foot elsewhere (pots, trellis), a flagged strip along the frontage, and grass at the west end.
+- [x] **Frontage light wells, v0.3.84:** deep hooped-rail light wells at the window bays, with No.3's downpipe only.
 - [ ] **Old mill garden interiors:** lawn shapes, No.3's planted far end, No.5's stone troughs. Brook-end access for Nos.1, 2 and 5 is unknown.
 - [ ] **Modern block:** garden doors and grouped windows on the garden face (PA14); west boundary; planting in the shared strip; close-board texture.

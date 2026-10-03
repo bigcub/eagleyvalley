@@ -1,4 +1,5 @@
 import { passageWallZ } from './bridge-passage';
+import { PASSAGE_BED } from '../world/layout';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 
@@ -90,28 +91,65 @@ export function addBridgeGardens(
       }
     }
   }
-  // Border against the retaining wall leaves the centre of the passage open.
-  for (let x = 76; x < 109; x += 0.55) {
-    const z = passageWallZ(x) - 0.72;
-    patch(x, z, 0.58, 0.85, earth, () => passageY);
+  // M06: one raised dry-stone bed at the wall foot opposite Nos.3-4 (user
+  // passage photos); elsewhere the setts run to the wall with pots.
+  const B = PASSAGE_BED;
+  const bedStone = kit.mat('passageBedStone', '#66665a');
+  bedStone.map = stone.map;
+  const rot = (x: number) =>
+    -Math.atan((passageWallZ(x + 0.1) - passageWallZ(x - 0.1)) / 0.2);
+  for (let x = B.x0 + 0.3; x < B.x1; x += 0.6) {
+    const back = passageWallZ(x),
+      front = back - B.depth;
     box(
       x,
-      passageY + 0.05,
-      z - 0.48,
-      0.56,
-      0.17,
-      0.18,
-      stone,
-      -Math.atan((passageWallZ(x + 0.1) - passageWallZ(x - 0.1)) / 0.2),
+      passageY + B.height / 2,
+      front + 0.2,
+      0.6,
+      B.height,
+      0.4,
+      bedStone,
+      rot(x),
     );
-    if ((x < 101.4 || x > 105) && Math.floor(x * 10) % 3 !== 0)
+    box(
+      x,
+      passageY + B.height + 0.04,
+      front + 0.2,
+      0.62,
+      0.09,
+      0.46,
+      stone,
+      rot(x),
+    );
+    patch(
+      x,
+      (front + back) / 2 + 0.2,
+      0.6,
+      B.depth - 0.4,
+      earth,
+      () => passageY + B.height - 0.05,
+    );
+    if (Math.floor(x * 10) % 3 !== 0)
       shrub(
         x,
-        z,
-        0.55 + (Math.sin(x) * 0.5 + 0.5) * 0.7,
-        passageY,
+        (front + back) / 2 + 0.15,
+        0.7 + (Math.sin(x * 1.3) * 0.5 + 0.5) * 0.6,
+        passageY + B.height - 0.05,
         Math.floor(x) % 3 === 0,
       );
+  }
+  for (const x of [B.x0, B.x1]) {
+    const back = passageWallZ(x);
+    box(
+      x,
+      passageY + B.height / 2,
+      back - B.depth / 2,
+      0.4,
+      B.height,
+      B.depth,
+      bedStone,
+      rot(x),
+    );
   }
   // IMG_9029: weathered square trellis and clustered glazed pots against the wall.
   // Location and dimensions are interpreted; keep all additions within the existing border.
@@ -151,12 +189,7 @@ export function addBridgeGardens(
     batch(soil, earth);
     shrub(x, z, 0.65 + (i % 2) * 0.2, passageY + h - 0.03, true);
   }
-  // Planting between entrances rather than across the doors or route around the west end.
-  for (const x of [85.94, 92.18, 98.42]) {
-    const z = 19.55 + (x - 80) * 0.041 + 0.8;
-    patch(x, z, 1.35, 0.85, earth, () => passageY);
-    shrub(x, z, 0.65, passageY, true);
-  }
+  // Frontage photos show light wells and pots at the window bays, not beds.
   // Approximate visible garden edges traced from north-up Google aerial imagery.
   // Roof corners anchor the trace; the mapped riverside path remains outside it.
   // These are landscape outlines, not surveyed ownership boundaries.
@@ -239,4 +272,16 @@ export function addBridgeGardens(
   hedge([111.5, -4.3], [113.1, -1.8], 1.3);
   hedge([113.1, -1.8], [113.4, 10.8], 1.3);
   // Rear patios and solid dividers are modelled in bridge-rear.ts from IMG_8274.
+}
+
+/** Front and ends of the raised passage bed, for collision. */
+export function passageBedWalls() {
+  const B = PASSAGE_BED;
+  const a: [number, number] = [B.x0, passageWallZ(B.x0) - B.depth],
+    b: [number, number] = [B.x1, passageWallZ(B.x1) - B.depth];
+  return [
+    { a, b },
+    { a, b: [B.x0, passageWallZ(B.x0)] as [number, number] },
+    { a: b, b: [B.x1, passageWallZ(B.x1)] as [number, number] },
+  ];
 }
