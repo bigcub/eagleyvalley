@@ -193,3 +193,7 @@ User reported rear styling and apparent height mismatch; clarified the blank bro
 - [x] **Frontage light wells, v0.3.84:** deep hooped-rail light wells at the window bays, with No.3's downpipe only.
 - [ ] **Old mill garden interiors:** lawn shapes, No.3's planted far end, No.5's stone troughs. Brook-end access for Nos.1, 2 and 5 is unknown.
 - [ ] **Modern block:** garden doors and grouped windows on the garden face (PA14); west boundary; planting in the shared strip; close-board texture.
+
+## Parked ideas
+
+- People and traffic mode: built and tested on local branch `parked/people-traffic` (3 October 2026). User found it chaotic; not adopted. Don't revive without a clear request.
