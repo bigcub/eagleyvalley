@@ -16,7 +16,11 @@ import {
 } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { slateTexture } from '../materials/building-surfaces';
-import { addBridgeFront, addBridgeEngineHouse } from '../landmarks/bridge-mill';
+import {
+  addBridgeFront,
+  addBridgeEngineHouse,
+  addBridgeNo5Door,
+} from '../landmarks/bridge-mill';
 import { addCourtGarage } from '../landmarks/garage-court';
 import { addBrookSouth } from '../landmarks/brook-mill';
 import { addBrookNorth } from '../landmarks/brook-north';
@@ -32,7 +36,13 @@ import {
 import { addGatehouse } from '../landmarks/gatehouse';
 import { addSchoolHouse } from '../landmarks/school-house';
 import type { WorldData } from './data';
-import { BRIDGE_MILL_FOOTPRINT, OSM } from './layout';
+import {
+  BRIDGE_JUNCTION,
+  BRIDGE_MILL_FOOTPRINT,
+  inBridgeJunction,
+  OSM,
+} from './layout';
+import { passageWallZ } from '../landmarks/bridge-passage';
 import type { Surface } from './surface';
 
 // Buildings keep their mapped footprints. Landmarks have dedicated models;
@@ -66,7 +76,8 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
 
     // Dedicated landmark models.
     if (OSM.wakefieldHouses.includes(f.id)) {
-      if (f.id === OSM.wakefieldHouses[0]) addWakefieldHouses(kit, { buildings: data.buildings, ground });
+      if (f.id === OSM.wakefieldHouses[0])
+        addWakefieldHouses(kit, { buildings: data.buildings, ground });
       continue;
     }
     if (OSM.threadfoldHouses.includes(f.id)) {
@@ -225,6 +236,9 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
           for (let level = 0; level < levels; level++) {
             // Bridge Mill rear ground floor: French doors in bridge-rear.ts.
             if (bridge && j === 0 && level === 0) continue;
+            // West end: No.5's side door replaces the southern passage-level
+            // window and its basement light (bridge-mill.ts).
+            if (bridge && j === 3 && k === 0 && level < 2) continue;
             const yy = base + (level * h) / levels + 1.65,
               ww = mill ? 1.55 : 1.15,
               hh = mill ? 2.25 : 1.3;
@@ -316,8 +330,14 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
   }
 
   // Bridge Mill frontage and engine house sit on the passage level.
-  addBridgeFront(kit, surface.passageY);
+  addBridgeFront(kit, surface.passageY, {
+    inside: (x, z) =>
+      inBridgeJunction(x, z, surface.court, passageWallZ) ||
+      (x > BRIDGE_JUNCTION.x1 - 0.5 && x < 78.6 && surface.inPassage(x, z)),
+    y: surface.ground,
+  });
   colliders.push(bounds(addBridgeEngineHouse(kit, surface.passageY)));
+  addBridgeNo5Door(kit, surface.passageY);
 
   // Brook Mill details, interpreted from Historic England listings and photographs.
   const brook = data.buildings.find((f) => f.name === 'Brook Mill')!;

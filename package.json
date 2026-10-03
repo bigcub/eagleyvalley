@@ -23,6 +23,7 @@
     "test:passage-gate": "node scripts/check-journey.mjs --passage-gate",
     "test:landscaping-gate": "node scripts/check-journey.mjs --landscaping-gate",
     "test:steps": "node scripts/check-journey.mjs --woodland-steps",
+    "test:gardens": "node scripts/check-journey.mjs --gardens",
     "test:brook-parking": "node scripts/check-brook-parking.mjs",
     "test:brook-entrance": "node scripts/check-brook-parking.mjs --west-entrance",
     "test:blackburn": "node scripts/check-blackburn.mjs",

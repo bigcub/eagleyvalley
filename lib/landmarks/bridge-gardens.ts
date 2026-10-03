@@ -152,7 +152,7 @@ export function addBridgeGardens(
     shrub(x, z, 0.65 + (i % 2) * 0.2, passageY + h - 0.03, true);
   }
   // Planting between entrances rather than across the doors or route around the west end.
-  for (const x of [82.82, 89.06, 95.3, 101.54]) {
+  for (const x of [85.94, 92.18, 98.42]) {
     const z = 19.55 + (x - 80) * 0.041 + 0.8;
     patch(x, z, 1.35, 0.85, earth, () => passageY);
     shrub(x, z, 0.65, passageY, true);
@@ -167,7 +167,10 @@ export function addBridgeGardens(
       [83, 9.6],
       [78.8, 9.4],
       [78.8, 0],
-      [70, 0],
+      // Below the court rockery and east shrubs (UP-003).
+      [76.4, -0.4],
+      [75.4, -2.8],
+      [70, -2.35],
     ],
     [
       [83, -6],
@@ -231,16 +234,8 @@ export function addBridgeGardens(
       shrub(x, z, height * (0.92 + 0.08 * Math.sin(i * 1.7)), terrain(x, z));
     }
   }
-  for (const plot of plots) {
-    lawn(plot);
-    hedge(plot[0], plot[1], 1.35);
-  }
-  // Shared divisions occur once, rather than overlapping hedges from each plot.
-  for (let i = 1; i < plots.length; i++) {
-    const end = plots[i][plots[i].length - 1];
-    hedge(plots[i][0], [end[0], end[1] - 3.25], 1.15);
-  }
-  hedge([70, 0], [70, -5.5], 1.3);
+  for (const plot of plots) lawn(plot);
+  // Divisions, brook-end hedge and gates are in bridge-garden-fences.ts.
   hedge([111.5, -4.3], [113.1, -1.8], 1.3);
   hedge([113.1, -1.8], [113.4, 10.8], 1.3);
   // Rear patios and solid dividers are modelled in bridge-rear.ts from IMG_8274.

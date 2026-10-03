@@ -3,7 +3,7 @@ import { inPoly, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { drape } from '../core/mesh';
 import { BRIDGE_PARKING as D } from '../world/layout';
-import { courtDoorPositions } from './court-houses';
+import { COURT_EAST_WELL, courtDoorPositions } from './court-houses';
 import type { Surface } from '../world/surface';
 
 export const inBridgeParkingIsland = (x: number, z: number) =>
@@ -81,17 +81,21 @@ export function addBridgeParking(kit: Kit, { surface }: { surface: Surface }) {
 
 /** Existing retaining rail, with the three entrance crossings kept open. */
 export function bridgeParkingWalls(): { a: P; b: P }[] {
-  const world = (u: number): P => [
-    40.42 + u * 0.997 + 3.1 * 0.079,
-    7.45 - u * 0.079 + 3.1 * 0.997,
+  const at = (u: number, v: number): P => [
+    40.42 + u * 0.997 + v * 0.079,
+    7.45 - u * 0.079 + v * 0.997,
   ];
+  const world = (u: number) => at(u, 3.1);
+  const W = COURT_EAST_WELL;
   const lines: { a: P; b: P }[] = [];
   let previous = 0;
   for (const door of courtDoorPositions) {
     lines.push({ a: world(previous), b: world(door - 0.83) });
     previous = door + 0.83;
   }
-  lines.push({ a: world(previous), b: world(23.6) });
+  lines.push({ a: world(previous), b: world(W.u1) });
+  // East-end well rail beside the court, meeting the rockery coping.
+  lines.push({ a: world(W.u1), b: at(W.u1, W.north) });
   return lines;
 }
 

@@ -12,6 +12,8 @@ import type { Kit } from '../core/kit';
 import { masonryTexture } from '../materials/masonry-texture';
 import { retainingTexture } from '../materials/landscape-materials';
 import { addBridgeRear } from '../landmarks/bridge-rear';
+import { addBridgeGardenFences } from '../landmarks/bridge-garden-fences';
+import { addCourtGardens } from '../landmarks/court-gardens';
 import { addBridgeRoadWall } from '../landmarks/bridge-road-wall';
 import { addBridgePassageGate } from '../landmarks/bridge-passage-gate';
 import { addEagleyBrowPosts } from '../landmarks/eagley-brow';
@@ -50,13 +52,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { stone, dark, trim } = kit.m;
   const {
     terrain,
-    sampledTerrain,
     ground,
     roadY,
     riverY,
     roadSeg,
     riverSeg,
-    passageY,
   } = surface;
   const walls: Wall[] = bridgeParkingWalls();
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
@@ -64,6 +64,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addGarageBacking(kit, { surface, data }));
   walls.push(...addBrookParkingBoundaries(kit, { surface }));
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
+  walls.push(...addBridgeGardenFences(kit, { surface }));
+  walls.push(...addCourtGardens(kit, { surface }));
   walls.push(...addEagleyBrowPosts(kit, { surface, data }));
   walls.push(...addTurningCircleFurniture(kit, { surface }));
 
@@ -451,15 +453,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       nearest(x, z, outline(PASSAGE_GATE.approach)).d > h
     )
       plants.shrubs.push({ x, z, y: terrain(x, z), h });
-  // Raised west passage apron, retained rather than floating above the bank. No collision.
-  for (let z = 12; z < 27; z += 1) {
-    const a: P = [71.8, z],
-      b: P = [71.8, z + 1],
-      ya = Math.min(sampledTerrain(...a) - 0.15, passageY - 0.3),
-      yb = Math.min(sampledTerrain(...b) - 0.15, passageY - 0.3);
-    masonry(a, b, ya, yb, passageY - 0.07 - ya, passageY - 0.07 - yb);
-    walls.pop();
-  }
+  // The former raised west passage apron wall at X71.8 is gone: the M24 court
+  // ramp reaches passage level at X71, so only its cap showed as a strip.
 
   // ---- Hough Lane road bridge, junction and footbridge ----
   // Narrow road bridge and separate footbridge, checked in both directions in June 2024.
@@ -563,8 +558,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         railB = new T.Vector3(b[0] + ox, 0, b[1] + oz);
       const rail = (ya: number, yb: number, w: number, m: T.Material) =>
         beam(railA.clone().setY(ya), railB.clone().setY(yb), w, w, m);
-      if (mx > 20 && mx < 70) {
+      if (mx > 20 && mx < 38) {
         // Mesh railing along the residents' section (user photo X24,Z-4).
+        // UP-003: behind the modern block it is the stone wall and iron rail.
         box(x, roadY(mx, mz) + 0.7, z, 0.075, 1.4, 0.075, riverSteel);
         for (const yy of [0.15, 0.72, 1.32])
           rail(roadY(...a) + yy, roadY(...b) + yy, 0.035, riverSteel);

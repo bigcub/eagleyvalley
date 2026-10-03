@@ -32,9 +32,10 @@ export function addBridgeRear(kit: Kit, base: number) {
     metalness: 0.65,
     roughness: 0.4,
   });
-  const timber = new T.MeshStandardMaterial({ color: '#626966', roughness: 1 });
+  // Painted dark blue-grey in the user's view from No.3; earlier IMG_8274 grey.
+  const timber = new T.MeshStandardMaterial({ color: '#363c46', roughness: 1 });
   const timberLight = new T.MeshStandardMaterial({
-    color: '#737972',
+    color: '#414854',
     roughness: 1,
   });
   const lanternGlass = new T.MeshStandardMaterial({
@@ -69,7 +70,9 @@ export function addBridgeRear(kit: Kit, base: number) {
       b = rearDivisions[i + 1],
       span = b - a;
     // The photo shows a sash beside each paired door. Spacing within each plot is inferred.
-    const door = a + span * 0.31,
+    // No.5 (west, beside the engine house) is narrower: French doors only (user).
+    const narrow = i === 0,
+      door = narrow ? a + span / 2 : a + span * 0.31,
       window = a + span * 0.74;
     opening(door, 1.5, 2.65, 0.08);
     // Two glazed leaves, central meeting stiles, low rails and separate transom.
@@ -86,12 +89,14 @@ export function addBridgeRear(kit: Kit, base: number) {
     for (const dx of [-0.45, -0.15, 0.15, 0.45])
       B(door + dx, 2.49, 0.025, 0.4, white, 0.255);
     // Tall neighbouring multi-pane sash, above the patio rather than down to the ground.
-    opening(window, 1.4, 2.15, 0.43);
-    for (const dx of [-0.32, 0, 0.32])
-      B(window + dx, 1.505, 0.028, 2.01, white, 0.255);
-    for (let row = 1; row < 6; row++)
-      B(window, 0.43 + (row * 2.15) / 6, 1.26, 0.027, white, 0.255);
-    B(window, 1.5, 1.34, 0.07, white, 0.27);
+    if (!narrow) {
+      opening(window, 1.4, 2.15, 0.43);
+      for (const dx of [-0.32, 0, 0.32])
+        B(window + dx, 1.505, 0.028, 2.01, white, 0.255);
+      for (let row = 1; row < 6; row++)
+        B(window, 0.43 + (row * 2.15) / 6, 1.26, 0.027, white, 0.255);
+      B(window, 1.5, 1.34, 0.07, white, 0.27);
+    }
     // Black lantern above the door, as in the photograph.
     B(door, 3.1, 0.12, 0.32, dark, 0.18, 0.12);
     B(door, 3.12, 0.11, 0.19, lanternGlass, 0.27, 0.08);

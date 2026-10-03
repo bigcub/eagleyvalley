@@ -21,6 +21,8 @@ import { roadWidth, type WorldData } from './data';
 import {
   BRIDGE_MILL_COURT,
   BRIDGE_PARKING,
+  BRIDGE_JUNCTION,
+  inBridgeJunction,
   BROOK_WEST_ENTRANCE,
   BROOK_WEST,
   BROOK_PARKING_ENTRY,
@@ -55,6 +57,10 @@ import { gateLocal, gateWorld } from '../landmarks/bridge-side-gate';
 import { brookTerrace } from '../landmarks/brook-terrace';
 import { brookParking } from '../landmarks/brook-mill-grounds';
 import { courtHouseGround } from '../landmarks/court-houses';
+import {
+  courtRockeryTerrain,
+  courtSideGardenTerrain,
+} from '../landmarks/court-gardens';
 import {
   HOUGH_CENTRE,
   PAVE_H,
@@ -135,20 +141,29 @@ export function createSurface(data: WorldData) {
         (passageY - 0.25),
     );
   }
+  /** Level cobbled passage along the frontage. West of BRIDGE_JUNCTION.x1
+   * the setts follow the court's slope instead. */
   function inPassage(x: number, z: number) {
     return (
-      x > 71 &&
+      x > BRIDGE_JUNCTION.x1 &&
       x < 110 &&
       z > 12 &&
       z < passageWallZ(x) + 0.35 &&
-      (x < 76 || z > 19.55 + (x - 80) * 0.041)
+      z > 19.55 + (x - 80) * 0.041
     );
   }
-  /** Ramp from the court access lane up to the passage level. */
+  /** User, 3 October: the court falls on a slight slope from the passage at
+   * the mill's west end towards the modern block; EA terrain agrees. The rise
+   * is spread across the east court instead of a 4.5m ramp. Fitted. */
+  function junctionWeight(x: number, z: number) {
+    const J = BRIDGE_JUNCTION;
+    return smoothstep(x, J.x0, J.x1) * smoothstep(z, J.z0, J.z1);
+  }
+  /** Paved junction outside the court outline: setts in front of the engine
+   * house, round No.5's door and along the road wall to the frontage. */
   function passageApproach(x: number, z: number) {
-    if (x < 66.5 || x > 73 || z < 11 || z > 25) return undefined;
-    const weight = smoothstep(x, 66.5, 71) * smoothstep(z, 11, 12);
-    return lerp(courtFormation(x, z), passageY, weight);
+    if (!inBridgeJunction(x, z, court, passageWallZ)) return undefined;
+    return courtY(x, z);
   }
   /** Enclosed planting bed blended into the passage, not a terrain cliff. */
   function millCornerGround(x: number, z: number) {
@@ -340,6 +355,20 @@ export function createSurface(data: WorldData) {
       (1 - smoothstep(x, 65, 70));
     return lerp(sampledTerrain(x, z), sampledTerrain(n.x, n.z), weight);
   }
+  /** Old mill gardens: the lawn falls to the shared path's level over 2m
+   * outside its verge, so the brook-end gates have no step. Estimated. */
+  function gardenPathBank(x: number, z: number) {
+    if (x < 70 || x > 112 || z > 0) return undefined;
+    const n = nearest(x, z, riversideSeg);
+    if (z < n.z || !n.s) return undefined;
+    const verge = roadWidth(n.s.f) / 2 + 1.3;
+    if (n.d <= verge || n.d > verge + 2) return undefined;
+    return lerp(
+      roadY(n.x, n.z, n) - 0.13,
+      sampledTerrain(x, z),
+      smoothstep(n.d, verge, verge + 2),
+    );
+  }
   function brookParkingPlane(x: number, z: number) {
     return (
       sampledTerrain(44, -50) +
@@ -394,13 +423,15 @@ export function createSurface(data: WorldData) {
     );
   }
   function courtY(x: number, z: number) {
-    return passageApproach(x, z) ?? courtFormation(x, z);
+    return lerp(courtFormation(x, z), passageY, junctionWeight(x, z));
   }
+  /** Side-garden ground at the open north end of the east well. */
+  const wellGarden = () => sampledTerrain(66, -6) + 0.13;
   function garageBackingLevel(x: number, z: number) {
     const D = GARAGE_BACKING;
-    const weight =
-      smoothstep(x, D.startX, D.coreStartX) *
-      (1 - smoothstep(x, D.coreEndX, D.endX));
+    // The east end follows the court's slope up to the passage junction
+    // rather than fading back to raw terrain.
+    const weight = smoothstep(x, D.startX, D.coreStartX);
     return lerp(sampledTerrain(x, z) + 0.13, courtY(x, z), weight);
   }
   function garageBackingY(x: number, z: number) {
@@ -787,6 +818,7 @@ export function createSurface(data: WorldData) {
           : undefined,
     },
     { name: 'riverside-path', y: riversideFormation },
+    { name: 'bridge-garden-path-bank', y: gardenPathBank },
     {
       name: 'brook-parking',
       y: (x, z) =>
@@ -795,10 +827,20 @@ export function createSurface(data: WorldData) {
     { name: 'landscape-gate', y: (x, z) => offset(gateApproach(x, z), -0.08) },
     {
       name: 'court-house-wells',
-      y: (x, z) =>
-        courtHouseGround(x, z, houseEntry) !== undefined
-          ? houseEntry - 2.51
-          : undefined,
+      y: (x, z) => {
+        const y = courtHouseGround(x, z, houseEntry, wellGarden);
+        if (y === undefined) return undefined;
+        // Door bridges span the well; the grass stays at well-floor level.
+        return (y > houseEntry - 1 ? houseEntry - 2.35 : y) - 0.16;
+      },
+    },
+    {
+      name: 'court-rockery',
+      y: (x, z) => courtRockeryTerrain(x, z, courtY, sampledTerrain),
+    },
+    {
+      name: 'court-side-garden',
+      y: (x, z) => courtSideGardenTerrain(x, z, sampledTerrain),
     },
     {
       name: 'passage-approach',
@@ -1038,7 +1080,7 @@ export function createSurface(data: WorldData) {
     },
     {
       name: 'court-house-wells',
-      y: (x, z) => courtHouseGround(x, z, houseEntry),
+      y: (x, z) => courtHouseGround(x, z, houseEntry, wellGarden),
     },
     { name: 'passage-approach', y: passageApproach },
     { name: 'passage', y: (x, z) => (inPassage(x, z) ? passageY : undefined) },

@@ -1,0 +1,46 @@
+# Bridge Mill gardens, walls and fences — local v0.3.83
+
+3 October 2026. The user asked for the gardens, walls and fences of the two Bridge Mill properties: old Bridge Mill and the modern block (code: `court-houses.ts`). Main structure only, no garden furniture.
+
+## Evidence and limits
+
+- **UP-003 again** (oblique aerial photo, no GPS or date). Taken from the north-east looking south-west: the modern block is central, the court with four parked cars lies to its east, and old Bridge Mill is just off to the left. This corrects the M16b reading that the photographed end is the west end.
+- **User photos, 3 October:** the trellis fences between old mill gardens (two close views), a top-down view from one garden, a wide upper-floor view from No.3 looking north, and three frontage views from No.3's door. User notes: houses are numbered from the Hough Lane (east) end, so No.5 is the westernmost, beside the engine house. No.5 is about half the width of the others, has only French doors at the rear, and its red front door is on the side.
+- **Google Maps aerial,** north-up at 53.61375,-2.42695 and 53.61386,-2.42722. Airbus 2026 copyright; acquisition date not shown. Roofs lean about 3m north of the ground features, so traces use ground features, corrected about 1.5m against mapped footprints.
+- **Esri World Imagery** tiles at zoom 19 were also tried, but were too dark and coarse to trace. Zoom 20 was unavailable.
+
+All are reference only; none are embedded or distributed. Positions are fitted to OSM footprints and the aerial at roughly ±1–2m. Heights and widths are visual estimates.
+
+## What changed on screen
+
+| Element | Model | Status |
+| --- | --- | --- |
+| Old mill garden dividers | Low trellis fences (boarded base, lattice, square posts, capping rail with metal brackets) at X83, 88.7, 94, 100.3, from the patio screens to the brook-end hedge | Photographed type; ~1.15m height estimated |
+| Old mill brook end | Tall clipped hedge (~1.95m) across all five gardens; open black iron gates for No.3 (X92.5) and No.4 (X87.4) | Gates photographed for Nos.3 and 4 only; Nos.1, 2 and 5 access unknown |
+| No.3 west side | Clipped hedge beside the fence | Photographed |
+| No.4 | Paved path beside that hedge to a paved seating area at the far end | Photographed; dimensions estimated |
+| Patio screens | Repainted dark blue-grey | No.3 view; shades by eye |
+| No.5 rear | French doors only, no sash | User statement |
+| Modern block gardens | Three flagged patios, 1.8m close-boarded screens between patios, 1.1m fences between lawns and on the outer boundary at about 5.2m from the wall | Divisions follow the downpipes; depths from aerial; west-end fence unverified |
+| No.3 (block) side garden | Level terrace east of the block, closed by clipped hedges; the east-end well ramps up into it | Hedge line from UP-003; the level is fitted |
+| Court | Asphalt and court level extended between the block's east well and the old mill (X65–75.4, north edge about Z0.5); tall shrubs along its east edge | Aerial trace |
+| Court rockery | Coping plus three tiers of large stones and planted beds, about 2.45m deep and 2m high, dropping to the gardens | UP-003; tier sizes estimated |
+| Block east end | Sunken well continued along the end, with rail; end openings moved from the west to the east end | UP-003 |
+| Brook wall behind the block | Stone wall with iron rail from X38 (was mesh fence to X70); the dense hedge behind the block was removed in favour of open shared lawn | UP-003 |
+| No.5 side door | Red panelled door with transom, stone surround, step and lantern on the main west wall south of the engine house (Z≈18.2), replacing a generic window and basement light; setts fill the corner in front of it at passage level | User's 3D map view; size and detail estimated |
+| West-end junction | The user confirmed the parking falls on a slight slope (two court photos). The 4.5m, roughly 31% ramp is replaced by one slope across the east court, rising east and south to passage level at X77.6 (about 12% at its steepest, 18.54→19.97m). Setts round the engine house and No.5's door follow that surface. A stone edge with collision runs where the court meets the drop to No.5's garden, north of the engine house. The buried 'apron' wall at X71.8 is removed, and the garage-back formation now follows the slope | Slope shape fitted; the passage datum is unchanged |
+| Old mill frontage | Four doors on odd bays, windows at both ends (was five doors); colours west to east plum, green, navy, dark grey | User frontage photos |
+
+## Still open
+
+- **Passage datum:** raw EA 2022 terrain puts the passage about 0.7m lower than the model's 19.98m at the west end, falling east to 17.5–18m. Lowering it would make the court slope gentler than the present ~12%, but it moves every front door and the frontage walk. Terrain beside tall walls is unreliable. Needs the user's view on whether the passage itself falls towards No.1.
+- **Block well railings:** the court photos show hooped railings on a low stone kerb along the well's east end and front; the model uses straight bars.
+- Grass patch between the court and the engine house's north side (X73–78.8, Z9–12); surface unknown.
+- Frontage light wells: the photos show hooped railings round basement light wells in front of the window bays; the model has small rails beside the doors.
+- Old mill garden interiors (lawn shapes, No.3's planted far end, No.5's stone troughs), and gates for Nos.1, 2 and 5.
+- Modern block: garden doors and grouped windows on the garden face (PA14), the west boundary, and planting in the shared strip.
+- Close-boarded fences have no board texture. Rockery planting is representative, not placed from the photo.
+
+## Checks
+
+Build, TypeScript and oxlint pass. Normal-input journey 55/55, car switch and frontage walk/reset pass. Court parking, ramp, garage reverse and 12-target walk pass (max step 0.025m). Locations, Hough (max 0.050m), landscaping gate (0.067m), passage gate (0.037m) and woodland steps (0.18m, unchanged) pass. New `npm run test:gardens` walks from the frontage through the Hough Lane gate, along the shared path, through No.3's brook-end gate to its patio and back: 66/66 targets, max step 0.078m. Ride 46/46 is unchanged at 0.0196m / 0.26° (Hough 0.0074m / 0.16°). The east well ramp was probed at 0.03m per walking step. Regression against v0.3.82 shows changed ground, terrain and collision confined to X38.5–112.5, Z−8.5–9.5. No browser errors. The photo-angle, overhead, No.3 garden, side-garden and frontage views were all inspected. Passing checks do not establish accuracy; user review is open.

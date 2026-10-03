@@ -1,19 +1,31 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
-import { COURT_HOUSE_WEST_END as E } from '../world/layout';
+import { COURT_HOUSE_EAST_END as E } from '../world/layout';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,
   (x - 40.42) * 0.079 + (z - 7.45) * 0.997,
 ];
 export const courtDoorPositions = [1.7, 14.1, 22.0];
+/** UP-003: the sunken well turns along the east end, beside the court,
+ * and opens at its north end onto No.3's side garden. Width estimated. */
+export const COURT_EAST_WELL = { u0: 23.6, u1: 25, north: -5, open: -3 };
 export function courtHouseGround(
   x: number,
   z: number,
   entry: number,
+  garden?: (x: number, z: number) => number,
 ): number | undefined {
   const [u, v] = courtHouseLocal(x, z);
-  if (u < 0 || u > 23.6 || v < 0 || v > 3.05) return;
+  const W = COURT_EAST_WELL;
+  if (u > W.u0 && u <= W.u1 && v < 0 && v >= W.north) {
+    // Ramp from the well floor up to the garden over its open north end.
+    const floor = entry - 2.35;
+    if (!garden || v > W.open) return floor;
+    const t = (W.open - v) / (W.open - W.north);
+    return floor + (garden(x, z) - floor) * t * t * (3 - 2 * t);
+  }
+  if (u < 0 || u > W.u1 || v < 0 || v > 3.05) return;
   return courtDoorPositions.some((d) => Math.abs(u - d) < 0.62)
     ? entry
     : entry - 2.35;
@@ -89,19 +101,19 @@ export function addCourtHouses(kit: Kit, entry: number) {
   for (const u of [2, 5.7, 9.9, 13.6, 17.8, 21.5])
     for (const y of [base + 1.35, entry + 1.35, entry + 4.05])
       window(u, y, -7.9);
-  // UP-003: the near end has one white opening on each storey.
-  // Keep the opposite, concealed end unresolved rather than mirroring it.
+  // UP-003: the end facing the court (east) has one white opening on each
+  // storey, the lowest in the well. Keep the west end unresolved.
   const sash = kit.mat('courtHouseSashWhite', '#e5e7e1', 0.75);
   const endGlass = kit.mat('courtHouseEndGlass', '#819ba4', 0.4);
   for (const row of E.rows) {
     const y = base + row;
     B(E.u, y, E.v, 0.12, E.height + 0.14, E.width + 0.14, sash);
-    B(E.u - 0.09, y, E.v, 0.04, E.height, E.width, endGlass);
-    B(E.u - 0.12, y, E.v, 0.035, E.height, 0.04, sash);
+    B(E.u + 0.09, y, E.v, 0.04, E.height, E.width, endGlass);
+    B(E.u + 0.12, y, E.v, 0.035, E.height, 0.04, sash);
     for (const dy of [-0.45, 0, 0.45])
-      B(E.u - 0.12, y + dy, E.v, 0.035, 0.04, E.width, sash);
+      B(E.u + 0.12, y + dy, E.v, 0.035, 0.04, E.width, sash);
     B(
-      E.u - 0.08,
+      E.u + 0.08,
       y - E.height / 2 - 0.07,
       E.v,
       0.25,
@@ -134,8 +146,27 @@ export function addCourtHouses(kit: Kit, entry: number) {
         B(u + side * 0.59, entry + y, 1.5, 0.045, 0.045, 3, dark);
     }
   }
+  // East-end well: retaining face and rail beside the court, a floor joined
+  // to the south well, open to the side garden at its north end.
+  const W = COURT_EAST_WELL;
+  for (let v = 3.3; v > W.north + 0.15; v -= 0.4) {
+    B(W.u1 + 0.14, entry - 1.15, v, 0.28, 2.3, 0.42, stone);
+    B(W.u1 + 0.14, entry + 0.03, v, 0.36, 0.13, 0.43, stone);
+    B(W.u1 + 0.14, entry + 0.52, v, 0.025, 1, 0.025, dark);
+    B(W.u1 + 0.14, entry + 0.98, v, 0.04, 0.035, 0.43, dark);
+  }
+  for (let v = 2.75; v > W.open; v -= 0.5)
+    B(
+      (W.u0 + W.u1) / 2,
+      entry - 2.36,
+      v,
+      W.u1 - W.u0,
+      0.035,
+      0.5,
+      kit.m.paving,
+    );
   // Retain the sunken strip, leaving one crossing to each entrance.
-  for (let u = 0.2; u < 23.5; u += 0.4) {
+  for (let u = 0.2; u < W.u1 - 0.1; u += 0.4) {
     if (courtDoorPositions.some((d) => Math.abs(u - d) < 0.8)) continue;
     B(u, entry - 1.15, 3.1, 0.42, 2.3, 0.28, stone);
     B(u, entry + 0.03, 3.1, 0.43, 0.13, 0.36, stone);

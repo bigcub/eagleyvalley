@@ -196,10 +196,11 @@ if (
   process.argv.includes('--passage-gate') ||
   process.argv.includes('--landscaping-gate') ||
   process.argv.includes('--woodland-steps') ||
-  process.argv.includes('--garages')
+  process.argv.includes('--garages') ||
+  process.argv.includes('--gardens')
 ) {
   const gateWalk = await page.evaluate(
-    ({ landscaping, woodland, garages }) => {
+    ({ landscaping, woodland, garages, gardens }) => {
       const press = (code, down) =>
         window.dispatchEvent(
           new KeyboardEvent(down ? 'keydown' : 'keyup', {
@@ -239,7 +240,7 @@ if (
           [47, 16],
           [43.5, 16.4],
         );
-      if (landscaping)
+      if (landscaping || gardens)
         outward.push(
           [118.5, 24.5],
           [117.98, 23.18],
@@ -257,6 +258,15 @@ if (
           [112.48, -6.32],
           [109.77, -8.25],
           [100, -9.07],
+        );
+      // No.3's brook-end gate, its lawn and patio (user photos, v0.3.83).
+      if (gardens)
+        outward.push(
+          [94, -8.75],
+          [92.5, -7.6],
+          [92.5, -4.6],
+          [91.6, 0],
+          [91.3, 6.6],
         );
       if (woodland)
         outward.splice(
@@ -331,16 +341,19 @@ if (
       landscaping: process.argv.includes('--landscaping-gate'),
       woodland: process.argv.includes('--woodland-steps'),
       garages: process.argv.includes('--garages'),
+      gardens: process.argv.includes('--gardens'),
     },
   );
   fs.writeFileSync(
-    process.argv.includes('--garages')
-      ? 'outputs/m15-walk.json'
-      : process.argv.includes('--woodland-steps')
-        ? 'outputs/m09-walk.json'
-        : process.argv.includes('--landscaping-gate')
-          ? 'outputs/m08-walk.json'
-          : 'outputs/m07-walk.json',
+    process.argv.includes('--gardens')
+      ? 'outputs/gardens-walk.json'
+      : process.argv.includes('--garages')
+        ? 'outputs/m15-walk.json'
+        : process.argv.includes('--woodland-steps')
+          ? 'outputs/m09-walk.json'
+          : process.argv.includes('--landscaping-gate')
+            ? 'outputs/m08-walk.json'
+            : 'outputs/m07-walk.json',
     JSON.stringify(gateWalk, null, 2),
   );
   console.log('GATE WALK', JSON.stringify(gateWalk));

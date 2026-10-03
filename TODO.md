@@ -145,6 +145,7 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 - [x] **M12d / PA09, modelled/tested v0.3.55:** setback roof level, three visible west opening groups and provisional equipment. [Per-face tower audit](docs/audits/brook-roof-tower.md).
 - [ ] **PA10 / tower return:** identify the circular opening/cardinal face in UP-001 before adding a clock or glazing; user clarification pending. Hidden roof elevations and dimensions remain open.
 - [ ] **M10 follow-up / PA11–13:** irregular frontage planting, visible paint and pale-rail/dark-post brook boundary with inside planting. v0.3.51 remains a tested interpretation, not accepted accuracy.
+- [x] **PA15/PA16/PA19/PA20, modelled locally v0.3.83:** block patios, fences and side garden; east-end openings and well; court rockery; brook wall and rail behind the block. [Audit](docs/audits/bridge-mill-gardens.md). User acceptance open.
 - [ ] **M16b / PA14–16:** modern Bridge Mill block (code: court houses), on the Bridge Mill side of the brook in photo 3: garden doors, tall grouped windows, end openings, separate patios/lawns and timber fences. Old Bridge Mill lies just off to the left; keep both buildings and entrance-side bridges separate.
 - [ ] **M15/M17 / PA17–20:** individual garage roofs, separate garage's photographed two bays, garage-back retaining wall, stepped terraces and brook-side boundary.
 - [ ] **M09 / PA21:** wider view of woodland stairs; upper riser counts and connection still unresolved.
@@ -181,3 +182,13 @@ User reported rear styling and apparent height mismatch; clarified the blank bro
 - [ ] User review of rear appearance.
 
 [Audit and source limits](docs/audits/threadfold-rear-and-mews.md).
+
+## Bridge Mill gardens follow-up — after local v0.3.83
+
+- [x] **No.5 side door, v0.3.83:** red door on the main west wall south of the engine house, from the user's 3D map view. Size estimated.
+- [x] **West-end court/passage junction, v0.3.83:** one slope across the east court to passage level at X77.6 (about 12% at its steepest) replaces the 31% ramp. Setts follow it; there's an edge and collision above No.5's garden. Garage walk max step 0.013m.
+- [ ] **Passage datum:** EA terrain suggests the passage is about 0.7m lower at the west end and falls east. Ask whether the passage falls towards No.1 before lowering it; it moves every front door.
+- [ ] **Block well railings:** hooped railings on a low stone kerb (court photos), not straight bars.
+- [ ] **Frontage light wells:** the user frontage photos (3 October) show hooped iron railings round basement light wells in front of the window bays. The model has small rails beside each door. Rebuild them as light wells.
+- [ ] **Old mill garden interiors:** lawn shapes, No.3's planted far end, No.5's stone troughs. Brook-end access for Nos.1, 2 and 5 is unknown.
+- [ ] **Modern block:** garden doors and grouped windows on the garden face (PA14); west boundary; planting in the shared strip; close-board texture.

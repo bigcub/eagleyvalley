@@ -16,6 +16,8 @@ import { addBrookFrontageShrubs } from '../vegetation/brook-frontage-shrubs';
 import { addRoadsideShrubs } from '../vegetation/roadside-shrubs';
 import { addBrookHedges, brookParking } from '../landmarks/brook-mill-grounds';
 import { addBridgeGardens } from '../landmarks/bridge-gardens';
+import { addBridgeGardenHedges } from '../landmarks/bridge-garden-fences';
+import { addCourtGardenPlanting } from '../landmarks/court-gardens';
 import { inTurningCircle } from '../landmarks/turning-circle';
 import { addTurningCirclePlanting } from '../landmarks/turning-circle-details';
 import { passageWallZ } from '../landmarks/bridge-passage';
@@ -82,8 +84,9 @@ export function addVegetation(
     }
 
   // Dense hedge on the landward side of the riverside path (user's path photo).
+  // Behind the modern block UP-003 shows open shared lawn instead.
   const riverside = surface.riversideSeg;
-  for (let x = 29; x < 66; x += 0.65) {
+  for (let x = 29; x < 38; x += 0.65) {
     const n = nearest(x, -9, riverside),
       z = n.z + 2.65,
       y = terrain(x, z);
@@ -107,6 +110,8 @@ export function addVegetation(
   addBrookHedges(kit, { surface });
   addBrookFrontageShrubs(kit, { scene, surface });
   addBridgeGardens(kit, { leaf, terrain, passageY });
+  addBridgeGardenHedges(kit, { surface, leaf });
+  addCourtGardenPlanting(kit, { surface, leaf });
   // Ivy tufts along the top of the passage retaining wall.
   for (let x = 75; x < 109; x += 1.25) {
     if (Math.sin(x * 2.3) < -0.35) continue;

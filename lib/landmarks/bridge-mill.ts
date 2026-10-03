@@ -2,11 +2,17 @@ import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import { createPottedTopiary } from '../vegetation/potted-topiary';
 import { settMaterials } from '../materials/sett-material';
 import { passageWallZ } from './bridge-passage';
+import { BRIDGE_JUNCTION, BRIDGE_NO5_DOOR } from '../world/layout';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 type P = [number, number];
-export function addBridgeFront(kit: Kit, base: number) {
+/** Junction setts west of the level passage follow this sloping surface. */
+type Junction = {
+  inside: (x: number, z: number) => boolean;
+  y: (x: number, z: number) => number;
+};
+export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
   const { box, batch } = kit;
   const { stone, trim, dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
@@ -51,16 +57,19 @@ export function addBridgeFront(kit: Kit, base: number) {
     B(x, y - 1.18, 1.75, 0.13, 0.43, stone, 0.16);
     B(x, y + 1.23, 1.8, 0.25, 0.18, stone, 0.08);
   }
-  const doorColours = ['#274c70', '#503447', '#164d38', '#273b52', '#344d43'];
+  // User frontage photos from No.3: four doors on odd bays, windows at both
+  // ends. No.5 (west) has its red door on the side. West to east: No.4
+  // plum, No.3 green, No.2 navy, No.1 dark grey. Shades matched by eye.
+  const doorColours = ['#5a2a45', '#173f30', '#1f2850', '#34383c'];
   for (let bay = 0; bay < 9; bay++) {
     const x = 79.7 + bay * 3.12;
     sash(x, 5.05);
-    if (bay % 2) {
+    if (bay % 2 === 0) {
       sash(x, 1.54);
       continue;
     }
     const door = new T.MeshStandardMaterial({
-      color: doorColours[bay / 2],
+      color: doorColours[(bay - 1) / 2],
       roughness: 0.55,
     });
     B(x, 1.15, 1.72, 2.38, 0.2, white, 0.12);
@@ -95,7 +104,7 @@ export function addBridgeFront(kit: Kit, base: number) {
     for (const side of [-1, 1]) {
       const px = x + side * 1.04,
         pz = south(px) + 0.87;
-      topiary(px, base, pz, bay * 2 + side, bay === 4);
+      topiary(px, base, pz, bay * 2 + side, bay === 3);
       for (let n = 0; n < 5; n++)
         box(
           px,
@@ -131,7 +140,7 @@ export function addBridgeFront(kit: Kit, base: number) {
   // Individual flags at the doorstep; irregular setts fill the shared passage.
   const stones = settMaterials();
   const joints = new T.MeshStandardMaterial({ color: '#454638', roughness: 1 });
-  for (let x = 74; x < 109; x += 0.43) {
+  for (let x = BRIDGE_JUNCTION.x1; x < 109; x += 0.43) {
     const z0 = south(x) + 1.15,
       z1 = passageWallZ(x) - 0.7;
     box(x, base - 0.1, (z0 + z1) / 2, 0.45, 0.025, z1 - z0, joints);
@@ -146,7 +155,7 @@ export function addBridgeFront(kit: Kit, base: number) {
   const sett = new RoundedBoxGeometry(1, 0.08, 1, 2, 0.013);
   const moss = new T.MeshStandardMaterial({ color: '#4b5231', roughness: 1 });
   let course = 0;
-  for (let x = 74; x < 108.9;) {
+  for (let x = BRIDGE_JUNCTION.x1; x < 108.9;) {
     const width = 0.23 + random() * 0.07,
       cx = x + width / 2,
       start = south(cx) + 1.2,
@@ -178,7 +187,7 @@ export function addBridgeFront(kit: Kit, base: number) {
     course++;
   }
   sett.dispose();
-  for (let x = 75; x < 108; x += 0.65)
+  for (let x = BRIDGE_JUNCTION.x1 + 0.3; x < 108; x += 0.65)
     box(
       x,
       base - 0.06,
@@ -189,10 +198,59 @@ export function addBridgeFront(kit: Kit, base: number) {
       stones[Math.floor(x) % 7],
       -0.041,
     );
-  // The passage turns around the western end to the garage court.
-  for (let x = 72; x < 76; x += 0.45)
-    for (let z = 12; z < 27; z += 0.3)
-      box(x, base - 0.1, z, 0.42, 0.12, 0.27, stones[Math.floor(x + z) % 7]);
+  // Setts turn round the west end on the court's slope: in front of the engine
+  // house, round No.5's door and along the road wall, meeting the asphalt.
+  for (let x = 70.2; x < 78.8; x += 0.45)
+    for (let z = 9.15; z < 28; z += 0.3)
+      if (junction.inside(x, z))
+        box(
+          x,
+          junction.y(x, z) - 0.1,
+          z,
+          0.42,
+          0.12,
+          0.27,
+          stones[Math.floor(x + z) % 7],
+        );
+}
+
+/** No.5's panelled red door on the west wall, with stone surround, transom,
+ * step and lantern. Panel layout follows the frontage doors; estimated. */
+export function addBridgeNo5Door(kit: Kit, base: number) {
+  const D = BRIDGE_NO5_DOOR;
+  const { stone, glass, dark } = kit.m;
+  const red = kit.mat('bridgeNo5Door', '#8a2424', 0.55);
+  const white = kit.mat('bridgeNo5Frame', '#eeeae0', 0.72);
+  const dx = D.wallB[0] - D.wallA[0],
+    dz = D.wallB[1] - D.wallA[1],
+    len = Math.hypot(dx, dz),
+    rot = Math.atan2(dx, dz),
+    t = (D.wallA[1] - D.z) / (D.wallA[1] - D.wallB[1]),
+    // Outward (west) normal of the wall.
+    nx = dz / len,
+    nz = -dx / len;
+  const at = (out: number) =>
+    [D.wallA[0] + dx * t + nx * out, D.wallA[1] + dz * t + nz * out] as const;
+  const B = (
+    out: number,
+    y: number,
+    w: number,
+    h: number,
+    d: number,
+    m: T.Material,
+  ) => {
+    const [x, z] = at(out);
+    kit.box(x, base + y, z, d, h, w, m, rot);
+  };
+  B(0.05, 1.3, 1.7, 2.75, 0.14, stone);
+  B(0.1, 1.08, 1.12, 2.16, 0.1, white);
+  B(0.14, 1.06, 0.94, 2.06, 0.06, red);
+  for (const y of [0.45, 1.5]) B(0.18, y, 0.7, 0.03, 0.02, white);
+  B(0.12, 2.42, 1.12, 0.44, 0.08, white);
+  B(0.15, 2.42, 0.94, 0.32, 0.04, glass);
+  B(0.12, 2.82, 1.5, 0.22, 0.2, stone);
+  B(0.3, -0.03, 1.4, 0.12, 0.5, stone);
+  B(0.2, 3.15, 0.16, 0.3, 0.16, dark);
 }
 
 // Original OSM western projection, retained separately from the main mill volume.

@@ -1,4 +1,4 @@
-import type { P } from '../core/geo';
+import { inPoly, type P } from '../core/geo';
 
 // OpenStreetMap way IDs the world treats specially. Names describe the feature,
 // not necessarily the OSM name tag.
@@ -61,7 +61,12 @@ export const BRIDGE_MILL_COURT: P[] = [
   [35, 5],
   [37, 7],
   [40, 9],
-  [69, 6],
+  // UP-003 and Google aerial: the court fills the gap between the modern
+  // block's east well and the old mill, ending at the rockery near Z0.5.
+  [65.59, 8.57],
+  [64.95, 0.49],
+  [75.2, -0.3],
+  [75.4, 8.6],
   [73, 9],
   [73, 23],
   [41, 26],
@@ -680,10 +685,10 @@ export const GARAGE_COURT = [
   },
 ];
 
-/** M16b near/west end of modern Bridge Mill in UP-003. Three visible openings;
- * pane divisions, height, width and position interpreted from oblique photo. */
-export const COURT_HOUSE_WEST_END = {
-  u: -0.09,
+/** M16b: the end of modern Bridge Mill facing the court (east, UP-003) has one
+ * opening per storey, the lowest in the well. Panes and sizes interpreted. */
+export const COURT_HOUSE_EAST_END = {
+  u: 23.69,
   v: -4.2,
   width: 0.78,
   height: 1.65,
@@ -1008,7 +1013,10 @@ export const BRIDGE_PARKING = {
     [37, 7],
     [39.9, 10.54],
     [64.2, 8.65],
-    [69, 6],
+    [65.59, 8.57],
+    [64.95, 0.49],
+    [75.2, -0.3],
+    [75.4, 8.6],
     [73, 9],
     [73, 23],
     [41, 26],
@@ -1109,3 +1117,105 @@ export const WAKEFIELD_LOW_WING: P[] = [
 export const WAKEFIELD_SOUTH_END: P[] = [
  [-41.43,19.81],[-39.33,14.22],[-32.12,16.91],[-33.16,20.05],[-34.1,22.55],
 ];
+
+/** No.5 Bridge Mill: red front door on the main west wall, south of the
+ * engine house, at passage level (user's 3D map view). Width estimated. */
+export const BRIDGE_NO5_DOOR = {
+  wallA: [77.87, 19.51] as P,
+  wallB: [78.79, 9.43] as P,
+  z: 18.15,
+  /** Cobbled forecourt between the engine house and the frontage corner. */
+  forecourtZ: 17.05,
+};
+
+/** Court-to-passage junction west of old Bridge Mill. The court rises gently
+ * east and south to passage level at x1 (user photos, EA terrain); the
+ * engine house's north side drops to No.5's garden. Fitted, not surveyed. */
+export const BRIDGE_JUNCTION = { x0: 62, x1: 77.6, z0: 4, z1: 16 };
+
+/** Court-to-garden rockery north of the Bridge Mill court (UP-003): three
+ * stepped tiers of large stones from court level down to the gardens. Edge
+ * trace from Google aerial and the photo; tier depths and heights estimated. */
+export const COURT_ROCKERY = {
+  edge: [
+    [64.95, 0.49],
+    [75.2, -0.3],
+  ] as P[],
+  /** Tier fronts measured north from the court edge, metres. */
+  fronts: [0.35, 1.05, 1.75, 2.45],
+  /** Bed tops below court level for the coping and each tier. */
+  drops: [-0.12, 0.45, 1.05, 1.6],
+};
+
+/** Modern block (court houses) rear gardens, UP-003. Local frame of
+ * court-houses.ts: u along the north wall from the west end, v negative north.
+ * Divisions follow the downpipes; depths from aerial and photo, estimated. */
+export const COURT_GARDENS = {
+  divisions: [7.86, 15.72],
+  patioDepth: 3.0,
+  /** Outer garden fence, beyond which shared lawn runs to the brook wall. */
+  outerV: -13.0,
+  /** No.3 side garden east of the block, closed by hedges to the rockery. */
+  sideHedge: [
+    [62.88, -7.4],
+    [70, -5.5],
+    [70, -2.35],
+  ] as P[],
+  terrace: [
+    [65.6, -2.2],
+    [69.5, -2.45],
+    [69.5, -4.7],
+    [65.6, -4.4],
+  ] as P[],
+  /** Tall shrubs between the court and the old mill's west garden. */
+  eastShrubs: { x: 75.95, fromZ: -0.1, toZ: 10.8 },
+};
+
+/** Old Bridge Mill rear gardens, numbered from the Hough Lane (east) end.
+ * User photos from No.3 and of the fences: low trellis fences divide the
+ * gardens, a tall clipped hedge closes the brook end with iron gates, and a
+ * clipped hedge lines No.3's west side. Gate positions for Nos.3 and 4 are
+ * photographed; the other gardens' brook-end access is unknown. */
+export const BRIDGE_GARDENS = {
+  fences: [83, 88.7, 94, 100.3],
+  /** North (brook) edge, west to east, matching the lawn plots. */
+  brookEdge: [
+    [70, -5.5],
+    [83, -6],
+    [88.7, -6.5],
+    [94, -6.1],
+    [100.3, -5.7],
+    [111.5, -4.3],
+  ] as P[],
+  gates: [87.4, 92.5],
+  no3WestHedgeX: 89.1,
+  /** No.4 paved path beside the hedge and far seating area, photographed. */
+  no4Path: { x: 88.05, width: 0.95 },
+  no4FarPatio: [
+    [84.2, -5.45],
+    [88.5, -5.6],
+    [88.5, -3.1],
+    [84.2, -2.95],
+  ] as P[],
+};
+
+const no5WallX = (z: number) => {
+  const D = BRIDGE_NO5_DOOR;
+  return (
+    D.wallA[0] +
+    ((D.wallA[1] - z) * (D.wallB[0] - D.wallA[0])) / (D.wallA[1] - D.wallB[1])
+  );
+};
+/** Setts between the court outline, the engine house, No.5's wall and the
+ * road wall, west of the level frontage passage. */
+export function inBridgeJunction(
+  x: number,
+  z: number,
+  court: P[],
+  wallZ: (x: number) => number,
+) {
+  if (x < 70 || z < 9 || z > wallZ(x) + 0.35 || inPoly(x, z, court))
+    return false;
+  const D = BRIDGE_NO5_DOOR;
+  return z < D.forecourtZ ? x < 75.4 : x < no5WallX(z);
+}
