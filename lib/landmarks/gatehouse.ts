@@ -1,4 +1,9 @@
-import { slateMaterial, roofUV } from '../materials/building-surfaces';
+import { GATEHOUSE_DETAILS as D } from '../world/layout';
+import {
+  masonryUV,
+  slateMaterial,
+  roofUV,
+} from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 type P = [number, number];
@@ -35,6 +40,9 @@ export function addGatehouse(
     color: '#302426',
     roughness: 0.85,
   });
+  const gardenBrick = kit.mat('gatehouseGardenBrick', '#8e8978');
+  gardenBrick.map = kit.m.brick.map;
+  const paleRail = kit.mat('gatehouseGardenRail', '#9a9c8e');
   const B = (
     u: number,
     y: number,
@@ -45,7 +53,13 @@ export function addGatehouse(
     m: T.Material,
   ) => {
     const [x, z] = world(u, v);
-    box(x, base + y, z, w, h, d, m, rot);
+    if (m === gardenBrick) {
+      const g = new T.BoxGeometry(w, h, d);
+      g.rotateY(rot);
+      g.translate(x, base + y, z);
+      masonryUV(g, 2);
+      batch(g, m);
+    } else box(x, base + y, z, w, h, d, m, rot);
   };
   function mesh(coords: number[], indices: number[], m: T.Material) {
     const g = new T.BufferGeometry(),
@@ -92,15 +106,31 @@ export function addGatehouse(
     [0, 2, 5, 0, 5, 3, 1, 4, 5, 1, 5, 2],
     slate,
   );
+  // EAG-001 reverse: lower wing has a slate hip at its exposed east end.
   mesh(
     [
-      5.4, 3.2, -0.18, 11.7, 3.2, -0.18, 5.4, 5.4, 2.8, 11.7, 5.4, 2.8, 5.4,
-      3.2, 5.6, 11.7, 3.2, 5.6,
+      5.4,
+      3.2,
+      -0.18,
+      11.7,
+      3.2,
+      -0.18,
+      5.4,
+      3.2,
+      5.6,
+      11.7,
+      3.2,
+      5.6,
+      5.4,
+      5.4,
+      2.8,
+      D.lowerRidgeEnd,
+      5.4,
+      2.8,
     ],
-    [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4],
+    [0, 1, 5, 0, 5, 4, 2, 4, 5, 2, 5, 3, 1, 3, 5],
     slate,
   );
-  mesh([11.5, 3.2, 0, 11.5, 5.4, 2.8, 11.5, 3.2, 5.6], [0, 1, 2], cream);
   function window(u: number, y: number, w: number, h: number, columns: number) {
     B(u, y, -0.09, w + 0.17, h + 0.13, 0.16, dark);
     B(u, y, -0.19, w, h, 0.08, glass);
@@ -169,14 +199,17 @@ export function addGatehouse(
   B(5.5, 4.5, -0.13, 0.075, 2.6, 0.075, dark);
   B(8.4, 3.18, -0.23, 6, 0.1, 0.12, dark);
   B(10.35, 5.3, 3.3, 0.55, 1.15, 0.55, stone);
+  const chimneyPot = kit.mat('gatehouseChimneyPot', '#9c6850');
+  B(10.35, 6.04, 3.3, 0.23, 0.34, 0.23, chimneyPot);
+  B(10.35, 6.2, 3.3, 0.29, 0.06, 0.29, chimneyPot);
   // Low frontage wall and narrow pedestrian gate, clear of the pavement and doorway.
   for (let u = 0.1; u < 11.4; u += 0.5) {
     if (Math.abs(u - 8.65) < 0.75) continue;
-    B(u, 0.3, -0.8, 0.5, 0.6, 0.27, stone);
-    B(u, 0.76, -0.8, 0.52, 0.055, 0.055, dark);
+    B(u, 0.3, -0.8, 0.5, 0.6, 0.27, gardenBrick);
+    B(u, 0.76, -0.8, 0.52, 0.055, 0.055, paleRail);
   }
   for (const u of [0.1, 5.6, 7.8, 9.5, 11.3])
-    B(u, 0.55, -0.8, 0.33, 1.1, 0.33, stone);
+    B(u, 0.55, -0.8, 0.33, 1.1, 0.33, gardenBrick);
   for (let u = 8; u <= 9.3; u += 0.16)
     B(u, 0.57, -0.81, 0.025, 1.03, 0.035, dark);
   for (const y of [0.22, 0.83]) B(8.65, y, -0.81, 1.3, 0.035, 0.045, dark);

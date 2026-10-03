@@ -138,10 +138,24 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
       cancelAnimationFrame(frame);
       play.dispose();
       window.removeEventListener('resize', resize);
-      renderer.dispose();
+      const materials = new Set<T.Material>(),
+        textures = new Set<T.Texture>();
       scene.traverse((o) => {
-        if ((o as T.Mesh).geometry) (o as T.Mesh).geometry.dispose();
+        const mesh = o as T.Mesh;
+        mesh.geometry?.dispose();
+        if (mesh.material)
+          for (const material of Array.isArray(mesh.material)
+            ? mesh.material
+            : [mesh.material])
+            materials.add(material);
       });
+      for (const material of materials) {
+        for (const value of Object.values(material))
+          if (value instanceof T.Texture) textures.add(value);
+        material.dispose();
+      }
+      for (const texture of textures) texture.dispose();
+      renderer.dispose();
       host.replaceChildren();
     },
   };

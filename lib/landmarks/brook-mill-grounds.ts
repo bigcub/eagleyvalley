@@ -1,228 +1,240 @@
 import * as T from 'three';
 import type { Kit } from '../core/kit';
-type P = [number, number];
-const plantingRuns = [
-  { a: [17, -42], b: [30, -55.5], w: 1.2, h: 1.45 },
-  { a: [30, -55.5], b: [40, -55.5], w: 1.2, h: 1.15 },
-  { a: [23, -26], b: [61, -23], w: 1, h: 0.8 },
-  { a: [62, -28], b: [63, -33], w: 1.25, h: 1 },
-  { a: [63, -37], b: [64, -42], w: 1.25, h: 1 },
-  { a: [34, -36], b: [34, -32], w: 2, h: 0.9 },
-  { a: [30, -46], b: [31, -44], w: 2, h: 0.8 },
-];
-// Approximate overhead trace, tied to OSM access ways 762841712–715.
-// These are landscape edges, not surveyed ownership boundaries.
-export const brookParking: P[] = [
-  [15, -43],
-  [29, -57],
-  [41, -57],
-  [42, -62],
-  [47, -62],
-  [47, -56],
-  [63, -54],
-  [63, -24],
-  [22, -27],
-  [17, -32],
-];
-// One footprint test keeps parking paint out of the planted islands and perimeter beds.
-function inPlanting(x: number, z: number) {
-  return plantingRuns.some((r) => {
-    const dx = r.b[0] - r.a[0],
-      dz = r.b[1] - r.a[1],
-      length2 = dx * dx + dz * dz;
-    const t = Math.max(
+import { densify, inPoly, outline, type P } from '../core/geo';
+import { drape } from '../core/mesh';
+import { masonryUV } from '../materials/building-surfaces';
+import { BROOK_PARKING as D, BROOK_PARKING_RAIL as R } from '../world/layout';
+import type { Surface } from '../world/surface';
+
+export const brookParking = D.outline;
+const inBed = (x: number, z: number) => D.beds.some((p) => inPoly(x, z, p));
+
+/** Aerial-interpreted formation; bay count, widths and bed dimensions estimated. */
+export function addBrookParking(kit: Kit, { surface }: { surface: Surface }) {
+  const height = surface.brookParkingY;
+  kit.batch(
+    drape(brookParking, (x, z) => height(x, z) + 0.02, 1.5),
+    kit.m.asphalt,
+  );
+  // Beds have solid edging, never kerbs across the entrance or mapped aisles.
+  for (const bed of D.beds) {
+    kit.batch(
+      drape(bed, (x, z) => height(x, z) + 0.075, 0.5),
+      kit.m.soil,
+    );
+    for (const { a, b } of outline(bed))
+      kit.ribbon(
+        densify([a, b], 0.5),
+        0.12,
+        kit.m.kerb,
+        (x, z) => height(x, z) + 0.09,
+      );
+  }
+  // Only the western asphalt margin gets a kerb. The brook has its own rail.
+  kit.ribbon(
+    densify([D.outline[7], D.outline[8], D.outline[9], D.outline[0]], 0.5),
+    0.12,
+    kit.m.kerb,
+    (x, z) => height(x, z) + 0.06,
+  );
+  const line = (a: P, b: P) =>
+    kit.ribbon(
+      densify([a, b], 0.25),
+      0.075,
+      kit.m.paint,
+      (x, z) => height(x, z) + 0.035,
       0,
-      Math.min(1, ((x - r.a[0]) * dx + (z - r.a[1]) * dz) / length2),
+      (p, q) => {
+        const x = (p[0] + q[0]) / 2,
+          z = (p[1] + q[1]) / 2;
+        return inPoly(x, z, brookParking) && !inBed(x, z);
+      },
     );
-    return (
-      Math.hypot(x - r.a[0] - t * dx, z - r.a[1] - t * dz) < r.w / 2 + 0.18
-    );
-  });
-}
-export function addBrookParking(
-  kit: Kit,
-  height: (x: number, z: number) => number,
-) {
-  const { box, batch } = kit;
-  const { asphalt, paint, kerb } = kit.m;
-  const shape = new T.Shape(brookParking.map(([x, z]) => new T.Vector2(x, -z))),
-    source = new T.ShapeGeometry(shape).toNonIndexed(),
-    pos = source.getAttribute('position'),
-    verts: number[] = [],
-    uv: number[] = [];
-  const tri = (a: P, b: P, c: P, level = 0) => {
-    if (
-      level < 6 &&
-      Math.max(
-        Math.hypot(a[0] - b[0], a[1] - b[1]),
-        Math.hypot(a[0] - c[0], a[1] - c[1]),
-        Math.hypot(c[0] - b[0], c[1] - b[1]),
-      ) > 1.5
-    ) {
-      const ab: P = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
-        bc: P = [(b[0] + c[0]) / 2, (b[1] + c[1]) / 2],
-        ca: P = [(c[0] + a[0]) / 2, (c[1] + a[1]) / 2];
-      tri(a, ab, ca, level + 1);
-      tri(ab, b, bc, level + 1);
-      tri(ca, bc, c, level + 1);
-      tri(ab, bc, ca, level + 1);
-    } else
-      for (const [x, z] of [a, b, c]) {
-        verts.push(x, height(x, z) + 0.02, z);
-        uv.push(x / 8, z / 8);
-      }
-  };
-  for (let i = 0; i < pos.count; i += 3)
-    tri(
-      [pos.getX(i), -pos.getY(i)],
-      [pos.getX(i + 1), -pos.getY(i + 1)],
-      [pos.getX(i + 2), -pos.getY(i + 2)],
-    );
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(verts, 3));
-  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
-  g.computeVertexNormals();
-  batch(g, asphalt);
-  source.dispose();
-  // Give the existing overhead-interpreted planting runs actual beds, rather than asphalt beneath leaves.
-  const soil = new T.MeshStandardMaterial({ color: '#514b3c', roughness: 1 });
-  for (const r of plantingRuns) {
-    const dx = r.b[0] - r.a[0],
-      dz = r.b[1] - r.a[1],
-      len = Math.hypot(dx, dz),
-      nx = dz / len,
-      nz = -dx / len,
-      rot = Math.atan2(dx, dz),
-      n = Math.ceil(len / 0.4);
-    for (let j = 0; j < n; j++) {
-      const t = (j + 0.5) / n,
-        x = r.a[0] + dx * t,
-        z = r.a[1] + dz * t;
-      box(x, height(x, z) + 0.065, z, r.w, 0.07, len / n + 0.015, soil, rot);
-      for (const side of [-1, 1]) {
-        const xx = x + side * nx * (r.w / 2 + 0.06),
-          zz = z + side * nz * (r.w / 2 + 0.06);
-        box(
-          xx,
-          height(xx, zz) + 0.1,
-          zz,
-          0.12,
-          0.16,
-          len / n + 0.015,
-          kerb,
-          rot,
-        );
-      }
-    }
-  }
-  // Rows follow the overhead arrangement; exact bay totals await close photographs.
+  // Explicit rows, confined to each parking half. No lines through the aisles.
+  // These are provisional represented totals, not a surveyed capacity.
   for (const row of [
-    { x: 30, z: -52, n: 4, yaw: -0.085 },
-    { x: 48, z: -51, n: 5, yaw: -0.085 },
-    { x: 46, z: -44, n: 6, yaw: -Math.PI / 2 - 0.085 },
-    { x: 37, z: -44, n: 5, yaw: -Math.PI / 2 - 0.085 },
-    { x: 60, z: -42, n: 5, yaw: -Math.PI / 2 - 0.085 },
+    { a: [29.8, -54.4], b: [29.4, -50], n: 4, dx: 2.45, dz: 0.2 },
+    { a: [49, -53], b: [48.6, -48.6], n: 5, dx: 2.45, dz: 0.2 },
+    { a: [37.8, -46.1], b: [41.8, -45.8], n: 7, dx: -0.2, dz: 2.45 },
+    { a: [48.2, -46.3], b: [52.5, -45.9], n: 7, dx: -0.2, dz: 2.45 },
+    { a: [59.8, -39.3], b: [63, -39], n: 5, dx: -0.2, dz: 2.45 },
   ]) {
-    for (let k = 0; k <= row.n; k++) {
-      const x = row.x + Math.cos(row.yaw) * k * 2.45,
-        z = row.z - Math.sin(row.yaw) * k * 2.45;
-      for (let d = -2.25; d < 2.3; d += 0.15) {
-        const xx = x + Math.sin(row.yaw) * d,
-          zz = z + Math.cos(row.yaw) * d;
-        if (!inPlanting(xx, zz))
-          box(
-            xx,
-            height(xx, zz) + 0.045,
-            zz,
-            0.075,
-            0.025,
-            0.16,
-            paint,
-            row.yaw,
-          );
-      }
-    }
+    for (let i = 0; i <= row.n; i++)
+      line(
+        [row.a[0] + i * row.dx, row.a[1] + i * row.dz],
+        [row.b[0] + i * row.dx, row.b[1] + i * row.dz],
+      );
   }
-  for (let i = 0; i < brookParking.length; i++) {
-    if (i === 3) continue;
-    const a = brookParking[i],
-      b = brookParking[(i + 1) % brookParking.length],
-      len = Math.hypot(b[0] - a[0], b[1] - a[1]),
-      n = Math.ceil(len);
-    for (let j = 0; j < n; j++) {
-      const t = (j + 0.5) / n,
-        x = a[0] + (b[0] - a[0]) * t,
-        z = a[1] + (b[1] - a[1]) * t;
-      box(
-        x,
-        height(x, z) + 0.05,
-        z,
-        0.16,
-        0.15,
-        len / n + 0.02,
-        kerb,
-        Math.atan2(b[0] - a[0], b[1] - a[1]),
+  // Short fan of bays follows the diagonal western boundary.
+  for (let i = 0; i < 4; i++)
+    line(
+      [17.8 + i * 1.75, -41.5 - i * 1.75],
+      [21.2 + i * 1.75, -38.1 - i * 1.75],
+    );
+  // Hatched heads keep turning space clear beside the two middle rows.
+  for (const [x, z] of [
+    [35.7, -51.7],
+    [49, -48],
+  ] as P[])
+    for (let i = 0; i < 5; i++)
+      line([x + i * 0.65, z], [x + i * 0.65 + 0.6, z + 0.7]);
+}
+
+/** Register the solid bed rims and brook-side railing alongside their geometry. */
+export function addBrookParkingBoundaries(
+  kit: Kit,
+  { surface }: { surface: Surface },
+) {
+  const walls: { a: P; b: P }[] = [];
+  for (const bed of D.beds)
+    walls.push(...outline(bed).map(({ a, b }) => ({ a, b })));
+  const post = kit.mat('brookParkingPosts', '#25343b', 0.65);
+  const rail = kit.mat('brookParkingPaleRails', '#b7c0bc', 0.65);
+  const retaining = kit.mat('brookParkingRetainingStone', '#96988b', 1);
+  retaining.map = kit.m.stone.map;
+  const pts = densify(D.brookEdge, R.spacing),
+    height = surface.brookParkingY;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i],
+      y = height(...a);
+    kit.box(
+      a[0],
+      y + R.height / 2,
+      a[1],
+      R.postWidth,
+      R.height,
+      R.postWidth,
+      post,
+    );
+    kit.box(a[0], y + 0.06, a[1], 0.19, 0.12, 0.19, post);
+    kit.box(a[0], y + R.height + 0.015, a[1], 0.15, 0.03, 0.15, post);
+    if (!i) continue;
+    const b = pts[i - 1],
+      yb = height(...b);
+    // Photo-visible masonry beneath the rail. Its bottom is fitted to
+    // adjoining terrain; the concealed lower face is not a surveyed height.
+    const len = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const nx = -(a[1] - b[1]) / len,
+      nz = (a[0] - b[0]) / len;
+    const bottomA = Math.min(
+      y - 0.15,
+      surface.terrain(a[0] + nx * 0.7, a[1] + nz * 0.7) - 0.2,
+    );
+    const bottomB = Math.min(
+      yb - 0.15,
+      surface.terrain(b[0] + nx * 0.7, b[1] + nz * 0.7) - 0.2,
+    );
+    const wall = new T.BoxGeometry(0.45, 1, len + 0.03),
+      position = wall.getAttribute('position');
+    for (let k = 0; k < position.count; k++) {
+      const t = T.MathUtils.clamp((position.getZ(k) + len / 2) / len, 0, 1);
+      position.setY(
+        k,
+        T.MathUtils.lerp(
+          T.MathUtils.lerp(bottomB, bottomA, t),
+          T.MathUtils.lerp(yb, y, t) + 0.02,
+          position.getY(k) + 0.5,
+        ),
       );
     }
+    wall.rotateY(Math.atan2(a[0] - b[0], a[1] - b[1]));
+    wall.translate((a[0] + b[0]) / 2, 0, (a[1] + b[1]) / 2);
+    wall.computeVertexNormals();
+    masonryUV(wall, 2);
+    kit.batch(wall, retaining);
+    for (const h of R.bars)
+      kit.beam(
+        new T.Vector3(a[0], y + h, a[1]),
+        new T.Vector3(b[0], yb + h, b[1]),
+        0.04,
+        0.04,
+        rail,
+      );
+    const run = densify([b, a], R.uprightSpacing);
+    for (const p of run.slice(1, -1))
+      kit.box(p[0], height(...p) + 0.58, p[1], 0.025, 0.76, 0.025, rail);
+    walls.push({ a, b });
   }
+  return walls;
 }
-export function addBrookHedges(
-  scene: T.Scene,
-  leaf: T.Material,
-  height: (x: number, z: number) => number,
-) {
-  const runs = plantingRuns;
-  const clusters: { x: number; z: number; h: number; w: number }[] = [];
-  for (const r of runs) {
-    const n = Math.ceil(Math.hypot(r.b[0] - r.a[0], r.b[1] - r.a[1]) * 3);
-    for (let j = 0; j < n; j++) {
-      const t = j / n;
-      clusters.push({
-        x: r.a[0] + (r.b[0] - r.a[0]) * t,
-        z: r.a[1] + (r.b[1] - r.a[1]) * t,
-        h: r.h,
-        w: r.w,
-      });
-    }
-  }
-  const mesh = new T.InstancedMesh(
-      new T.PlaneGeometry(1, 1),
-      leaf,
-      clusters.length * 36,
-    ),
-    o = new T.Object3D();
+
+/** Replace the former sparse scattered cards with closed clipped hedge volumes. */
+export function addBrookHedges(kit: Kit, { surface }: { surface: Surface }) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#4b5b32';
+  ctx.fillRect(0, 0, 128, 128);
   let seed = 930;
   const rand = () => {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-  clusters.forEach((c, i) => {
-    for (let j = 0; j < 36; j++) {
-      o.position.set(
-        c.x + (rand() - 0.5) * c.w,
-        height(c.x, c.z) + 0.15 + rand() * c.h,
-        c.z + (rand() - 0.5) * c.w,
-      );
-      o.rotation.set(rand() * Math.PI, rand() * Math.PI, rand() * Math.PI);
-      o.scale.setScalar(0.22 + rand() * 0.18);
-      o.updateMatrix();
-      mesh.setMatrixAt(i * 36 + j, o.matrix);
+  for (let i = 0; i < 1800; i++) {
+    ctx.fillStyle = `hsl(${78 + rand() * 18},${24 + rand() * 18}%,${22 + rand() * 20}%)`;
+    ctx.beginPath();
+    ctx.ellipse(
+      rand() * 128,
+      rand() * 128,
+      1 + rand() * 2,
+      1 + rand() * 2,
+      rand() * 6.28,
+      0,
+      6.28,
+    );
+    ctx.fill();
+  }
+  const map = new T.CanvasTexture(c);
+  map.wrapS = map.wrapT = T.RepeatWrapping;
+  map.colorSpace = T.SRGBColorSpace;
+  const hedge = kit.mat('brookClippedHedge', '#b2bd8c');
+  hedge.map = map;
+  hedge.bumpMap = map;
+  hedge.bumpScale = 0.04;
+  for (const [i, bed] of D.beds.entries()) {
+    if (i >= 4) continue; // PA11 replaces west frontage blocks with branched shrubs.
+    const h = i < 2 ? 1.05 : i < 4 ? 0.85 : 0.75;
+    const shape = new T.Shape(bed.map(([x, z]) => new T.Vector2(x, -z)));
+    const g = new T.ExtrudeGeometry(shape, {
+      depth: h,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      steps: 1,
+      bevelSize: 0.12,
+      bevelThickness: 0.1,
+    });
+    g.rotateX(-Math.PI / 2);
+    const p = g.getAttribute('position'),
+      uv = g.getAttribute('uv');
+    for (let j = 0; j < p.count; j++) {
+      const x = p.getX(j),
+        z = p.getZ(j),
+        y = p.getY(j);
+      p.setY(j, y + surface.brookParkingY(x, z) + 0.12);
+      uv.setXY(j, (x + z) / 0.8, (y + z) / 0.8);
     }
-  });
-  mesh.castShadow = mesh.receiveShadow = true;
-  scene.add(mesh);
-  const stems = new T.InstancedMesh(
-    new T.CylinderGeometry(0.008, 0.025, 1, 5),
-    new T.MeshStandardMaterial({ color: '#655749', roughness: 1 }),
-    clusters.length,
-  );
-  clusters.forEach((c, i) => {
-    o.position.set(c.x, height(c.x, c.z) + c.h * 0.4, c.z);
-    o.rotation.set(0.12 * Math.sin(i), 0, 0.15 * Math.cos(i));
-    o.scale.set(1, c.h * 0.8, 1);
-    o.updateMatrix();
-    stems.setMatrixAt(i, o.matrix);
-  });
-  stems.castShadow = true;
-  scene.add(stems);
+    g.computeVertexNormals();
+    kit.batch(g, hedge);
+  }
+  // Two tall conifers frame the opening in June 2024; sizes/positions estimated.
+  for (const [x, z] of D.entranceTrees) {
+    const g = new T.SphereGeometry(1, 12, 14),
+      p = g.getAttribute('position');
+    for (let j = 0; j < p.count; j++) {
+      const y = p.getY(j),
+        t = (y + 1) / 2;
+      const width =
+        1.18 *
+        (1 - 0.42 * t) *
+        (1 + 0.08 * Math.sin(y * 29 + Math.atan2(p.getZ(j), p.getX(j)) * 7));
+      p.setXYZ(
+        j,
+        x + p.getX(j) * width,
+        surface.brookParkingY(x, z) + 2.65 + y * 2.5,
+        z + p.getZ(j) * width,
+      );
+    }
+    g.computeVertexNormals();
+    kit.batch(g, hedge);
+  }
 }

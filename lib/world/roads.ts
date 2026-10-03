@@ -1,3 +1,8 @@
+import { addBridgeParking } from '../landmarks/bridge-parking';
+import {
+  addBlackburnEntrance,
+  blackburnLocal,
+} from '../landmarks/blackburn-entrance';
 import * as T from 'three';
 import { densify, nearest, segments, type Feature, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
@@ -21,7 +26,7 @@ const { lerp } = T.MathUtils;
 // OSM centrelines. Widths are inferred; see roadWidth().
 export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   const { ribbon, box, mat, m } = kit;
-  const { roadY, courtY, roadSeg, gateApproach } = surface;
+  const { roadY, roadSeg, gateApproach } = surface;
   const { asphalt, blockPaving, paving, kerb, paint } = m;
   const gravel = mat('riversideGravel', '#aaa99a');
   gravel.map = gravelTexture();
@@ -44,6 +49,15 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         len = Math.hypot(dx, dz) || 1;
       const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
         z = (a[1] + b[1]) / 2 + (dx / len) * offset;
+      const [eu, ev] = blackburnLocal(x, z);
+      if (
+        eu > -14 &&
+        eu < 16 &&
+        Math.abs(ev) < 14.2 &&
+        (f.name === 'Blackburn Road' || f.id === OSM.eagleyWay)
+      ) {
+        if (f.id === OSM.eagleyWay || (offset !== 0 && eu > 0)) return false;
+      }
       // M01 draws the connected outer kerb up to this loop's west node.
       if (f.id === OSM.busTurningLoop && offset < 0 && x < 126.8 && z > 26)
         return false;
@@ -86,12 +100,19 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
 
   function surfaceMaterial(f: Feature, foot: boolean) {
     if (foot) return f.id === OSM.riversidePath ? gravel : paving;
-    return f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop
+    return f.id === OSM.schoolStreetFront ||
+      (f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop)
       ? blockPaving
       : asphalt;
   }
 
   for (const f of data.roads) {
+    if (
+      f.id === OSM.brookParkingAccess ||
+      OSM.brookParkingAisles.includes(f.id)
+    )
+      continue;
+    if (f.id === OSM.millWoodlandSteps) continue;
     if (f.id === OSM.busTurningLoop) continue; // M02 draws one connected loop.
     if (f.id === OSM.eagleyBrow) continue; // Dedicated woodland entrance below.
     if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
@@ -104,7 +125,10 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
     const yfn =
       f.id === OSM.houghFootbridge
         ? surface.ground
-        : (x: number, z: number) => roadY(x, z, nearest(x, z, own));
+        : (x: number, z: number) =>
+            f.id === OSM.riversidePath && x > 110 && z > 8
+              ? surface.ground(x, z)
+              : roadY(x, z, nearest(x, z, own));
 
     // EAG-032..040: the valley pavement ends before the mill; the uphill
     // pavement starts at the woodland steps and continues beside the low bank.
@@ -160,7 +184,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
             if (f.id === OSM.houghFootbridge) return true;
             if (
               f.id === OSM.riversidePath &&
-              gateApproach(mx, mz) !== undefined
+              (gateApproach(mx, mz) !== undefined || (mx > 110 && mz > 15.42))
             )
               return false;
             const n = nearest(
@@ -212,93 +236,10 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
     }
   }
 
-  addParkingCourt(kit, surface);
+  addBlackburnEntrance(kit, { surface });
+  addBridgeParking(kit, { surface });
   addEagleyBrowSurface(kit, { surface, data });
   addEagleyHoughBend(kit, { surface, data });
   addTurningCircle(kit, { surface });
-  addBrookParking(kit, surface.brookParkingY);
-
-  // Grass-island kerbs and the short perimeter at the western court.
-  for (const p of [
-    [
-      [11, 2],
-      [24, 2],
-      [35, 5],
-    ],
-    [
-      [12, 29],
-      [31, 29],
-      [35, 24],
-    ],
-    [
-      [35, 1],
-      [38, 6],
-      [39, 9],
-    ],
-  ] as P[][])
-    for (let j = 1; j < p.length; j++)
-      kit.beam(
-        new T.Vector3(p[j - 1][0], courtY(...p[j - 1]) + 0.07, p[j - 1][1]),
-        new T.Vector3(p[j][0], courtY(...p[j]) + 0.07, p[j][1]),
-        0.18,
-        0.15,
-        kerb,
-      );
-}
-
-/** Triangulated, graded Bridge Mill parking surface with three bay groups. */
-function addParkingCourt(kit: Kit, surface: Surface) {
-  const { court, courtY } = surface;
-  const shape = new T.Shape(court.map((p) => new T.Vector2(p[0], -p[1]))),
-    raw = new T.ShapeGeometry(shape).toNonIndexed(),
-    rawPos = raw.getAttribute('position'),
-    pv: number[] = [],
-    pu: number[] = [];
-  // Subdivide until triangles are under 2m so the surface follows the grade.
-  function triangle(a: P, b: P, c: P, depth = 0) {
-    if (
-      depth < 4 &&
-      Math.max(
-        Math.hypot(a[0] - b[0], a[1] - b[1]),
-        Math.hypot(a[0] - c[0], a[1] - c[1]),
-        Math.hypot(c[0] - b[0], c[1] - b[1]),
-      ) > 2
-    ) {
-      const ab: P = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
-        bc: P = [(b[0] + c[0]) / 2, (b[1] + c[1]) / 2],
-        ca: P = [(c[0] + a[0]) / 2, (c[1] + a[1]) / 2];
-      triangle(a, ab, ca, depth + 1);
-      triangle(ab, b, bc, depth + 1);
-      triangle(ca, bc, c, depth + 1);
-      triangle(ab, bc, ca, depth + 1);
-    } else
-      for (const p of [a, b, c]) {
-        pv.push(p[0], courtY(...p) + 0.05, p[1]);
-        pu.push(p[0] / 8, p[1] / 8);
-      }
-  }
-  for (let i = 0; i < rawPos.count; i += 3)
-    triangle(
-      [rawPos.getX(i), -rawPos.getY(i)],
-      [rawPos.getX(i + 1), -rawPos.getY(i + 1)],
-      [rawPos.getX(i + 2), -rawPos.getY(i + 2)],
-    );
-  const g = new T.BufferGeometry();
-  g.setAttribute('position', new T.Float32BufferAttribute(pv, 3));
-  g.setAttribute('uv', new T.Float32BufferAttribute(pu, 2));
-  g.computeVertexNormals();
-  kit.batch(g, kit.m.asphalt);
-  raw.dispose();
-
-  // Three short parking groups leave the eastern garage lane clear.
-  for (const row of [
-    { x: 13, z: 5, n: 6, yaw: 0 },
-    { x: 13, z: 25, n: 6, yaw: Math.PI },
-    { x: 8, z: 6, n: 4, yaw: Math.PI / 2 },
-  ])
-    for (let k = 0; k <= row.n; k++) {
-      const x = row.x + Math.cos(row.yaw) * k * 2.6,
-        z = row.z - Math.sin(row.yaw) * k * 2.6;
-      kit.box(x, courtY(x, z) + 0.08, z, 0.07, 0.02, 4.7, kit.m.paint, row.yaw);
-    }
+  addBrookParking(kit, { surface });
 }

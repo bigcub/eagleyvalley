@@ -1,3 +1,4 @@
+import { SCHOOL_FRONT_OPENINGS as D } from '../world/layout';
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
@@ -163,6 +164,50 @@ export function addSchoolHouse(
     [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4],
     slate,
   );
+  // Three photographed front rooflights, rather than counts derived from span.
+  function rooflight(
+    u: number,
+    v: number,
+    w: number,
+    d: number,
+    offset: number,
+    m: T.Material,
+  ) {
+    const v0 = v - d / 2,
+      v1 = v + d / 2;
+    const y0 = 5.4 + ((v0 - 1.5) * 3) / 7.8 + offset,
+      y1 = 5.4 + ((v1 - 1.5) * 3) / 7.8 + offset;
+    mesh(
+      [
+        u - w / 2,
+        y0,
+        v0,
+        u + w / 2,
+        y0,
+        v0,
+        u + w / 2,
+        y1,
+        v1,
+        u - w / 2,
+        y1,
+        v1,
+      ],
+      [0, 1, 2, 0, 2, 3],
+      m,
+    );
+  }
+  for (const u of D.rooflights) {
+    rooflight(u, D.rooflightV, D.width + 0.14, D.depth + 0.14, 0.025, dark);
+    rooflight(
+      u,
+      D.rooflightV,
+      D.width,
+      D.depth,
+      0.04,
+      kit.mat('schoolRooflightGlass', '#afc1c8'),
+    );
+    rooflight(u, D.rooflightV, 0.035, D.depth, 0.05, trim);
+  }
   // Rear linear hall has its own steep roof and pointed five-light end windows.
   mesh(
     [
@@ -180,48 +225,253 @@ export function addSchoolHouse(
     [0, 1, 2, 3, 5, 4],
     gableStone,
   );
-  function light(u: number, v: number, y: number, w: number, h: number) {
+  function slopedRooflight(
+    u: number,
+    v: number,
+    width: number,
+    depth: number,
+    height: (u: number, v: number) => number,
+  ) {
+    const pane = (
+      w: number,
+      d: number,
+      offset: number,
+      material: T.Material,
+    ) => {
+      const corners = [
+        [u - w / 2, v - d / 2],
+        [u + w / 2, v - d / 2],
+        [u + w / 2, v + d / 2],
+        [u - w / 2, v + d / 2],
+      ];
+      mesh(
+        corners.flatMap(([a, b]) => [a, height(a, b) + offset, b]),
+        [0, 1, 2, 0, 2, 3],
+        material,
+      );
+    };
+    pane(width + 0.14, depth + 0.14, 0.025, dark);
+    pane(width, depth, 0.04, kit.mat('schoolRooflightGlass', '#afc1c8'));
+    pane(width, 0.035, 0.05, trim);
+  }
+  // Fitted to the existing east wing plane, not horizontal plates above it.
+  const eastRoofY = (u: number) => 11 - ((u - 20.57) * 5.6) / 4.73;
+  for (const [u, v] of D.eastRooflights)
+    slopedRooflight(u, v, 0.8, 0.9, eastRoofY);
+  slopedRooflight(
+    ...D.hallRooflight,
+    0.95,
+    0.7,
+    (_u, v) => 5.4 + ((v - 16.9) * 3.1) / 2.6,
+  );
+  function light(
+    u: number,
+    v: number,
+    y: number,
+    w: number,
+    h: number,
+    columns = 2,
+  ) {
     B(u, y, v - 0.08, w + 0.28, h + 0.28, 0.16, dress);
     B(u, y, v - 0.18, w, h, 0.12, glass);
     for (const side of [-1, 1])
       B(u + (side * w) / 2, y, v - 0.27, 0.065, h, 0.07, trim);
-    B(u, y, v - 0.27, 0.055, h, 0.07, trim);
+    if (columns === 2) B(u, y, v - 0.27, 0.055, h, 0.07, trim);
     B(u, y, v - 0.27, w, 0.055, 0.07, trim);
     B(u, y - h / 2 - 0.15, v - 0.18, w + 0.45, 0.17, 0.35, dress);
   }
   for (const u of [4.5, 20.57]) {
     for (let k = -1; k <= 1; k++) {
       const h = k === 0 ? 3.75 : 2.95;
-      light(u + k * 1.0, -0.15, 1.25 + h / 2, 0.78, h);
+      light(u + k * 1.0, -0.15, 1.25 + h / 2, 0.78, h, 1);
       B(u + k, 1.25 + h + 0.32, -0.34, 1.08, 0.12, 0.18, dress);
     }
-    // Small pointed gable vent.
-    mesh(
-      [u - 0.28, 7.45, -0.2, u + 0.28, 7.45, -0.2, u, 8.02, -0.2],
-      [0, 1, 2],
-      dark,
+    // Narrow pointed recess with a dressed surround, rather than a triangle.
+    const recess = D.gableRecess;
+    const panel = (
+      radius: number,
+      bottom: number,
+      rise: number,
+      v: number,
+      material: T.Material,
+    ) => {
+      const outline = [
+        new T.Vector2(-radius, bottom),
+        new T.Vector2(radius, bottom),
+      ];
+      for (let k = 0; k <= 12; k++) {
+        const t = k / 12;
+        outline.push(
+          new T.Vector2(
+            radius * (1 - t * t),
+            recess.spring + rise * (1.2 * (1 - t) * t + t * t),
+          ),
+        );
+      }
+      for (let k = 11; k >= 0; k--) {
+        const t = k / 12;
+        outline.push(
+          new T.Vector2(
+            -radius * (1 - t * t),
+            recess.spring + rise * (1.2 * (1 - t) * t + t * t),
+          ),
+        );
+      }
+      mesh(
+        outline.flatMap((p) => [u + p.x, p.y, v]),
+        T.ShapeUtils.triangulateShape(outline, []).flat(),
+        material,
+      );
+    };
+    panel(
+      recess.radius + 0.09,
+      recess.bottom - 0.1,
+      recess.rise + 0.12,
+      -0.24,
+      dress,
     );
+    panel(
+      recess.radius,
+      recess.bottom,
+      recess.rise,
+      -0.27,
+      kit.mat('schoolGableRecess', '#615c4e'),
+    );
+    B(u, recess.bottom - 0.12, -0.28, 0.6, 0.12, 0.13, dress);
   }
   for (const u of [10.6, 14.2]) light(u, 1.68, 2.8, 1.35, 2.6);
-  for (const u of [8.4, 16.6]) {
-    B(u, 1.65, 0.8, 2.1, 3.3, 2.1, stone);
-    roof(u, -0.25, 2.1, 2.1, 3.3, 1.65);
-    B(u, 1.35, -0.38, 1.25, 2.65, 0.16, trim);
-    B(
-      u,
-      1.3,
-      -0.5,
-      1.02,
-      2.5,
-      0.13,
-      new T.MeshStandardMaterial({ color: '#d9d7cb' }),
+  function archPanel(
+    u: number,
+    v: number,
+    bottom: number,
+    spring: number,
+    radius: number,
+    m: T.Material,
+  ) {
+    const outline = [
+      new T.Vector2(-radius, bottom),
+      new T.Vector2(radius, bottom),
+    ];
+    for (let i = 0; i <= 20; i++) {
+      const a = (i * Math.PI) / 20;
+      outline.push(
+        new T.Vector2(Math.cos(a) * radius, spring + Math.sin(a) * radius),
+      );
+    }
+    const faces = T.ShapeUtils.triangulateShape(outline, []).flat();
+    mesh(
+      outline.flatMap((p) => [u + p.x, p.y, v]),
+      faces,
+      m,
     );
   }
-  for (const v of [3, 6.2, 9.3]) {
-    B(25.18, 2.7, v, 0.18, 2.8, 1.65, dress);
-    B(25.3, 2.7, v, 0.08, 2.52, 1.37, glass);
-    B(25.36, 2.7, v, 0.06, 2.52, 0.065, trim);
-    B(25.36, 2.7, v, 0.06, 0.065, 1.37, trim);
+  const porchDoor = kit.mat('schoolPorchDoor', '#e0ded4');
+  for (const u of D.porches) {
+    B(u, 1.65, 0.8, 2.1, 3.3, 2.1, stone);
+    roof(u, -0.25, 2.1, 2.1, 3.3, 1.65);
+    archPanel(u, -0.39, 0.02, 2.03, 0.65, dress);
+    archPanel(u, -0.42, 0.05, 2.03, 0.54, trim);
+    archPanel(u, -0.45, 0.07, 2.03, 0.5, porchDoor);
+    B(u, 2.86, -0.42, 1.55, 0.12, 0.16, dress);
+    B(u, 3.06, -0.46, 0.18, 0.09, 0.08, dark);
+  }
+  // Only the exposed west porch side is supported by the oblique photograph.
+  const sideWindow = D.porchSideWindow;
+  B(
+    sideWindow.u,
+    sideWindow.y,
+    sideWindow.v,
+    0.12,
+    sideWindow.height + 0.22,
+    sideWindow.width + 0.22,
+    dress,
+  );
+  B(
+    sideWindow.u + 0.08,
+    sideWindow.y,
+    sideWindow.v,
+    0.05,
+    sideWindow.height,
+    sideWindow.width,
+    glass,
+  );
+  for (const side of [-1, 1])
+    B(
+      sideWindow.u + 0.12,
+      sideWindow.y,
+      sideWindow.v + (side * sideWindow.width) / 2,
+      0.04,
+      sideWindow.height,
+      0.045,
+      trim,
+    );
+  B(
+    sideWindow.u + 0.12,
+    sideWindow.y,
+    sideWindow.v,
+    0.04,
+    0.045,
+    sideWindow.width,
+    trim,
+  );
+  B(
+    sideWindow.u + 0.04,
+    sideWindow.y - sideWindow.height / 2 - 0.12,
+    sideWindow.v,
+    0.24,
+    0.12,
+    sideWindow.width + 0.3,
+    dress,
+  );
+  const east = D.eastWindows;
+  for (const v of east.positions) {
+    // Stepped architrave, white sash edges and one horizontal meeting rail.
+    // The photograph does not support the former central vertical bar.
+    B(east.u, east.y, v, 0.16, east.height + 0.5, east.width + 0.5, dress);
+    B(
+      east.u + 0.07,
+      east.y,
+      v,
+      0.14,
+      east.height + 0.3,
+      east.width + 0.3,
+      trim,
+    );
+    B(east.u + 0.14, east.y, v, 0.08, east.height, east.width, glass);
+    for (const side of [-1, 1])
+      B(
+        east.u + 0.2,
+        east.y,
+        v + (side * east.width) / 2,
+        0.06,
+        east.height,
+        0.065,
+        trim,
+      );
+    for (const y of [
+      east.y - east.height / 2,
+      east.y,
+      east.y + east.height / 2,
+    ])
+      B(east.u + 0.2, y, v, 0.06, 0.065, east.width, trim);
+    B(
+      east.u + 0.1,
+      east.y - east.height / 2 - 0.18,
+      v,
+      0.35,
+      0.14,
+      east.width + 0.64,
+      dress,
+    );
+    B(
+      east.u + 0.04,
+      east.y + east.height / 2 + 0.28,
+      v,
+      0.25,
+      0.1,
+      east.width + 0.64,
+      dress,
+    );
   }
   // Pointed five-light glazing to the old hall's exposed end.
   mesh(
@@ -238,19 +488,42 @@ export function addSchoolHouse(
   }
   for (const y of [2.6, 3.85]) B(28.8, y, 19.5, 0.09, 0.08, 3.8, trim);
   for (const u of [0, 9, 16.05, 25.1]) B(u, 2.7, 0.03, 0.09, 5.4, 0.09, dark);
-  // Low stone forecourt boundary with slender iron railings and entrance gaps.
+  // Low stone forecourt boundary with continuous slender iron railings.
   for (let u = 0; u < 25; u += 0.45) {
-    if (Math.abs(u - 8.4) < 1 || Math.abs(u - 16.6) < 1) continue;
+    // Reference shows continuous railing along the two porch fronts.
     B(u, 0.25, -2.1, 0.46, 0.5, 0.4, stone);
     B(u, 0.9, -2.1, 0.035, 1.1, 0.035, dark);
     for (const y of [0.56, 1.24]) B(u, y, -2.1, 0.46, 0.035, 0.035, dark);
   }
   for (const u of [0, 7.25, 9.55, 15.45, 17.75, 25]) {
     B(u, 0.95, -2.1, 0.4, 1.9, 0.4, stone);
-    const cap = new T.ConeGeometry(0.34, 0.5, 4);
-    const [x, z] = world(u, -2.1);
-    cap.rotateY(rot + Math.PI / 4);
-    cap.translate(x, base + 2.13, z);
-    batch(cap, dress);
+    const cap = D.pierCap,
+      w = cap.width / 2,
+      d = cap.depth / 2;
+    B(u, cap.eave - 0.04, -2.1, cap.width, 0.08, cap.depth, dress);
+    mesh(
+      [
+        u - w,
+        cap.eave,
+        -2.1 - d,
+        u + w,
+        cap.eave,
+        -2.1 - d,
+        u,
+        cap.eave + cap.rise,
+        -2.1 - d,
+        u - w,
+        cap.eave,
+        -2.1 + d,
+        u + w,
+        cap.eave,
+        -2.1 + d,
+        u,
+        cap.eave + cap.rise,
+        -2.1 + d,
+      ],
+      [0, 1, 2, 3, 5, 4, 0, 2, 5, 0, 5, 3, 1, 4, 5, 1, 5, 2],
+      dress,
+    );
   }
 }

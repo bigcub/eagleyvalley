@@ -6,7 +6,9 @@ Nothing here is accepted as accurate until the user has reviewed it.
 
 ## Ordered modelling jobs
 
-Next job: **M06**. M01 to M05 are modelled and tested locally, through v0.3.47; user acceptance remains open. Work through this queue one job at a time. Each job includes inspecting its available reference views, recording gaps in SURVEY.md, updating the model and comparing matching game views. Modelled and tested does not mean accepted by the user. Dimensions remain labelled estimated unless supported by measurement.
+Latest requested job: **M23 Threadfold Way houses opposite Bridge Mill parking**, frontage/roof/drives modelled and tested locally v0.3.80. Eight mapped houses, three storeys, central twin gables, individual garages, explicit upper opening schedule and diagonal balcony rails. [Evidence and unresolved details](docs/audits/threadfold-houses.md). Rear/threshold survey and user acceptance open; Valley Mill M21d remains queued.
+
+Active area: **Valley Mill and Cottonfields**, at the user's request on 3 October to work on places that have had less attention. **M21a east frontage/roof/cupola is modelled and tested locally in v0.3.77. M21b north first correction modelled/tested v0.3.78. M21c south river face corrected/tested v0.3.79. M21d initial grade audit recorded. Next: model its lower entrance apron and retaining returns.** [Evidence, limits and discrete M21a–e/M22a–b jobs](docs/audits/valley-mill.md). North/south schedules now use inspected photographs; concealed lower details remain provisional. West volumes and openings still need their own survey. Finish this area's connected building/layout jobs before returning to small Brook Mill refinements. EAG-034/036 survey backfill remains open. Earlier M01–M20 changes through v0.3.76 remain local and user acceptance is open; details are recorded in STATUS, progress and individual audits. M06 remains deferred pending passage references, and the private School House east access remains unresolved. Work one bounded job at a time and continue directly to the next checked job. Publishing still requires an explicit request.
 
 | Job | Place and bounded change | Completion check |
 | --- | --- | --- |
@@ -15,21 +17,34 @@ Next job: **M06**. M01 to M05 are modelled and tested locally, through v0.3.47; 
 | M03, modelled/tested v0.3.45 | Turning-circle closed hedge and mixed-height planting; opaque shelter, bin, low brick bed, concrete island post and lamps from EAG-045..049. Shelter recess shares the loop grade. | Matched views, full circuit/return, pavement and shelter entrance/exit checks. Dimensions, hidden trunks and rear bed remain estimates; user acceptance open. |
 | M04, modelled/tested v0.3.46 | Hough Lane/Threadfold Way junction, flag 9217d4a4. Filled the north pavement return, narrowed the asphalt footbridge landing to a low stone back boundary, corrected three removable bollards and flat-topped stone posts, and aligned the rail along Threadfold pavement. | Reference-coordinate views from both roads and old/Hall lanes; both bridge walks and a walk through the bollard gap pass, with full journey, locations and ride checks. Widths and wall alignment estimated. Planting, tactile paving, exact kerb trace and user acceptance remain open; flag stays open. |
 | M05, modelled/tested v0.3.47 | Bridge Mill road-facing wall. Separate road-relative height profiles, upright-to-flat coping drop estimated at X89.7, narrow gutter, road-level lamp and continuous gate-side return. June 2024 EAG-038..043 rechecked; EAG-039 side/reverse gap filled. | Both road directions, side, ends and overhead inspected; journey, frontage walk, locations, Hough and ride pass. Ground/terrain samples unchanged; lamp collision added locally. Wall dimensions, alignment and coping-drop position estimated; user acceptance open. Lower passage face remains M06. |
-| M06 | Bridge Mill passage retaining face. Rebuild its separate tall face, slope and steps using passage photos and levels, keeping it distinct from M05. | Views along the passage both ways; continuous frontage walk, no gaps or traps. Ask for a specific photo only if the available evidence cannot establish the geometry. |
-| M07 | Hough-end passage gate. Reconstruct this gate's piers, opening, ironwork and cobbled threshold. | Correct connection to the passage and continuous approach levels; check walking clearance. |
-| M08 | Hough-end landscaping gate. Give the second gate its own model and connect it to shared landscaping behind the private gardens. | Compare its position relative to M07; verify the route and garden boundaries. |
-| M09 | Woodland steps opposite Bridge Mill, EAG-037/038. Establish the visible flight, wall returns and upper connection, then replace the generic path strip. | Compare road-level and side views; walk up and down with matching rendered and movement heights. Concealed steps remain explicitly unresolved if evidence is missing. |
-| M10 | Brook Mill car park layout. Trace its entrance, aisles, parking bays, islands and retaining edges; replace the generated parking arrangement. | Matching entrance and internal views; drive in, turn, park and reverse out. |
-| M11 | Brook Mill north elevation. Record openings by floor, then correct its bays, windows and doors from the schedule. | Each modelled opening matches a recorded reference or is marked unresolved; straight and oblique views. |
-| M12 | Brook Mill west elevation. Record and rebuild this elevation's openings and entrance separately. | Per-floor opening schedule and matching views; verify car-park entrance clearance. |
+| M06, deferred; baseline audited; reference needed | Bridge Mill passage retaining face. Rebuild its separate tall face, slope and steps using passage photos and levels, keeping it distinct from M05. | Views along the passage both ways; continuous frontage walk, no gaps or traps. Original passage photos are unavailable in this checkout; reattach an along-passage view showing the full wall top, steps and western join before reconstruction. Baseline views are captured; no world change yet. |
+| M07, modelled/tested v0.3.48 | Separate small arched passage gate in the shared entrance’s left return, stone piers, joined bed wall and rounded cobbled branch. May 2012 and June 2024 views inspected. Leaf held open for exploration. | Full journey, car switch, frontage walk and 24-waypoint gate out/return pass; largest 50ms height change 0.037m. Locations, Hough and ride pass. Alignment, bar count, dimensions and fitted levels remain estimates; user acceptance open. |
+| M08, modelled/tested v0.3.49 | Separate round-topped landscaping gate, grey stone returns and lawn edge, worn entrance paving and a short bend onto mapped path 655432309 behind the private gardens. Gate held open along the lawn wall for exploration. | Both gate views and rear-path views compared. Normal-input journey, car switch and 56-waypoint walk through both gates to X100 Z-9 and back pass; largest 50ms height change 0.072m. Locations, Hough and ride pass. Gate dimensions, short path bend, surface material and grade estimated; hidden landscaping and user acceptance remain open. |
+| M09, modelled/tested v0.3.50 | Woodland entrance opposite Bridge Mill. Narrow lower stone flight, pavement apron and rounded low wall return replace the generic strip; mapped path 655432308 continues provisionally uphill. | Road-level, side, upper and overhead views compared. Normal-input full journey and 48-waypoint walk to the upper lane and back pass; largest 50ms height change 0.180m. Six treads, width, rise, trace and fitted levels estimated. Concealed upper flights, exact upper connection and user acceptance remain open. |
+| M10, modelled/tested v0.3.51 | Brook Mill parking: separate bay groups, two western islands, perimeter and west-elevation beds, clipped hedge volumes, entrance conifers and brook-side rail. | Entrance, internal and overhead game views compared against aerial/road references. Normal-input drive through both aisles, marked-bay parking, reverse and exit to Threadfold Way pass, with full journey and nearby checks. Ground/terrain unchanged. Exact bay totals, dimensions, close interior references, concealed retaining face and user acceptance remain open. |
+| M11 openings v0.3.56 and courses v0.3.74 modelled/tested; follow-ups open | Brook Mill north elevation. Record openings by floor, then correct its bays, windows and doors from the schedule. | Each modelled opening matches a recorded reference or is marked unresolved; straight and oblique views. |
+| M12a/b/c/d modelled v0.3.52–55; tower return open | Brook Mill west entrance and projecting gable/arched glazing first (PA01–03); lower wing, opening schedule and masonry next (PA04–07); fixtures and roof audit as separate passes (PA08–10). | Compare UP-001/002, walk to the main threshold and back, preserve parking manoeuvres; count photographed openings per volume/floor. Dimensions and concealed door/roof details remain estimated. |
 | M13 | Brook Mill south elevation and terrace. Record this elevation's openings and terrace division, then correct their geometry and levels. | Per-floor schedule; matching frontage views and a terrace walk. |
 | M14 | Brook Mill east elevation. Record its openings and upper arches and correct this elevation. | Per-floor schedule and matching views; concealed details explicitly unresolved. |
-| M15 | Long garage range. Verify the five door bays, roof form and end returns, then rebuild this range. | Front and end comparisons; each bay remains accessible from the narrow garage lane. |
+| M15 roofs modelled/tested v0.3.58; retaining follow-up open | Long garage range. Verify the five door bays, roof form and end returns, then rebuild this range. | Front and end comparisons; each bay remains accessible from the narrow garage lane. |
 | M16 | Court-house entrance bridges, OSM 727427311/312/313. Correct each bridge, door threshold and partly sunken lower-floor edge. | Compare each entrance; continuous walks to the doors without sinking or clipping. |
 | M17 | Bridge Mill garage court ground layout. Join the western parking court, narrow garage lane and rise towards the passage; correct perimeter and parking positions. | Drive in, park, reverse, exit and walk to the passage; no disconnected surfaces. |
 | M18 | Blackburn Road/Eagley Way entrance, flag 88bc3dbf. Trace and rebuild the corner pavement, curved wall return and road join. | Reference comparisons from Blackburn Road and Eagley Way; drive and walk through the entrance. |
 | M19 | Gatehouse elevations. Audit the roof junctions, openings, name plate and thresholds; correct the building against side and reverse views. | Recorded opening schedule and matching approach views; clear road entrance. |
 | M20 | School House front and forecourt. Reconstruct the Gothic front gables, porch, tall windows and entrance levels from available views. | Front and oblique comparisons and a walk to the entrance; hidden side/rear elevations remain separate work. |
+
+Bridge Mill court is the latest user priority: M24 connected layout is corrected/tested locally in v0.3.81, with user review and exact bay survey still open. Valley Mill/Cottonfields remains queued. M21b north long elevation, M21c river elevation, M21d connected entrance/parking levels, M21e western engine-house end, M22a Scholars Rise housing inventory and M22b Cottonfields parking/brook connection are separate jobs. Scope and completion checks are in [the area audit](docs/audits/valley-mill.md).
+
+School House follow-ups are discrete jobs, in this order:
+
+| Job | Scope | Evidence/check |
+| --- | --- | --- |
+| M20c, modelled/tested v0.3.69 | Two east-slope rooflights and one rear-hall rooflight. | Counted March 2024 oblique; fitted roof planes, side/roof screenshots and public pavement walk. Centres/sizes estimated. |
+| M20d, modelled/tested v0.3.70 | Close the clipped terrain ends and exposed earth under the raised front garden. | Front and east oblique screenshots, unchanged movement heights/collisions and public route check. Private entry remains separate. |
+| M20e, modelled/tested v0.3.71 | Replace the two wide triangular gable vents with narrow pointed recesses and stone surrounds. | August 2022 front/oblique and March 2024 photo. Record estimated profiles and compare both gables. |
+| M20f, modelled/tested v0.3.72 | Correct the front stone pier caps and porch side window. | Photograph supports pitched caps and side opening. Keep placement/dimensions interpreted; no new private gates. |
+| M20h, modelled/tested v0.3.73 | Correct the three main east-facing sash windows and stepped stone surrounds. | March 2024 photograph, one column/two sash rows per opening; widths/levels interpreted. Side screenshots, unchanged ground/collision and journey checks. |
+| M20g, evidence pending | East stepped entrance, forecourt linkage and threshold. | Confirm which entrance serves the front garden before changing access, levels or walls; then normal-input access walk. |
 
 After these jobs, split the remaining Threadfold frontages, rear gardens, engine house, brook edges and wider streets into equivalent jobs by building or bounded stretch. Do not replace that missing inventory with a general "add detail" task.
 
@@ -57,7 +72,7 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 ## Eagley Way
 
 - [x] M02: full loop sequence EAG-045..049, August 2022, all four directions recorded; joins EAG-044 and returns to EAG-043 (June 2024). v0.3.44 connects the road, island, pavement and kerbs. M03 models planting/furniture in v0.3.45; user acceptance open.
-- [ ] Backfill EAG-033 reverse/uphill side and EAG-034/036 sides/reverse (EAG-039 backfilled in M05). Backfill side and reverse views for EAG-001 to 026, especially 014 to 025.
+- [ ] Backfill EAG-034/036 sides/reverse (EAG-033 reverse/uphill completed 3 October) (EAG-039 backfilled in M05). Backfill side and reverse views for EAG-001 to 026, especially 014 to 025.
 - [ ] Verify the interpreted plain-wall end at the Eagley Brow opening, and the mill-wall coping step (M05 moves the estimate from X94 to X89.7). EAG-030..032 confirms the opening; v0.3.42 removes its blocking wall, but dimensions remain estimated.
 - [ ] Map the grassy opening at EAG-002/003, individual trunks, lamp positions and the flowering banks at EAG-008 to 011. Check drain positions and panel seams on the retaining wall, and the lean of the left fence.
 - [ ] Record wall height against the pavement at several points, not one constant height. Fix banks poking through walls.
@@ -118,3 +133,51 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 - [ ] Ride continuity after further road/terrain work (`npm run test:ride`). M02 reduces the whole-route worst jolt to 0.0196, now near X6.5 Z57.2; the separate turning-circle circuit improves from 0.1773 to 0.00047. Continue checking the approach joins after later layout changes.
 - [ ] A spatial index for `nearest()` if load time grows. It's about 2.5s now.
 - [ ] Photo requests, one group at a time as each section starts: both directions along the passage; wide court and garage views; engine house from court and brook; wide rear elevation and gardens; School House forecourt and sides.
+
+
+## New user photos, 3 October 2026
+
+[Full audit with evidence, limits and discrete jobs](docs/audits/photo-review-2026-10-03.md). PA01–PA22 are open observations, not completed fixes or exported review flags.
+
+- [x] **M12a / PA01–03, modelled locally v0.3.52:** west main entrance, projecting gable and continuous three-column arched stair glazing. Paved approach joins the parking grade; adjacent bed shortened to keep the door clear. Composition photographed, dimensions and concealed threshold estimated. User acceptance remains open.
+- [x] **M12b / PA04–07, modelled locally v0.3.53:** lower slate-roofed wing with three rooflights, photographed west opening schedule, narrow stone bands, dark paired frames, lintels/sills, wing gutter and join downpipes. [Count schedule and limits](docs/audits/brook-west-opening-schedule.md). Dimensions and concealed openings remain estimated or unresolved; user acceptance open.
+- [x] **M12c / PA08, modelled locally v0.3.54:** vertical red lettering, wall lantern, entry panel, three visible wall fittings and lower-wing roof finial. Shapes, sizes and positions estimated; unreadable labels/notices omitted. User acceptance open.
+- [x] **M12d / PA09, modelled/tested v0.3.55:** setback roof level, three visible west opening groups and provisional equipment. [Per-face tower audit](docs/audits/brook-roof-tower.md).
+- [ ] **PA10 / tower return:** identify the circular opening/cardinal face in UP-001 before adding a clock or glazing; user clarification pending. Hidden roof elevations and dimensions remain open.
+- [ ] **M10 follow-up / PA11–13:** irregular frontage planting, visible paint and pale-rail/dark-post brook boundary with inside planting. v0.3.51 remains a tested interpretation, not accepted accuracy.
+- [ ] **M16b / PA14–16:** modern Bridge Mill block (code: court houses), on the Bridge Mill side of the brook in photo 3: garden doors, tall grouped windows, end openings, separate patios/lawns and timber fences. Old Bridge Mill lies just off to the left; keep both buildings and entrance-side bridges separate.
+- [ ] **M15/M17 / PA17–20:** individual garage roofs, separate garage's photographed two bays, garage-back retaining wall, stepped terraces and brook-side boundary.
+- [ ] **M09 / PA21:** wider view of woodland stairs; upper riser counts and connection still unresolved.
+- [ ] **M17 / PA22:** individual planting after the terrace levels and boundaries are rebuilt.
+
+- [x] **M10 connected level follow-up, observed during M12a validation:** walking from Threadfold Way into the Brook Mill parking entrance drops 0.251m in 50ms near X44.14 Z-61.91. Regression confirms this is outside the M12a surface changes and was already present in v0.3.51. v0.3.57 joins rendered asphalt, ground and terrain with a fitted transition. Parking drive/reverse/exit and 27-target walk pass; worst walking step 0.00435m. Grade estimated, user acceptance open.
+
+
+## M24 Bridge Mill parking court — local v0.3.81
+
+User: “get into bridge mill car park and sort it out. spaces are wrong, there's a strange messy bit as you go up the ramp to houses, and it needs improvements all over”.
+
+- [x] Replace misplaced parking lines with fitted western, northern, eastern and southern groups; place parked cars inside bays.
+- [x] Exclude the sunken frontage from asphalt triangulation; remove the misplaced stone edge and shrubs.
+- [x] Share the court/ramp/garage formation with movement and terrain, retaining door bridges and a gradual passage join.
+- [x] Add fitted grass islands, western hedge and one island tree; register well rails with entrance gaps.
+- [x] Check normal-input reverse parking/departure, ramp drive/reverse, door-bridge walk, garage/passage walk and full journey.
+- [ ] Confirm exact painted bay counts, especially the canopy-hidden southern group, dimensions and present-day planting.
+- [ ] User review of spaces, levels and ramp appearance.
+
+References, estimates and actual checks: [court audit](docs/audits/bridge-parking-court.md). This is a bounded correction, not a completed survey of every court detail.
+
+
+## M25 Threadfold rear and adjoining mews — local v0.3.82
+
+User reported rear styling and apparent height mismatch; clarified the blank brown wall was probably the cause.
+
+- [x] Replace the coarse brick repeat with facade-local horizontal courses.
+- [x] Add explicitly provisional rear openings from the No.8 house type, with heads, sills and pipes.
+- [x] Replace eighteen neighbouring generic models, distinguish four three-storey mews homes from buff two-storey wings and the low corner wing.
+- [x] Check front/rear/context and four court directions, full journey and unchanged movement samples.
+- [ ] Photograph/count every rear elevation and replace inferred opening repetitions; confirm small top/ground windows.
+- [ ] Complete concealed neighbour openings, corner roof joins, exact heights, thresholds and garden divisions from closer evidence.
+- [ ] User review of rear appearance.
+
+[Audit and source limits](docs/audits/threadfold-rear-and-mews.md).

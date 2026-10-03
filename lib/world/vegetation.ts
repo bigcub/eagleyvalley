@@ -1,8 +1,18 @@
+import {
+  addBridgeParkingPlanting,
+  inBridgeParkingIsland,
+} from '../landmarks/bridge-parking';
+import { BRIDGE_PARKING } from './layout';
+import {
+  addBlackburnEntranceHedge,
+  inBlackburnEntrance,
+} from '../landmarks/blackburn-entrance';
 import * as T from 'three';
 import { inPoly, nearest } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { addTrees } from '../vegetation/realistic-trees';
 import { addWoodlandFerns } from '../vegetation/woodland-ferns';
+import { addBrookFrontageShrubs } from '../vegetation/brook-frontage-shrubs';
 import { addRoadsideShrubs } from '../vegetation/roadside-shrubs';
 import { addBrookHedges, brookParking } from '../landmarks/brook-mill-grounds';
 import { addBridgeGardens } from '../landmarks/bridge-gardens';
@@ -31,6 +41,7 @@ export function addVegetation(
     .filter((t) => {
       const rd = nearest(t.x, t.z, roadSeg);
       return (
+        !inBlackburnEntrance(t.x, t.z, surface.blackburnEntrancePlan) &&
         rd.d > roadWidth(rd.s.f) / 2 + 1.5 &&
         !hitBuilding(t.x, t.z, 3) &&
         !inPoly(t.x, t.z, court) &&
@@ -39,13 +50,19 @@ export function addVegetation(
           inPoly(t.x, t.z, surface.turningCirclePlan.grass))
       );
     });
+  trees.push(BRIDGE_PARKING.tree);
   const leaf = addTrees(
     scene,
     trees.filter((t) => !inPassage(t.x, t.z)),
-    terrain,
+    (x, z) =>
+      inBridgeParkingIsland(x, z)
+        ? surface.courtY(x, z) + 0.025
+        : terrain(x, z),
     (t) => inPoly(t.x, t.z, surface.turningCirclePlan.island),
   );
+  addBridgeParkingPlanting(kit, { surface, leaf });
   addTurningCirclePlanting(kit, { scene, surface, leaf });
+  addBlackburnEntranceHedge(kit, { surface, leaf });
 
   // Small overlapping foliage cards form hanging ivy on the retaining wall face.
   for (const [i, p] of plants.ivy.entries())
@@ -87,7 +104,8 @@ export function addVegetation(
 
   addWoodlandFerns(scene, plants.ferns);
   addRoadsideShrubs(scene, plants.shrubs, leaf);
-  addBrookHedges(scene, leaf, surface.brookParkingY);
+  addBrookHedges(kit, { surface });
+  addBrookFrontageShrubs(kit, { scene, surface });
   addBridgeGardens(kit, { leaf, terrain, passageY });
   // Ivy tufts along the top of the passage retaining wall.
   for (let x = 75; x < 109; x += 1.25) {

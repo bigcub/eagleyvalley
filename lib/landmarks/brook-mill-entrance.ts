@@ -1,5 +1,7 @@
+import { BROOK_EAST_GROUND as D, BROOK_EAST_BANDS as C } from '../world/layout';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
+import { masonryUV } from '../materials/building-surfaces';
 // East elevation from the local Geograph reference and Historic England 1388079.
 // Three bays each side of the stair tower. Dimensions remain interpreted.
 export function addBrookEntrance(kit: Kit, base: number) {
@@ -46,17 +48,19 @@ export function addBrookEntrance(kit: Kit, base: number) {
     h: number,
     d: number,
     arched = false,
+    rise = 0.22,
   ) => {
     if (arched) {
       const arch = (ww: number, hh: number): [number, number][] => {
         const p: [number, number][] = [
           [-ww / 2, -hh / 2],
           [ww / 2, -hh / 2],
-          [ww / 2, hh / 2 - 0.22],
+          [ww / 2, hh / 2 - rise],
         ];
         for (let k = 1; k <= 16; k++) {
           const x = ww / 2 - (ww * k) / 16;
-          p.push([x, hh / 2 - 0.22 + 0.22 * (1 - Math.pow(x / (ww / 2), 2))]);
+          const q = Math.max(0, 1 - Math.pow(x / (ww / 2), 2));
+          p.push([x, hh / 2 - rise + rise * (rise > 0.3 ? Math.sqrt(q) : q)]);
         }
         return p;
       };
@@ -69,10 +73,10 @@ export function addBrookEntrance(kit: Kit, base: number) {
     for (const du of [-w / 2, 0, w / 2])
       b(
         u + du,
-        y - (arched ? 0.11 : 0),
+        y - (arched ? rise / 2 : 0),
         d + 0.16,
         0.05,
-        h - (arched ? 0.22 : 0),
+        h - (arched ? rise : 0),
         0.04,
         dark,
       );
@@ -96,6 +100,33 @@ export function addBrookEntrance(kit: Kit, base: number) {
     b(0, floor * 3.6 - 0.1, 0.79, 5.9, 0.24, 0.35, trim);
     for (const side of [-1, 1])
       b(side * 8, floor * 3.6 - 0.1, 0.16, 10, 0.18, 0.4, trim);
+  }
+  const courseMaterial = kit.mat('brookEastStoneCourses', '#aca99a');
+  courseMaterial.map = kit.m.stone.map;
+  const course = (lo: number, hi: number, y: number, depth: number) => {
+    if (hi <= lo) return;
+    const g = new T.BoxGeometry(0.1, C.thickness, hi - lo);
+    g.rotateY(rot);
+    const [x, z] = point((lo + hi) / 2, depth);
+    g.translate(x, base + y, z);
+    masonryUV(g, 2);
+    batch(g, courseMaterial);
+  };
+  // Stone stops at the reveals, leaving the photographed glazing unobstructed.
+  for (const y of C.heights) {
+    for (const [lo, hi] of [
+      [C.flankEnds[0], C.flankEnds[1]],
+      [C.flankEnds[2], C.flankEnds[3]],
+    ]) {
+      let start = lo;
+      for (const u of C.flankOpenings.filter((u) => u > lo && u < hi)) {
+        course(start, u - 0.96, y, 0.08);
+        start = u + 0.96;
+      }
+      course(start, hi, y, 0.08);
+    }
+    course(-2.3, -1.1, y, 0.68);
+    course(1.1, 2.3, y, 0.68);
   }
   // Clock stage with brick pediment and small corner finials.
   b(0, 19.55, -1.2, 4.65, 3.1, 4.65, brick);
@@ -219,8 +250,8 @@ export function addBrookEntrance(kit: Kit, base: number) {
   );
   b(porch, 0.1, 2.0, 2.8, 0.2, 1.05, trim);
   b(porch, 1.1, 2.02, 0.04, 1.9, 0.04, trim);
-  framed(-1.25, 1.8, 1.0, 2.15, 0.81);
-  framed(1.25, 1.8, 1.0, 2.15, 0.81);
+  for (const u of D.positions)
+    framed(u, D.centreY, D.width, D.height, D.depth, true, D.rise);
   return [
     point(porch - 1.4, 0.1),
     point(porch + 1.4, 0.1),

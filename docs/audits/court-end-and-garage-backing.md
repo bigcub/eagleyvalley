@@ -1,0 +1,11 @@
+# Modern Bridge Mill end and garage retaining face
+
+3 October 2026. UP-003 is reference only, no GPS/date/measurements. User identifies the central modern Bridge Mill block, with the old mill just off the left.
+
+M16b end opening pass, v0.3.59: one visible white-framed opening on each of three storeys at the near/west end replaces the blank model face. Width 0.78m, height 1.65m, position, pane divisions and sill profile are estimates. Opposite concealed end remains unresolved. Main garden opening and French-door schedule remains open; optional door-count question pending. The existing garden-side grade partly obscures the lowest end opening and still needs a connected terrace reconstruction, not a raised window to conceal that issue.
+
+M17 garage-back face, v0.3.60: the road wall previously had masonry only above its road-relative base and a green bank below. A dedicated lower stone face now reaches the fitted court-side formation behind the garages, sharing the original mapped road-offset trace and joining the existing upper wall. Back trace, formation, 34–74m extent and 4m end blends are estimates. Both ground and terrain use the named garage-back-formation zone. The grass mesh omits triangles crossing the vertical wall; earth backing closes the cut and end joins. Every wall segment registers collision. This is separate from the deferred passage retaining face, M06.
+
+Private garden terrace divisions/levels, garage weathering and the brook-side boundary remain open. A trial set of rectangular private retaining beds was removed because its court join did not fit the evidence. It is absent from the final build; do not restore it as accepted geometry.
+
+Validation: each pass built, TypeScript/oxlint/whitespace checked, matching end/garage screenshots and skill-client gameplay inspected. v0.3.59 ground/terrain/collision identical to v0.3.58. v0.3.60 normal-input drive 55/55, car switch, frontage walk/reset and garage-front walk 26/26 pass. Flagged viewpoints, Hough and ride 46/46 pass, zero browser errors. Route ride jerk/pitch unchanged at 0.0196m/0.26 degrees; Hough 0.0074m/0.16 degrees. Final seam geometry is visually closed. Fitted dimensions and local accuracy still need user review.

@@ -1,18 +1,24 @@
+import { bridgeParkingWalls } from '../landmarks/bridge-parking';
+import { addSchoolForecourt } from '../landmarks/school-forecourt';
+import {
+  addBlackburnEntranceWall,
+  blackburnLocal,
+} from '../landmarks/blackburn-entrance';
+import { addGarageBacking } from '../landmarks/garage-backing';
+import { addBrookParkingBoundaries } from '../landmarks/brook-mill-grounds';
 import * as T from 'three';
-import { densify, nearest, type P } from '../core/geo';
+import { densify, inPoly, nearest, outline, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { masonryTexture } from '../materials/masonry-texture';
 import { retainingTexture } from '../materials/landscape-materials';
 import { addBridgeRear } from '../landmarks/bridge-rear';
 import { addBridgeRoadWall } from '../landmarks/bridge-road-wall';
+import { addBridgePassageGate } from '../landmarks/bridge-passage-gate';
 import { addEagleyBrowPosts } from '../landmarks/eagley-brow';
 import { addEagleyHoughBendWall } from '../landmarks/eagley-hough-bend';
 import { addTurningCircleFurniture } from '../landmarks/turning-circle-details';
-import {
-  addBridgeSideGate,
-  addPassageGate,
-  gateWorld,
-} from '../landmarks/bridge-side-gate';
+import { addWoodlandSteps } from '../landmarks/woodland-steps';
+import { addBridgeSideGate, gateWorld } from '../landmarks/bridge-side-gate';
 import {
   addHoughFootbridge,
   addHoughJunction,
@@ -23,6 +29,8 @@ import {
   EAGLEY_HOUGH_BEND,
   LOWER_EAGLEY,
   OSM,
+  PASSAGE_GATE,
+  LANDSCAPING_GATE,
 } from './layout';
 import type { Surface } from './surface';
 
@@ -39,21 +47,22 @@ export type PlantingHints = {
 // a comment says otherwise.
 export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { box, batch, beam, mat } = kit;
-  const { stone, dark, trim, kerb } = kit.m;
+  const { stone, dark, trim } = kit.m;
   const {
     terrain,
     sampledTerrain,
     ground,
     roadY,
-    courtY,
     riverY,
     roadSeg,
     riverSeg,
     passageY,
   } = surface;
-  const walls: Wall[] = [];
+  const walls: Wall[] = bridgeParkingWalls();
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
+  walls.push(...addGarageBacking(kit, { surface, data }));
+  walls.push(...addBrookParkingBoundaries(kit, { surface }));
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
   walls.push(...addEagleyBrowPosts(kit, { surface, data }));
   walls.push(...addTurningCircleFurniture(kit, { surface }));
@@ -67,6 +76,8 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   passageStone.bumpMap = passageStone.map;
   passageStone.bumpScale = 0.16;
   walls.push(...addEagleyHoughBendWall(kit, { surface }));
+  walls.push(...addBlackburnEntranceWall(kit, { surface }));
+  walls.push(...addSchoolForecourt(kit, { surface }));
   walls.push(
     ...addBridgeRoadWall(kit, { surface, data, lowerStone: passageStone }),
   );
@@ -172,6 +183,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       nz = dx / len,
       x = (a[0] + b[0]) / 2;
     for (const side of [-1, 1]) {
+      if (
+        side === 1 &&
+        blackburnLocal((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)[0] < 16
+      )
+        continue;
       if (side === 1 && x >= EAGLEY_HOUGH_BEND.startX) continue;
       if (
         side === -1 &&
@@ -394,14 +410,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     }
   }
 
+  walls.push(...addWoodlandSteps(kit, { surface }));
   // ---- Bridge Mill gates at the Hough Lane end ----
-  const gatePaving = mat('gatePaving', '#858477');
-  gatePaving.side = T.DoubleSide;
   walls.push(
     ...addBridgeSideGate(kit, {
-      wallStone: boundaryStone,
-      paving: gatePaving,
-      ground,
+      surface,
     }),
   );
   const landscapeWall: P[] = [
@@ -425,36 +438,19 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         passageStone,
       );
     }
-  // The other gate serves the cobbled passage, not a private garden.
-  walls.push(...addPassageGate(kit, passageY));
-  for (const path of [
-    [
-      [106.55, 20.66],
-      [110, 21.9],
-      [110, 23.05],
-    ],
-    [
-      [110, 24.4],
-      [110, 26.8],
-    ],
-  ] as P[][])
-    for (let i = 1; i < path.length; i++)
-      masonry(
-        path[i - 1],
-        path[i],
-        passageY - 0.18,
-        passageY - 0.18,
-        1.08,
-        1.08,
-        passageStone,
-      );
+  // M07's passage branch is separate from the shared-landscaping gate.
+  walls.push(...addBridgePassageGate(kit, { surface }));
   // Shrubs occupy the enclosed corner, leaving the recessed gate approach clear.
   for (const [x, z, h] of [
     [111, 21.7, 1.1],
     [112.3, 21.5, 1.3],
     [113.4, 22.0, 1.15],
   ])
-    plants.shrubs.push({ x, z, y: terrain(x, z), h });
+    if (
+      !inPoly(x, z, PASSAGE_GATE.approach) &&
+      nearest(x, z, outline(PASSAGE_GATE.approach)).d > h
+    )
+      plants.shrubs.push({ x, z, y: terrain(x, z), h });
   // Raised west passage apron, retained rather than floating above the bank. No collision.
   for (let z = 12; z < 27; z += 1) {
     const a: P = [71.8, z],
@@ -533,38 +529,6 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     masonry(aa, bb, roadY(...a) - 0.2, roadY(...b) - 0.2, h, h);
   }
 
-  // ---- Bridge Mill court: low stone parking edge above the garage approach ----
-  // X59,Z14 photo. Follows the current court outline; precise trace provisional.
-  for (let x = 41; x < 69; x += 1) {
-    const z = (v: number) => 9 - ((v - 40) * 3) / 29;
-    const a: P = [x, z(x)],
-      b: P = [x + 1, z(x + 1)];
-    const topA = courtY(...a) + 0.22,
-      topB = courtY(...b) + 0.22;
-    const bottomA = Math.min(sampledTerrain(a[0], a[1] - 1) - 0.2, topA - 0.45),
-      bottomB = Math.min(sampledTerrain(b[0], b[1] - 1) - 0.2, topB - 0.45);
-    masonry(a, b, bottomA, bottomB, topA - bottomA, topB - bottomB);
-    const mx = x + 0.5,
-      mz = z(mx);
-    box(
-      mx,
-      (topA + topB) / 2 + 0.035,
-      mz,
-      1.04,
-      0.09,
-      0.48,
-      kerb,
-      Math.atan(3 / 29),
-    );
-    if (x % 2 === 0)
-      plants.shrubs.push({
-        x: mx,
-        z: mz - 1.75,
-        y: terrain(mx, mz - 1.75),
-        h: 1.25 + 0.3 * Math.sin(x),
-      });
-  }
-
   // ---- Riverside path: steel mesh railing, stone retaining with iron rails ----
   const vehicleSeg = roadSeg.filter((s) => roadWidth(s.f) > 2);
   const riverSteel = mat('riversideSteel', '#859795', 0.6);
@@ -578,8 +542,14 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
         r = nearest(mx, mz, riverSeg),
         dist = Math.hypot(r.x - mx, r.z - mz) || 1;
       if (mx > 110 && mz > 12) continue; // Dedicated stone returns at the Hough Lane gate.
-      const ox = ((r.x - mx) / dist) * 1.25,
-        oz = ((r.z - mz) / dist) * 1.25,
+      // M08: a bank ahead of the path is not its sideways boundary.
+      // Keep the eastern shared-path edge perpendicular to each mapped span.
+      const dx = b[0] - a[0],
+        dz = b[1] - a[1],
+        span = Math.hypot(dx, dz) || 1;
+      const shared = mx > LANDSCAPING_GATE.boundaryEnd[0];
+      const ox = shared ? (-dz / span) * 1.25 : ((r.x - mx) / dist) * 1.25,
+        oz = shared ? (dx / span) * 1.25 : ((r.z - mz) / dist) * 1.25,
         x = mx + ox,
         z = mz + oz,
         rd = nearest(x, z, vehicleSeg);

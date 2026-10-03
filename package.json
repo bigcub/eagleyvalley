@@ -14,11 +14,19 @@
     "preview": "python3 -m http.server 3000 --bind 127.0.0.1 --directory dist/client",
     "typecheck": "tsc --noEmit",
     "test:journey": "node scripts/check-journey.mjs",
+    "test:bridge-parking": "node scripts/check-bridge-parking.mjs",
     "test:locations": "node scripts/check-locations.mjs",
     "test:hough": "node scripts/check-hough-walk.mjs",
     "test:brow": "node scripts/check-eagley-brow.mjs",
     "test:turning": "node scripts/check-turning-circle.mjs",
-    "test:ride": "node scripts/check-ride.mjs"
+    "test:ride": "node scripts/check-ride.mjs",
+    "test:passage-gate": "node scripts/check-journey.mjs --passage-gate",
+    "test:landscaping-gate": "node scripts/check-journey.mjs --landscaping-gate",
+    "test:steps": "node scripts/check-journey.mjs --woodland-steps",
+    "test:brook-parking": "node scripts/check-brook-parking.mjs",
+    "test:brook-entrance": "node scripts/check-brook-parking.mjs --west-entrance",
+    "test:blackburn": "node scripts/check-blackburn.mjs",
+    "test:school": "node scripts/check-school-house.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

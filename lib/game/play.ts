@@ -56,8 +56,8 @@ export function createPlay(opts: {
   // The two parked cars sit in the Bridge Mill court.
   const cars = [
     { ...spawn, color: '#426d61' },
-    { x: 17, z: 24, yaw: 0, color: '#b9ad89' },
-    { x: 27, z: 24, yaw: 0, color: '#934f39' },
+    { x: 17.2, z: 26, yaw: Math.PI, color: '#b9ad89' },
+    { x: 20, z: 26, yaw: Math.PI, color: '#934f39' },
   ].map((v, i) => {
     const model = carModel(kit, v.color);
     model.g.position.set(v.x, ground(v.x, v.z), v.z);

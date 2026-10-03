@@ -1,6 +1,7 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
+import { COURT_HOUSE_WEST_END as E } from '../world/layout';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,
   (x - 40.42) * 0.079 + (z - 7.45) * 0.997,
@@ -88,6 +89,27 @@ export function addCourtHouses(kit: Kit, entry: number) {
   for (const u of [2, 5.7, 9.9, 13.6, 17.8, 21.5])
     for (const y of [base + 1.35, entry + 1.35, entry + 4.05])
       window(u, y, -7.9);
+  // UP-003: the near end has one white opening on each storey.
+  // Keep the opposite, concealed end unresolved rather than mirroring it.
+  const sash = kit.mat('courtHouseSashWhite', '#e5e7e1', 0.75);
+  const endGlass = kit.mat('courtHouseEndGlass', '#819ba4', 0.4);
+  for (const row of E.rows) {
+    const y = base + row;
+    B(E.u, y, E.v, 0.12, E.height + 0.14, E.width + 0.14, sash);
+    B(E.u - 0.09, y, E.v, 0.04, E.height, E.width, endGlass);
+    B(E.u - 0.12, y, E.v, 0.035, E.height, 0.04, sash);
+    for (const dy of [-0.45, 0, 0.45])
+      B(E.u - 0.12, y + dy, E.v, 0.035, 0.04, E.width, sash);
+    B(
+      E.u - 0.08,
+      y - E.height / 2 - 0.07,
+      E.v,
+      0.25,
+      0.12,
+      E.width + 0.24,
+      stone,
+    );
+  }
   const door = new T.MeshStandardMaterial({
     color: '#313343',
     roughness: 0.75,

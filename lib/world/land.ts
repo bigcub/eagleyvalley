@@ -1,3 +1,6 @@
+import { schoolLocal } from '../landmarks/school-forecourt';
+import { stairLocal } from '../landmarks/woodland-steps';
+import { WOODLAND_STEPS, GARAGE_BACKING } from './layout';
 import * as T from 'three';
 import { densify, nearest } from '../core/geo';
 import type { Kit } from '../core/kit';
@@ -62,6 +65,49 @@ export function addLand(scene: T.Scene, surface: Surface) {
           x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
           z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
         if (x > 0 && x < 140 && z > -40 && z < 60) continue;
+        // A coarse triangle must not slope through the vertical School House
+        // retaining face. Dedicated pavement and lawn close either side.
+        if (x > 47 && x < 77 && z > -100 && z < -84) {
+          const local = ids.map((j) => schoolLocal(pos.getX(j), pos.getZ(j)));
+          const [u] = schoolLocal(x, z);
+          if (
+            u >= 0 &&
+            u <= 25 &&
+            Math.min(...local.map((p) => p[1])) < -2.1 &&
+            Math.max(...local.map((p) => p[1])) > -2.1
+          )
+            continue;
+        }
+        indices.push(...ids);
+      }
+      g.setIndex(indices);
+    }
+    // The half-metre grass triangles can bridge the narrow stair cut.
+    // Omit only faces under the lower flight; its earth backing closes the cut.
+    if (!omitCourts) {
+      const old = g.index!,
+        indices: number[] = [];
+      const length = Math.hypot(
+        WOODLAND_STEPS.top[0] - WOODLAND_STEPS.bottom[0],
+        WOODLAND_STEPS.top[1] - WOODLAND_STEPS.bottom[1],
+      );
+      for (let i = 0; i < old.count; i += 3) {
+        const ids = [old.getX(i), old.getX(i + 1), old.getX(i + 2)],
+          x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
+          z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
+        const [d, side] = stairLocal(x, z);
+        if (
+          d >= -0.12 &&
+          d <= length + 0.12 &&
+          Math.abs(side) <= WOODLAND_STEPS.width / 2 + 0.15
+        )
+          continue;
+        // The grass grid must not interpolate up through the vertical
+        // garage retaining face. The stone body closes this narrow cut.
+        if (x >= GARAGE_BACKING.startX && x <= GARAGE_BACKING.endX) {
+          const n = nearest(x, z, surface.eagleySegments);
+          if (z < n.z && Math.abs(n.d - GARAGE_BACKING.offset) < 0.65) continue;
+        }
         indices.push(...ids);
       }
       g.setIndex(indices);

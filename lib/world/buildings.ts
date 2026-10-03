@@ -1,3 +1,11 @@
+import { addWakefieldHouses } from '../landmarks/wakefield-houses';
+import { addThreadfoldHouses } from '../landmarks/threadfold-houses';
+import { addValleyMill } from '../landmarks/valley-mill';
+import { addBrookNorthReturn } from '../landmarks/brook-north-return';
+import { addBrookRoof } from '../landmarks/brook-roof';
+import { addBrookWestFixtures } from '../landmarks/brook-west-fixtures';
+import { addBrookWest } from '../landmarks/brook-west';
+import { addBrookWestEntrance } from '../landmarks/brook-west-entrance';
 import * as T from 'three';
 import {
   bounds,
@@ -9,12 +17,9 @@ import {
 import type { Kit } from '../core/kit';
 import { slateTexture } from '../materials/building-surfaces';
 import { addBridgeFront, addBridgeEngineHouse } from '../landmarks/bridge-mill';
-import {
-  addBrookNorth,
-  addBrookRoof,
-  addBrookSouth,
-  addBrookUpperWindow,
-} from '../landmarks/brook-mill';
+import { addCourtGarage } from '../landmarks/garage-court';
+import { addBrookSouth } from '../landmarks/brook-mill';
+import { addBrookNorth } from '../landmarks/brook-north';
 import { addBrookEntrance } from '../landmarks/brook-mill-entrance';
 import { addBrookTerrace, brookTerrace } from '../landmarks/brook-terrace';
 import { addCourtHouses } from '../landmarks/court-houses';
@@ -60,6 +65,15 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     colliders.push(bounds(p));
 
     // Dedicated landmark models.
+    if (OSM.wakefieldHouses.includes(f.id)) {
+      if (f.id === OSM.wakefieldHouses[0]) addWakefieldHouses(kit, { buildings: data.buildings, ground });
+      continue;
+    }
+    if (OSM.threadfoldHouses.includes(f.id)) {
+      if (f.id === OSM.threadfoldHouses[0])
+        addThreadfoldHouses(kit, { ground, roadSeg });
+      continue;
+    }
     if (OSM.courtHouses.includes(f.id)) {
       if (f.id === OSM.courtHouses[0]) addCourtHouses(kit, surface.houseEntry);
       continue;
@@ -73,7 +87,19 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
       continue;
     }
     if (f.id === OSM.schoolHouse) {
-      addSchoolHouse(kit, { base: lowest(p), points: p });
+      addSchoolHouse(kit, { base: surface.schoolHouseBase, points: p });
+      continue;
+    }
+    if (f.id === OSM.valleyMill) {
+      addValleyMill(kit, { base: lowest(p), points: p });
+      continue;
+    }
+    if (f.name === 'Brook Mill') {
+      colliders.push(bounds(addBrookWest(kit, { surface, points: p })));
+      continue;
+    }
+    if ([OSM.garageRange, OSM.separateGarage].includes(f.id)) {
+      addCourtGarage(kit, { id: f.id, base: courtY(cx, cz) });
       continue;
     }
     // Eagley Hall: dedicated stone hall; the attached brick block stays generic with a flat roof.
@@ -99,26 +125,19 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
 
     // Generic building profile.
     const bridge = f.name === 'Bridge Mill',
-      brookMill = f.name === 'Brook Mill',
       mill = f.name.includes('Mill'),
       garage = f.tags.building === 'garages' || f.tags.building === 'garage';
     const levels = bridge
       ? 3
-      : brookMill
-        ? 5
-        : f.name === 'Valley Mill'
-          ? 4
-          : flat
-            ? 3
-            : Number(f.tags['building:levels']) || (garage ? 1 : 2);
+      : flat
+        ? 3
+        : Number(f.tags['building:levels']) || (garage ? 1 : 2);
     const h = levels * (mill ? 3.6 : 2.8),
       base = bridge
         ? surface.bridgeBase
-        : brookMill
-          ? surface.brookDatum
-          : garage && [OSM.garageRange, OSM.separateGarage].includes(f.id)
-            ? courtY(cx, cz)
-            : lowest(p);
+        : garage && [OSM.garageRange, OSM.separateGarage].includes(f.id)
+          ? courtY(cx, cz)
+          : lowest(p);
     const millCourt = [
       ...OSM.courtHouses,
       OSM.garageRange,
@@ -127,7 +146,7 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     const material =
       bridge || millCourt || (!mill && cz < -140) ? stone : brick;
 
-    // Walls: extruded footprint. Brook Mill's basement storey is stone.
+    // Generic walls: extruded footprint.
     const shape = new T.Shape(p.map((v) => new T.Vector2(v[0], -v[1])));
     const extrude = (depth: number, y: number, m: T.Material) => {
       const g = new T.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
@@ -138,14 +157,10 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
         uv.setXY(i, uv.getX(i) / 2, uv.getY(i) / 2);
       batch(g, m);
     };
-    extrude(brookMill ? h - 3.6 : h, base + (brookMill ? 3.6 : 0), material);
-    if (brookMill) {
-      const foot = Math.min(...p.map((q) => sampledTerrain(...q)));
-      extrude(base - foot + 3.6, foot, stone);
-    }
+    extrude(h, base, material);
     polygon([...p, p[0]], slate, base + h + 0.04);
     // Plinth on the other mills.
-    if (mill && !bridge && !brookMill)
+    if (mill && !bridge)
       for (let j = 0; j < p.length; j++) {
         const a = p[j],
           b = p[(j + 1) % p.length],
@@ -194,7 +209,6 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
           b = p[(j + 1) % p.length];
         // Bridge Mill: south frontage and blank east end have dedicated models.
         if (bridge && ((a[1] + b[1]) / 2 > 17 || j === 1)) continue;
-        if (brookMill && (j === 5 || j === 6 || j === 7)) continue;
         const dx = b[0] - a[0],
           dz = b[1] - a[1],
           len = Math.hypot(dx, dz);
@@ -203,15 +217,7 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
           n =
             bridge && len > 20
               ? 9
-              : brookMill
-                ? len > 30
-                  ? 14
-                  : len > 20
-                    ? 6
-                    : len > 7
-                      ? 2
-                      : 1
-                : Math.max(1, Math.floor(len / (mill ? 3.3 : 3.1)));
+              : Math.max(1, Math.floor(len / (mill ? 3.3 : 3.1)));
         for (let k = 0; k < n; k++) {
           const t = (k + 0.5) / n,
             x = a[0] + dx * t,
@@ -222,10 +228,6 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
             const yy = base + (level * h) / levels + 1.65,
               ww = mill ? 1.55 : 1.15,
               hh = mill ? 2.25 : 1.3;
-            if (brookMill && level >= 3) {
-              addBrookUpperWindow(kit, x, yy, z, rot);
-              continue;
-            }
             if (level === 0 && k === 0 && j === doorEdge) {
               box(x, base + 1.02, z, 0.19, 2.1, 1.06, trim, rot);
               box(x, base + 0.98, z, 0.25, 1.96, 0.88, dark, rot);
@@ -320,14 +322,16 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
   // Brook Mill details, interpreted from Historic England listings and photographs.
   const brook = data.buildings.find((f) => f.name === 'Brook Mill')!;
   const brookBase = surface.brookDatum;
-  addBrookNorth(kit, brookBase);
+  colliders.push(bounds(addBrookWestEntrance(kit, { surface })));
+  addBrookWestFixtures(kit, { surface });
+  addBrookNorthReturn(kit, { surface });
+  colliders.push(bounds(addBrookNorth(kit, { base: brookBase })));
   addBrookSouth(kit, brookBase);
   addBrookTerrace(kit, brookBase, sampledTerrain);
   colliders.push(bounds(brookTerrace));
-  addBrookRoof(kit, brookBase, brook.points.slice(0, -1));
+  addBrookRoof(kit, { base: brookBase, points: brook.points.slice(0, -1) });
   colliders.push(bounds(addBrookEntrance(kit, brookBase)));
 
-  addValleyMillCupola(kit, data, terrain);
   return colliders;
 }
 
@@ -467,28 +471,4 @@ function addGarageDoors(kit: Kit, f: Feature, p: P[], base: number) {
     box(x, base + 1.0, z, 0.29, 0.04, 0.22, trim, rot);
     box(x, base + 2.37, z, 0.28, 0.16, ww + 0.3, stone, rot);
   }
-}
-
-/** Valley Mill: flat roof with a raised north-east bell cupola. */
-function addValleyMillCupola(
-  kit: Kit,
-  data: WorldData,
-  terrain: (x: number, z: number) => number,
-) {
-  const { box, batch } = kit;
-  const { brick, trim, slate, dark } = kit.m;
-  const valley = data.buildings.find((f) => f.name === 'Valley Mill')!,
-    vy = Math.min(...valley.points.map((p) => terrain(...p))) + 14.4;
-  box(11, vy + 1, -79, 4.2, 2, 4.2, brick, -0.34);
-  box(11, vy + 2.1, -79, 4.6, 0.28, 4.6, trim, -0.34);
-  for (const dx of [-1.25, 1.25])
-    for (const dz of [-1.25, 1.25])
-      box(11 + dx, vy + 3.1, -79 + dz, 0.24, 1.8, 0.24, trim);
-  const cap = new T.ConeGeometry(2.3, 1.5, 8);
-  cap.translate(11, vy + 4.4, -79);
-  batch(cap, slate);
-  const bell = new T.SphereGeometry(0.52, 8, 6);
-  bell.scale(1, 1.25, 1);
-  bell.translate(11, vy + 3.2, -79);
-  batch(bell, dark);
 }
