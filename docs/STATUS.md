@@ -4,11 +4,11 @@ Updated 4 October 2026. Local world v0.3.101; last pushed world v0.3.47.
 
 ## Current priority
 
-School Street is the active area, as requested by the user. The [walking-video audit](audits/school-street-video.md) records the reference from 10:28 and the onward route. The [historical drone audit](audits/drone-video-002.md) records the second video, published 3 January 2018. Historical footage does not establish current conditions.
+School Street is the active area, as requested by the user. The [walking-video audit](audits/school-street-video.md) records the video reference and the Street View and aerial passes. The [historical drone audit](audits/drone-video-002.md) records the second video, published 3 January 2018. Historical footage does not establish current conditions.
 
-The first School Street layout pass is local v0.3.95. It has procedural setts, a fitted 5.2m carriageway, narrow pavements and the tall south stone wall with five identifiable blocked recesses, coping, curved west end and eastern return. Widths, heights and positions are estimates. The western square and walled bay (v0.3.100) now join the setts to the School House side with block paving, retaining walls, railings and bollards; the asphalt and parking west of the bollards remain open. The north terrace 727434536–547 is rebuilt as stone cottages in v0.3.98, and 548–552 and the 499–503 corner houses in v0.3.99, from Street View. Private School House steps and ownership remain unresolved.
+School Street now has procedural setts, a fitted 5.2m carriageway and narrow pavements (v0.3.94–95), the tall south stone wall with five identifiable blocked recesses, every house modelled from Street View (north terrace v0.3.98; 548–552 and the 499–503 corner houses v0.3.99), and the west square and walled bay joining the setts to the School House side (v0.3.100). Widths, heights and positions are estimates. Private School House steps and ownership remain unresolved.
 
-Next, finish those public junction joins, then inventory and reconstruct each School Street stone house. Georeference the video's onward bridge, brook and woodland views before applying them elsewhere. Keep the western mapped footpath separate from a vehicle route.
+Next: the asphalt, lamp and parking west of the School Street bollards, then georeference the video's onward bridge, brook and woodland views before applying them elsewhere. Keep the western mapped footpath separate from a vehicle route. The outer Threadfold, Cottonfields and Hough Lane houses (v0.3.96–97, v0.3.101) are typed first passes awaiting per-house work and user review.
 
 [TODO.md](../TODO.md) is the complete open queue. [PHOTO_REQUESTS.md](../PHOTO_REQUESTS.md) lists missing views separately. Keep source limits in the audits and `public/survey-sources.txt`; do not request views already supplied by the videos.
 

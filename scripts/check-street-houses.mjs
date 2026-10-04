@@ -90,6 +90,13 @@ fs.mkdirSync('outputs', { recursive: true });
 const data = JSON.parse(fs.readFileSync('public/eagley-map.json', 'utf8'));
 const road = (id) => data.roads.find((f) => f.id === id).points;
 const results = {};
+// A route must reach every waypoint; on failure, say where the player stopped.
+const reached = (r, what) =>
+  assert.equal(
+    r.index,
+    r.total,
+    `${what}: stopped before waypoint ${r.index + 1}/${r.total} at X${r.state.player.x.toFixed(1)} Z${r.state.player.z.toFixed(1)}`,
+  );
 await start();
 const expected = fs
   .readFileSync('lib/world-version.ts', 'utf8')
@@ -148,11 +155,7 @@ await page.evaluate(
   hough,
 );
 results.houghDrive = await follow(hough.slice(1), 'drive');
-assert.equal(
-  results.houghDrive.index,
-  results.houghDrive.total,
-  'Hough Lane drive incomplete',
-);
+reached(results.houghDrive, 'Hough Lane drive incomplete');
 
 // East pavement centre, 3.9m from the 6.4m carriageway centreline.
 const east = (a, b, s) => {
@@ -175,18 +178,7 @@ results.pavement = await follow(
   [p0, ...pavement.slice().reverse(), ...pavement],
   'walk',
 );
-if (results.pavement.index !== results.pavement.total)
-  console.log(
-    'PAVEMENT',
-    JSON.stringify(pavement),
-    results.pavement.index,
-    JSON.stringify(results.pavement.state.player),
-  );
-assert.equal(
-  results.pavement.index,
-  results.pavement.total,
-  'Hough Lane pavement walk blocked',
-);
+reached(results.pavement, 'Hough Lane east pavement walk');
 
 // West pavement along the new dry-stone wall (corrected centreline).
 const westOf = (a, b) => {
@@ -207,18 +199,7 @@ results.westPavement = await follow(
   ],
   'walk',
 );
-if (results.westPavement.index !== results.westPavement.total)
-  console.log(
-    'WEST',
-    JSON.stringify(westPavement),
-    results.westPavement.index,
-    JSON.stringify(results.westPavement.state.player),
-  );
-assert.equal(
-  results.westPavement.index,
-  results.westPavement.total,
-  'Hough Lane west pavement walk blocked',
-);
+reached(results.westPavement, 'Hough Lane west pavement walk');
 // Terrace 727575004: through its garden gate to the front door and back.
 const house = data.buildings
   .find((b) => b.id === '727575004')
@@ -271,11 +252,7 @@ for (const [name, id] of [
     r,
   );
   results[name] = await follow(r.slice(1), 'drive');
-  assert.equal(
-    results[name].index,
-    results[name].total,
-    `${name} drive incomplete`,
-  );
+  reached(results[name], `${name} drive incomplete`);
 }
 // M25b School Street west square: drive into the bay and reverse out, then
 // walk into the bay, out through the bollard line and back.
@@ -290,11 +267,7 @@ results.squareDrive = await follow(
   ],
   'drive',
 );
-assert.equal(
-  results.squareDrive.index,
-  results.squareDrive.total,
-  'Square drive incomplete',
-);
+reached(results.squareDrive, 'Square drive incomplete');
 results.squareReverse = await follow(
   [
     [87.6, -89.5],
@@ -304,11 +277,7 @@ results.squareReverse = await follow(
   'drive',
   true,
 );
-assert.equal(
-  results.squareReverse.index,
-  results.squareReverse.total,
-  'Square reverse incomplete',
-);
+reached(results.squareReverse, 'Square reverse incomplete');
 await page.keyboard.press('e');
 results.squareWalk = await follow(
   [
@@ -326,17 +295,11 @@ results.squareWalk = await follow(
   ],
   'walk',
 );
-assert.equal(
-  results.squareWalk.index,
-  results.squareWalk.total,
-  'Square walk blocked',
+reached(results.squareWalk, 'Square walk blocked');
+assert.ok(
+  results.squareWalk.maxStep < 0.12,
+  `Square walking step ${results.squareWalk.maxStep.toFixed(3)}m too large`,
 );
-console.log(
-  'SQUAREWALK',
-  JSON.stringify(results.squareWalk.worst),
-  results.squareWalk.maxStep,
-);
-assert.ok(results.squareWalk.maxStep < 0.12, 'Square walking step too large');
 for (const r of Object.values(results).flat()) if (r.state) delete r.state;
 console.log(JSON.stringify({ results, errors }, null, 1));
 await browser.close();

@@ -345,3 +345,11 @@ https://www.youtube.com/watch?v=ssAMAbSna_c&t=661s
 2026-10-04 Street View, outer Threadfold Way, Cottonfields and Hough Lane house types, local v0.3.96:
 Google Street View panoramas 0N-Rpc4AFucYY_73dIp2FQ and gUumhreI878pOWaZQbFBXA (Aug 2022), fwT3uQd6UF-u5KE5s14CHg (Jun 2024), qhk1TO3wrs1KF3ACqP29Ig, k9fM7igas8BaGDksX4o9fQ, KnrG3stULULRcdylLOmhBw (Aug 2022) and P4nxuImCWrbU2pHtno5IQA (Apr 2023). Used for house type, storeys, facing material and front features only. Per-house opening counts, rear elevations, heights and pitches are not taken from them; Hough facing order read from oblique views. No imagery saved, embedded or distributed. OSM/EA attribution retained.
 docs/audits/street-houses.md records coverage and limits.
+
+2026-10-04 Street View and aerial, School Street houses and west end, local v0.3.98–100:
+Google Street View, Aug 2022: jN_U7SXxNIvJqXyn7ELVQQ, K6qWFaQ6dgfxczmN9uhxog, X5yQULEJTGPN-uEiQ7HdXg, nY89q8fiDj4U_s6NDYj3sQ, YGooBqD1oEUGn0MV_Z9FXw, 1iQy8MVIscmjrQHXftz_UQ, KaaGeWPfiZeRnwL60JUIog and u4WK-uzOE3KV1sbD3C8m2A. Used for per-house opening layout, frame/door colours, painted surrounds, arched doors and the SCHOOL STREET name plate, and for the west square, bay walls, railings, pier and bollards. View-to-ID mapping is by camera position and may be one house out. Google aerial (north up), scaled to the OSM corner of 727434536 at about 20px/m, used to trace the bay and bollard line; corners and spacing estimated. No imagery saved, embedded or distributed. OSM/EA attribution retained.
+docs/audits/school-street-video.md records coverage and limits.
+
+2026-10-04 Street View, Hough Lane terrace stretch, local v0.3.101:
+Google Street View P4nxuImCWrbU2pHtno5IQA, Apr 2023, headings 160 and 340: two-lane road about 6m, flagged east pavement about 1.7m with a bollard, narrow west pavement against a dry-stone retaining wall and bank. Used to justify moving mapped centreline 626124394 west by 1.0–1.4m and adding the west wall; amounts come from footprint clearances, not survey, and the camera position carries GPS error. No imagery saved, embedded or distributed. OSM/EA attribution retained.
+docs/audits/street-houses.md records coverage and limits.
