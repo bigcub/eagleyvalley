@@ -1575,14 +1575,17 @@ export type StreetHouseStyle =
   | 'townhouse'
   | 'terrace'
   | 'cottage'
-  | 'pub';
+  | 'pub'
+  | 'cottageRow';
 export type StreetHouseFace =
   | 'buff'
   | 'grit'
   | 'red'
   | 'dark'
   | 'white'
-  | 'cream';
+  | 'cream'
+  | 'sandstone'
+  | 'painted';
 export type StreetHouse = {
   style: StreetHouseStyle;
   face: StreetHouseFace;
@@ -1592,6 +1595,12 @@ export type StreetHouse = {
   porch?: boolean;
   /** Outward facing, where the nearest street is ambiguous. */
   front?: P;
+  /** cottageRow: photographed frame colour, door colour, sills and the
+   * small window over the door. */
+  frames?: 'white' | 'brown' | 'dark';
+  door?: string;
+  blackSills?: boolean;
+  overDoor?: boolean;
 };
 const houses = (ids: string[], house: StreetHouse) =>
   Object.fromEntries(ids.map((id) => [`727${id}`, house]));
@@ -1723,5 +1732,39 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
       '574987': 'white',
     },
     false,
+  ),
+  // M25c School Street north terrace, panoramas jN_U7SXxNIvJqXyn7ELVQQ,
+  // K6qWFaQ6dgfxczmN9uhxog, X5yQULEJTGPN-uEiQ7HdXg, nY89q8fiDj4U_s6NDYj3sQ
+  // and YGooBqD1oEUGn0MV_Z9FXw (Aug 2022). Every visible front has one
+  // window and the door to its east below, one upper window over the ground
+  // window, and on some a small window over the door. Mapping of views to
+  // IDs is by camera position and may be one house out.
+  ...Object.fromEntries(
+    (
+      [
+        ['536', 'white', '#3f6273'],
+        ['537', 'brown', '#5a3424'],
+        ['538', 'white', '#8fa3a4'],
+        ['540', 'white', '#5a3424'],
+        ['539', 'white', '#2d3135'],
+        ['544', 'brown', '#b9bcb6'],
+        ['543', 'brown', '#e4e4dc'],
+        ['542', 'brown', '#6b3d22', { overDoor: true }],
+        ['541', 'white', '#1f2224', { overDoor: true, blackSills: true }],
+        ['547', 'white', '#1f2224'],
+        ['546', 'dark', '#1f2224', { face: 'painted' as const }],
+        ['545', 'dark', '#5a3424', { overDoor: true, blackSills: true }],
+      ] as [string, StreetHouse['frames'], string, Partial<StreetHouse>?][]
+    ).map(([id, frames, door, extra]) => [
+      `727434${id}`,
+      {
+        style: 'cottageRow',
+        face: 'sandstone',
+        seen: true,
+        frames,
+        door,
+        ...extra,
+      } as StreetHouse,
+    ]),
   ),
 };

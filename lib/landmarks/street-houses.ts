@@ -30,12 +30,15 @@ const TYPE: Record<
   terrace: { floors: [2.85, 2.75], pitch: 0.68, maxRise: 2.9 },
   cottage: { floors: [2.7], pitch: 0.78, maxRise: 2.6 },
   pub: { floors: [3, 2.85], pitch: 0.68, maxRise: 3 },
+  cottageRow: { floors: [2.7, 2.5], pitch: 0.7, maxRise: 2.7 },
 };
 
-const FRONT_ROADS = /^(Threadfold Way|Cottonfields|Hough Lane)$/;
+const FRONT_ROADS = /^(Threadfold Way|Cottonfields|Hough Lane|School Street)$/;
 export const streetFrontRoads = (roadSeg: Segment[]) =>
   roadSeg.filter(
-    (s) => FRONT_ROADS.test(s.f.name) && s.f.tags.highway !== 'cycleway',
+    (s) =>
+      FRONT_ROADS.test(s.f.name) &&
+      !['cycleway', 'path', 'footway', 'service'].includes(s.f.tags.highway),
   );
 
 /** Typed houses on outer Threadfold Way, Cottonfields and Hough Lane. */
@@ -73,13 +76,20 @@ export function addStreetHouses(
     dark: brick('streetDarkBrick', '#a08e84'),
     white: kit.mat('streetWhiteRender', '#ecebe4'),
     cream: kit.mat('streetCreamRender', '#e9dcbc'),
+    sandstone: stone('streetSandstone', '#e9dab4'),
+    painted: stone('streetPaintedStone', '#fbf8ef'),
+  };
+  const frameColours = {
+    white: kit.mat('streetFrames', '#e8eae4'),
+    brown: kit.mat('streetFramesBrown', '#5b3b27'),
+    dark: kit.mat('streetFramesDark', '#2a2c2b'),
   };
   const uvMetres = (m: T.Material) =>
     m === faces.red || m === faces.dark ? 1.8 : 4;
   const slate = slateMaterial();
   const stoneSlate = slateMaterial();
   stoneSlate.color.set('#b8ab95');
-  const frame = kit.mat('streetFrames', '#e8eae4');
+  const whiteFrame = frameColours.white;
   const glass = kit.mat('streetGlass', '#7f979b', 0.35);
   const garageDoor = kit.mat('streetGarageDoor', '#e6e6de');
   const iron = kit.mat('streetIron', '#24292a');
@@ -107,13 +117,17 @@ export function addStreetHouses(
   function addHouse(p: P[], house: StreetHouse, id: number) {
     const type = TYPE[house.style];
     const wall = faces[house.face];
+    const frame = frameColours[house.frames ?? 'white'];
+    const sill = house.blackSills ? pubPaint : null;
     const dressing =
       house.face === 'buff'
         ? buffDressing
         : house.style === 'pub'
           ? pubPaint
-          : house.face === 'white' || house.face === 'cream'
-            ? frame
+          : house.face === 'white' ||
+              house.face === 'cream' ||
+              house.face === 'painted'
+            ? whiteFrame
             : gritDressing;
 
     const plan = streetHousePlan(p, house, fronts);
@@ -284,18 +298,20 @@ export function addStreetHouses(
           m,
           rot,
         );
-      const window = (u: number, sill: number, w: number, h: number) => {
-        const cy = sill + h / 2;
+      const window = (u: number, sillY: number, w: number, h: number) => {
+        const cy = sillY + h / 2;
         B(u, cy, 0.02, w + 0.12, h + 0.12, 0.1, frame);
         B(u, cy, 0.05, w - 0.06, h - 0.06, 0.04, glass);
         B(u, cy, 0.08, 0.05, h - 0.06, 0.03, frame);
-        if (h > 1.2) B(u, sill + h * 0.7, 0.08, w - 0.06, 0.05, 0.03, frame);
-        B(u, sill - 0.06, 0.08, w + 0.26, 0.1, 0.18, dressing);
+        if (h > 1.2) B(u, sillY + h * 0.7, 0.08, w - 0.06, 0.05, 0.03, frame);
+        B(u, sillY - 0.06, 0.08, w + 0.26, 0.1, 0.18, sill ?? dressing);
         if (house.face !== 'buff' || house.style !== 'estate')
-          B(u, sill + h + 0.13, 0.04, w + 0.26, 0.2, 0.1, dressing);
+          B(u, sillY + h + 0.13, 0.04, w + 0.26, 0.2, 0.1, sill ?? dressing);
       };
       const door = (u: number, y: number, w = 0.95, fan = false) => {
-        const colour = doors[(id + Math.round(u * 7)) % doors.length];
+        const colour = house.door
+          ? kit.mat(`streetDoor${house.door}`, house.door)
+          : doors[(id + Math.round(u * 7)) % doors.length];
         B(u, y + 1.03, 0.02, w + 0.14, 2.12, 0.1, frame);
         B(u, y + 1.0, 0.05, w, 2.0, 0.05, colour);
         if (fan) {
@@ -392,6 +408,16 @@ export function addStreetHouses(
           F.B(du, g0 + 2.75, 0.75, 1.6, 0.18, 1.45, slate);
         }
       }
+    } else if (house.style === 'cottageRow') {
+      // Window then door, one upper window over the ground window.
+      const du = plan.doors[0],
+        wu = plan.windows[0];
+      F.door(du, g0, 0.86);
+      for (const s of [-0.53, 0.53])
+        F.B(du + s, g0 + 1.05, 0.06, 0.18, 2.2, 0.14, dressing);
+      F.window(wu, g0 + 0.8, 1.15, 1.35);
+      F.window(wu, g1 + 0.6, 1.1, 1.25);
+      if (house.overDoor) F.window(du, g1 + 0.95, 0.5, 0.6);
     } else if (house.style === 'cottage') {
       const du = plan.doors[0];
       F.door(du, g0, 0.85);
@@ -467,7 +493,7 @@ export function addStreetHouses(
         );
         box(x, top + rise + 1.3, z, 0.2, 0.3, 0.2, gutter);
       };
-      if (house.style === 'terrace') at(0.3);
+      if (house.style === 'terrace' || house.style === 'cottageRow') at(0.3);
       else if (house.style === 'pub') {
         at(0.3);
         at(L - 0.3);
@@ -515,6 +541,7 @@ export function streetHousePlan(p: P[], house: StreetHouse, fronts: Segment[]) {
     t: P = [(fb[0] - fa[0]) / L, (fb[1] - fa[1]) / L],
     n = outward(fa, fb);
   const doors: number[] = [],
+    windows: number[] = [],
     garages: { u: number; w: number }[] = [];
   let unit = L;
   if (house.style === 'estate') {
@@ -532,7 +559,12 @@ export function streetHousePlan(p: P[], house: StreetHouse, fronts: Segment[]) {
     const units = Math.max(1, Math.round(L / 5));
     unit = L / units;
     for (let k = 0; k < units; k++) doors.push(k * unit + 0.85);
+  } else if (house.style === 'cottageRow') {
+    // Door on the right as seen from the street, window on the left.
+    const right = t[0] * n[1] - t[1] * n[0] > 0;
+    doors.push(right ? L - 0.85 : 0.85);
+    windows.push(right ? (L - 1.3) / 2 : L - (L - 1.3) / 2);
   } else if (house.style === 'cottage') doors.push(Math.min(1.2, L / 3));
   else doors.push(L / 2);
-  return { fa, fb, L, t, n, outward, doors, garages, unit };
+  return { fa, fb, L, t, n, outward, doors, windows, garages, unit };
 }

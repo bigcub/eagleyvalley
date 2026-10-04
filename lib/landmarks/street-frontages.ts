@@ -73,7 +73,8 @@ export function addStreetFrontages(
 
   for (const f of data.buildings) {
     const house = STREET_HOUSES[f.id];
-    if (!house || house.style === 'pub') continue;
+    if (!house || house.style === 'pub' || house.style === 'cottageRow')
+      continue;
     const plan = streetHousePlan(f.points.slice(0, -1), house, fronts);
     const { fa, t, n, L } = plan;
     const at = (u: number, v = 0.03): P => [
