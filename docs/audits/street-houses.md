@@ -33,6 +33,7 @@ Camera coordinates are converted from the panorama position, not surveyed.
 - Hough Lane facing sequences were read from oblique views and may be one house out.
 - Storey heights, roof pitch, opening sizes, chimney and downpipe positions, door colours: estimated.
 - The roof is a dual pitch clipped to the mapped footprint, ridge parallel to the front. Set-back parts of L-shaped plans get a raised wall to meet it; real garage wings are often lower.
-- Not yet modelled: arched eyebrow dormers and front gables on the Threadfold estate houses, bays, porches beyond 727575013, dormers, driveways, front gardens and walls, side windows at row ends, the Spread Eagle signage and full window count.
+- v0.3.97 frontages (`lib/landmarks/street-frontages.ts`): townhouse forecourts, estate drives and door paths, terrace/cottage garden walls with gate gaps. Wall height 0.8m, widths and the extent of block paving are estimates; the panoramas show paving in front of the townhouses but no measured edges. Houses less than 0.8m or more than 12m from the pavement, and frontages that would cross another road, have none.
+- Not yet modelled: arched eyebrow dormers and front gables on the Threadfold estate houses, bays, porches beyond 727575013, dormers, garden planting, side windows at row ends, the Spread Eagle signage and full window count.
 - 727427256 is modelled as one 5.2m townhouse facing east; the panorama suggests a wider three-storey front. Check before the next pass.
 - Collisions, ground and terrain are unchanged.

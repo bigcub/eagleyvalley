@@ -22,6 +22,7 @@ import { addBridgePassageGate } from '../landmarks/bridge-passage-gate';
 import { addEagleyBrowPosts } from '../landmarks/eagley-brow';
 import { addEagleyHoughBendWall } from '../landmarks/eagley-hough-bend';
 import { addTurningCircleFurniture } from '../landmarks/turning-circle-details';
+import { addStreetFrontages } from '../landmarks/street-frontages';
 import { addWoodlandSteps } from '../landmarks/woodland-steps';
 import { addBridgeSideGate, gateWorld } from '../landmarks/bridge-side-gate';
 import {
@@ -66,6 +67,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addCourtGardens(kit, { surface }));
   walls.push(...addEagleyBrowPosts(kit, { surface, data }));
   walls.push(...addTurningCircleFurniture(kit, { surface }));
+  walls.push(...addStreetFrontages(kit, { surface, data }));
 
   const boundaryStone = mat('boundaryStone', '#b2ad98');
   boundaryStone.map = masonryTexture(true);

@@ -33,6 +33,10 @@ const TYPE: Record<
 };
 
 const FRONT_ROADS = /^(Threadfold Way|Cottonfields|Hough Lane)$/;
+export const streetFrontRoads = (roadSeg: Segment[]) =>
+  roadSeg.filter(
+    (s) => FRONT_ROADS.test(s.f.name) && s.f.tags.highway !== 'cycleway',
+  );
 
 /** Typed houses on outer Threadfold Way, Cottonfields and Hough Lane. */
 export function addStreetHouses(
@@ -50,9 +54,7 @@ export function addStreetHouses(
   },
 ) {
   const { box } = kit;
-  const fronts = roadSeg.filter(
-    (s) => FRONT_ROADS.test(s.f.name) && s.f.tags.highway !== 'cycleway',
-  );
+  const fronts = streetFrontRoads(roadSeg);
   const stone = (name: string, colour: string) => {
     const m = kit.mat(name, colour);
     m.map = m.bumpMap = kit.m.stone.map;
@@ -114,40 +116,8 @@ export function addStreetHouses(
             ? frame
             : gritDressing;
 
-    // Front: the edge that faces its street most directly.
-    const outward = (a: P, b: P): P => {
-      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      let n: P = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
-      const mx = (a[0] + b[0]) / 2,
-        mz = (a[1] + b[1]) / 2;
-      if (inPoly(mx + n[0] * 0.1, mz + n[1] * 0.1, p)) n = [-n[0], -n[1]];
-      return n;
-    };
-    let front = 0,
-      best = -Infinity;
-    for (let j = 0; j < p.length; j++) {
-      const a = p[j],
-        b = p[(j + 1) % p.length],
-        len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (len < 2.5) continue;
-      const mx = (a[0] + b[0]) / 2,
-        mz = (a[1] + b[1]) / 2,
-        r = nearest(mx, mz, fronts),
-        n = outward(a, b),
-        facing = house.front
-          ? n[0] * house.front[0] + n[1] * house.front[1]
-          : (n[0] * (r.x - mx) + n[1] * (r.z - mz)) / (r.d || 1),
-        score = facing * Math.min(len, 8) - 0.05 * r.d;
-      if (score > best) {
-        best = score;
-        front = j;
-      }
-    }
-    const fa = p[front],
-      fb = p[(front + 1) % p.length],
-      L = Math.hypot(fb[0] - fa[0], fb[1] - fa[1]),
-      t: P = [(fb[0] - fa[0]) / L, (fb[1] - fa[1]) / L],
-      n = outward(fa, fb);
+    const plan = streetHousePlan(p, house, fronts);
+    const { fa, fb, L, t, n, outward } = plan;
     const depth = (q: P) => -((q[0] - fa[0]) * n[0] + (q[1] - fa[1]) * n[1]);
     const ds = p.map(depth),
       dMin = Math.min(...ds),
@@ -371,13 +341,13 @@ export function addStreetHouses(
       g1 = floorY(1),
       g2 = floorY(2);
     if (house.style === 'estate') {
-      const garaged = house.garage && L >= 6.4;
+      const garaged = plan.garages.length > 0;
       const span = garaged ? L - 2.9 : L;
       if (garaged) {
-        F.garage(L - 1.5, g0);
-        F.window(L - 1.5, g1 + 0.85, 1.2, 1.15);
+        F.garage(plan.garages[0].u, g0);
+        F.window(plan.garages[0].u, g1 + 0.85, 1.2, 1.15);
       }
-      const doorU = Math.min(1.1, span / 3);
+      const doorU = plan.doors[0];
       F.door(doorU, g0);
       F.canopy(doorU, g0);
       F.window(doorU, g1 + 0.95, 0.7, 1.05);
@@ -398,15 +368,11 @@ export function addStreetHouses(
         F.window(u, g1 + 0.85, Math.min(1.4, span - doorU - 1.5), 1.15);
       }
     } else if (house.style === 'townhouse') {
-      const units = Math.max(1, Math.round(L / 5.3)),
-        w = L / units;
       F.band(g1, 0.2);
       F.band(g2, 0.14);
-      for (let k = 0; k < units; k++) {
-        const u0 = k * w,
-          gu = u0 + w - 1.45,
-          du = u0 + Math.min(1.0, w - 3.1);
-        F.garage(gu, g0, Math.min(2.3, w - 2.1));
+      for (const [k, du] of plan.doors.entries()) {
+        const gu = plan.garages[k].u;
+        F.garage(gu, g0, plan.garages[k].w);
         F.door(du, g0, 0.9);
         F.window(gu, g1 + 0.12, 1.3, 2.05);
         F.juliet(gu, g1 + 0.12, 1.3);
@@ -415,12 +381,8 @@ export function addStreetHouses(
         F.window(du, g2 + 0.75, 0.8, 1.25);
       }
     } else if (house.style === 'terrace') {
-      const units = Math.max(1, Math.round(L / 5)),
-        w = L / units;
-      for (let k = 0; k < units; k++) {
-        const u0 = k * w,
-          du = u0 + 0.85,
-          wu = u0 + Math.max(2.4, w * 0.62);
+      for (const du of plan.doors) {
+        const wu = du - 0.85 + Math.max(2.4, plan.unit * 0.62);
         F.door(du, g0, 0.9, true);
         F.window(wu, g0 + 0.8, 1.25, 1.5);
         F.window(du, g1 + 0.75, 0.75, 1.25);
@@ -431,13 +393,13 @@ export function addStreetHouses(
         }
       }
     } else if (house.style === 'cottage') {
-      const du = Math.min(1.2, L / 3);
+      const du = plan.doors[0];
       F.door(du, g0, 0.85);
       F.window(du + 1.6, g0 + 0.95, 0.9, 1.0);
       if (L > 6) F.window(L - 1.3, g0 + 0.95, 0.9, 1.0);
     } else {
       // Spread Eagle: central door with dark painted surround, dark heads.
-      const mid = L / 2;
+      const mid = plan.doors[0];
       F.door(mid, g0, 1.0, true);
       for (const s of [-0.72, 0.72])
         F.B(mid + s, g0 + 1.35, 0.1, 0.24, 2.7, 0.16, pubPaint);
@@ -512,4 +474,65 @@ export function addStreetHouses(
       } else at(house.style === 'cottage' ? L - 0.4 : L * 0.3);
     }
   }
+}
+
+export type StreetHousePlan = ReturnType<typeof streetHousePlan>;
+
+/** Street-facing edge and the door/garage positions along it (u from `fa`). */
+export function streetHousePlan(p: P[], house: StreetHouse, fronts: Segment[]) {
+  const outward = (a: P, b: P): P => {
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    let n: P = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+    const mx = (a[0] + b[0]) / 2,
+      mz = (a[1] + b[1]) / 2;
+    if (inPoly(mx + n[0] * 0.1, mz + n[1] * 0.1, p)) n = [-n[0], -n[1]];
+    return n;
+  };
+  // Front: the edge that faces its street most directly.
+  let front = 0,
+    best = -Infinity;
+  for (let j = 0; j < p.length; j++) {
+    const a = p[j],
+      b = p[(j + 1) % p.length],
+      len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 2.5) continue;
+    const mx = (a[0] + b[0]) / 2,
+      mz = (a[1] + b[1]) / 2,
+      r = nearest(mx, mz, fronts),
+      n = outward(a, b),
+      facing = house.front
+        ? n[0] * house.front[0] + n[1] * house.front[1]
+        : (n[0] * (r.x - mx) + n[1] * (r.z - mz)) / (r.d || 1),
+      score = facing * Math.min(len, 8) - 0.05 * r.d;
+    if (score > best) {
+      best = score;
+      front = j;
+    }
+  }
+  const fa = p[front],
+    fb = p[(front + 1) % p.length],
+    L = Math.hypot(fb[0] - fa[0], fb[1] - fa[1]),
+    t: P = [(fb[0] - fa[0]) / L, (fb[1] - fa[1]) / L],
+    n = outward(fa, fb);
+  const doors: number[] = [],
+    garages: { u: number; w: number }[] = [];
+  let unit = L;
+  if (house.style === 'estate') {
+    const garaged = house.garage && L >= 6.4;
+    if (garaged) garages.push({ u: L - 1.5, w: 2.3 });
+    doors.push(Math.min(1.1, (garaged ? L - 2.9 : L) / 3));
+  } else if (house.style === 'townhouse') {
+    const units = Math.max(1, Math.round(L / 5.3));
+    unit = L / units;
+    for (let k = 0; k < units; k++) {
+      doors.push(k * unit + Math.min(1.0, unit - 3.1));
+      garages.push({ u: (k + 1) * unit - 1.45, w: Math.min(2.3, unit - 2.1) });
+    }
+  } else if (house.style === 'terrace') {
+    const units = Math.max(1, Math.round(L / 5));
+    unit = L / units;
+    for (let k = 0; k < units; k++) doors.push(k * unit + 0.85);
+  } else if (house.style === 'cottage') doors.push(Math.min(1.2, L / 3));
+  else doors.push(L / 2);
+  return { fa, fb, L, t, n, outward, doors, garages, unit };
 }
