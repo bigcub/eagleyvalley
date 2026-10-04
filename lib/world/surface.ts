@@ -43,6 +43,7 @@ import {
   VALLEY_ENTRANCE,
   SCHOOL_STREET,
   SCHOOL_STREET_WEST,
+  HOUGH_TERRACE_ROAD,
 } from './layout';
 import {
   createEagleyHoughBendPlan,
@@ -873,6 +874,27 @@ export function createSurface(data: WorldData) {
   // terrain on centrelines that lie inside the junction.
   let inJunctionTerrain = false;
   const terrainZones: Zone[] = [
+    {
+      // The corrected Hough Lane centreline runs into the west bank; keep
+      // grass under the carriageway and pavements. Centrelines keep their
+      // own datum, so road heights are unchanged.
+      name: 'hough-terrace-formation',
+      y: (x, z) => {
+        const F = HOUGH_TERRACE_ROAD.formation;
+        if (z > F.z0 || z < F.z1) return undefined;
+        const n = nearest(x, z, roadSeg);
+        if (n.s?.f.id !== HOUGH_TERRACE_ROAD.id || n.d <= 0.5) return undefined;
+        const W = HOUGH_TERRACE_ROAD.westWall,
+          west = x < n.x && z <= W.z0 && z >= W.z1;
+        const datum = sampledTerrain(n.x, n.z) + 0.03;
+        if (n.d < F.reach) return Math.min(sampledTerrain(x, z), datum);
+        // Behind the west wall the 2m terrain cells must stay low or their
+        // triangles cross the wall onto the pavement; the wall hides the cut.
+        return west && n.d < F.westReach
+          ? Math.min(sampledTerrain(x, z), datum)
+          : undefined;
+      },
+    },
     {
       name: 'school-street-west-bay',
       y: (x, z) => offset(schoolBayY(x, z, true), -0.38),

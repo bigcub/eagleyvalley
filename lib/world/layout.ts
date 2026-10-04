@@ -1906,3 +1906,32 @@ export const SCHOOL_STREET_WEST = {
   // House side, where mapped footway 727434562 runs about 1.4m behind it.
   seams: [1.0, 2.2, 2.2],
 };
+
+/**
+ * Hough Lane terrace stretch, road 626124394. With the mapped centreline the
+ * fronts of 727574975–998 sat on the drawn east pavement (3.2–4.0m from the
+ * centre). Apr/Aug 2022–2023 Street View P4nxuImCWrbU2pHtno5IQA shows a
+ * roughly 6m two-lane road, a flagged east pavement of about 1.7m in front of
+ * the doors and a narrow west pavement against a dry-stone wall. The
+ * centreline is moved west by `shift` metres (piecewise linear in z, mapped
+ * line kept outside the range). Estimated from footprint clearances.
+ */
+export const HOUGH_TERRACE_ROAD = {
+  id: '626124394',
+  shift: [
+    [-88, 0],
+    [-96, 1.0],
+    [-112, 1.0],
+    [-125, 1.4],
+    [-165, 1.4],
+    [-178, 0],
+  ] as P[],
+  // Bank cut back under the road and both pavements (named terrain zone).
+  // Behind the west wall it reaches further, so coarse bank triangles cannot
+  // cross the wall and show through the pavement.
+  formation: { z0: -88, z1: -178, reach: 4.75, westReach: 7.4 },
+  // Dry-stone retaining wall at the back of the west pavement, where the
+  // bank stands above it (P4nxuImCWrbU2pHtno5IQA heading 340). Extent and
+  // heights estimated; the wall keeps walkers on the pavement.
+  westWall: { z0: -118, z1: -174, offset: 4.6, minRise: 0.3, maxHeight: 1.4 },
+};

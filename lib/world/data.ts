@@ -1,5 +1,5 @@
-import type { Feature } from '../core/geo';
-import { OSM, SCHOOL_STREET } from './layout';
+import { densify, type Feature, type P } from '../core/geo';
+import { HOUGH_TERRACE_ROAD, OSM, SCHOOL_STREET } from './layout';
 
 export type Survey = {
   x0: number;
@@ -39,12 +39,40 @@ export async function loadWorldData(): Promise<WorldData> {
     fetchOk('/eagley-terrain.bin', 'Terrain').then((r) => r.arrayBuffer()),
   ]);
   return {
-    roads: map.roads,
+    roads: map.roads.map(correctHoughTerrace),
     water: map.water.filter((w: Feature) => w.name === 'Eagley Brook'),
     buildings: map.buildings,
     survey,
     elevations: new Uint16Array(terrain),
   };
+}
+
+/** Moves the mapped Hough Lane centreline west along the terrace stretch so
+ * the photographed east pavement fits in front of the doors (layout.ts). */
+function correctHoughTerrace(f: Feature): Feature {
+  if (f.id !== HOUGH_TERRACE_ROAD.id) return f;
+  const S = HOUGH_TERRACE_ROAD.shift;
+  const shift = (z: number) => {
+    for (let i = 1; i < S.length; i++) {
+      const [z0, a] = S[i - 1],
+        [z1, b] = S[i];
+      if (z <= z0 && z >= z1) return a + ((b - a) * (z - z0)) / (z1 - z0);
+    }
+    return 0;
+  };
+  const p = densify(f.points, 4);
+  const points = p.map((q, i): P => {
+    const s = shift(q[1]);
+    if (!s) return q;
+    const a = p[Math.max(0, i - 1)],
+      b = p[Math.min(p.length - 1, i + 1)],
+      len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    // Unit normal pointing west of the southbound line.
+    let n: P = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+    if (n[0] > 0) n = [-n[0], -n[1]];
+    return [q[0] + n[0] * s, q[1] + n[1] * s];
+  });
+  return { ...f, points };
 }
 
 /** Carriageway or path width in metres. Mostly inferred from highway class. */

@@ -37,3 +37,7 @@ Camera coordinates are converted from the panorama position, not surveyed.
 - Not yet modelled: arched eyebrow dormers and front gables on the Threadfold estate houses, bays, porches beyond 727575013, dormers, garden planting, side windows at row ends, the Spread Eagle signage and full window count.
 - 727427256 is modelled as one 5.2m townhouse facing east; the panorama suggests a wider three-storey front. Check before the next pass.
 - Collisions, ground and terrain are unchanged.
+
+## Hough Lane terrace stretch, v0.3.101
+
+With the mapped centreline, the fronts of 727574975–998 were 3.2–4.0m from the road centre and overlapped the drawn east pavement. P4nxuImCWrbU2pHtno5IQA (Apr 2023; headings 160 and 340) shows a roughly 6m two-lane road with a centre line, a flagged east pavement of about 1.7m with a bollard in front of the doors, and a narrow west pavement against a dry-stone retaining wall with a vegetated bank above. The centreline is moved west (1.0m by the Spread Eagle and cottage 974, 1.4m along the terrace, tapering back to the mapped line). These amounts come from the footprint clearances, not a survey, and the camera position itself carries GPS error. A dry-stone wall with coping, capped at 1.4m, follows the back of the west pavement where the bank stands higher. The terrain behind it is cut back so the 2m grid cannot show through the pavement.

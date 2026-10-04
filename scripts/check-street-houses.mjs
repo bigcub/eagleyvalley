@@ -99,7 +99,45 @@ assert.ok(
   'Wrong preview world',
 );
 
-const hough = road('626124394').filter((p) => p[1] < -80 && p[1] > -240);
+// Same centreline correction as HOUGH_TERRACE_ROAD in lib/world/layout.ts.
+const terraceShift = [
+  [-88, 0],
+  [-96, 1.0],
+  [-112, 1.0],
+  [-125, 1.4],
+  [-165, 1.4],
+  [-178, 0],
+];
+const shiftAt = (z) => {
+  for (let i = 1; i < terraceShift.length; i++) {
+    const [z0, a] = terraceShift[i - 1],
+      [z1, b] = terraceShift[i];
+    if (z <= z0 && z >= z1) return a + ((b - a) * (z - z0)) / (z1 - z0);
+  }
+  return 0;
+};
+const densify = (p, step) =>
+  p.flatMap((a, i) => {
+    if (i === p.length - 1) return [a];
+    const b = p[i + 1],
+      n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    return Array.from({ length: n }, (_, j) => [
+      a[0] + ((b[0] - a[0]) * j) / n,
+      a[1] + ((b[1] - a[1]) * j) / n,
+    ]);
+  });
+const houghRaw = densify(road('626124394'), 4);
+const houghLine = houghRaw.map((q, i) => {
+  const s = shiftAt(q[1]);
+  if (!s) return q;
+  const a = houghRaw[Math.max(0, i - 1)],
+    b = houghRaw[Math.min(houghRaw.length - 1, i + 1)],
+    len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  let n = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+  if (n[0] > 0) n = [-n[0], -n[1]];
+  return [q[0] + n[0] * s, q[1] + n[1] * s];
+});
+const hough = houghLine.filter((p) => p[1] < -80 && p[1] > -240);
 await page.evaluate(
   ([a, b]) =>
     window.eagley_debug.driveFrom(
@@ -128,8 +166,8 @@ const east = (a, b, s) => {
 };
 const pavement = [];
 for (let i = 0; i < hough.length - 1; i++)
-  if (hough[i][1] < -170 && hough[i][1] > -240)
-    for (const s of [0, 0.5]) pavement.push(east(hough[i], hough[i + 1], s));
+  if (hough[i][1] < -95 && hough[i][1] > -240)
+    pavement.push(east(hough[i], hough[i + 1], 0));
 const p0 = pavement.at(-1);
 await page.evaluate(([x, z]) => window.eagley_debug.driveFrom(x - 4, z, 0), p0);
 await page.keyboard.press('e');
@@ -150,6 +188,37 @@ assert.equal(
   'Hough Lane pavement walk blocked',
 );
 
+// West pavement along the new dry-stone wall (corrected centreline).
+const westOf = (a, b) => {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  let n = [-(b[1] - a[1]) / len, (b[0] - a[0]) / len];
+  if (n[0] > 0) n = [-n[0], -n[1]];
+  return [a[0] + n[0] * 3.9, a[1] + n[1] * 3.9];
+};
+const westPavement = [];
+for (let i = 0; i < hough.length - 1; i++)
+  if (hough[i][1] < -118 && hough[i][1] > -172)
+    westPavement.push(westOf(hough[i], hough[i + 1]));
+results.westPavement = await follow(
+  [
+    hough.find((p) => p[1] < -172),
+    ...westPavement.toReversed(),
+    ...westPavement,
+  ],
+  'walk',
+);
+if (results.westPavement.index !== results.westPavement.total)
+  console.log(
+    'WEST',
+    JSON.stringify(westPavement),
+    results.westPavement.index,
+    JSON.stringify(results.westPavement.state.player),
+  );
+assert.equal(
+  results.westPavement.index,
+  results.westPavement.total,
+  'Hough Lane west pavement walk blocked',
+);
 // Terrace 727575004: through its garden gate to the front door and back.
 const house = data.buildings
   .find((b) => b.id === '727575004')

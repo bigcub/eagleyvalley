@@ -136,7 +136,7 @@ Flags cd3dbd08 (X-272.2 Z136) and e0f140d7 (X55.9 Z31.6), pale strips in the roa
 - [ ] Threadfold Way loop: every frontage by footprint ID, storeys, roof, materials, openings, gardens, driveways and boundaries; extent of block paving and its boundaries. Do not add road signs or double yellow lines.
 - [ ] Generic buildings: door position within the road-facing elevation is unsurveyed.
 - [ ] **Outer Threadfold, Cottonfields and Hough Lane houses (typed v0.3.96):** per-house passes. Count openings per elevation, add estate eyebrow dormers/front gables, bays and porches, check 727427256's width, fix Hough facing order, drives and front walls first pass v0.3.97 (widths/heights estimated; gardens unplanted; end-of-row and set-back houses skipped). [Audit](docs/audits/street-houses.md).
-- [ ] **Hough Lane east pavement vs 727574996–998:** mapped fronts overlap the drawn 1.1m pavement near X240 Z-150..-162, so walkers are blocked. Check the real pavement width and kerb line there, then fix the road/pavement layout (not the footprints) as one connected piece.
+- [ ] **Hough Lane terrace stretch (v0.3.101):** centreline moved west 1.0–1.4m (estimated) so the east pavement fits in front of 975–998; dry-stone west wall and bank cut added. Open: measured kerb lines and widths, the wall's true extent north/south and its height, the cottage 974 and Spread Eagle frontages, the bollard outside No.101 and user review.
 - [ ] School House: side and rear elevations, forecourt, steps, ironwork, lamp.
 - [ ] Valley Mill and Cottonfields: proportions, cupola, window rhythm, parking and river edge.
 - [ ] Brook and bridges: channel width, banks, weirs and outfalls, each bridge's deck, parapets and approaches.

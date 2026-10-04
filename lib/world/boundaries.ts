@@ -24,6 +24,7 @@ import { addEagleyHoughBendWall } from '../landmarks/eagley-hough-bend';
 import { addTurningCircleFurniture } from '../landmarks/turning-circle-details';
 import { addStreetFrontages } from '../landmarks/street-frontages';
 import { addSchoolStreetWest } from '../landmarks/school-street-west';
+import { addHoughTerraceWall } from '../landmarks/hough-terrace-wall';
 import { addWoodlandSteps } from '../landmarks/woodland-steps';
 import { addBridgeSideGate, gateWorld } from '../landmarks/bridge-side-gate';
 import {
@@ -79,6 +80,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   passageStone.bumpMap = passageStone.map;
   passageStone.bumpScale = 0.16;
   walls.push(...addEagleyHoughBendWall(kit, { surface }));
+  walls.push(...addHoughTerraceWall(kit, { surface, stone: boundaryStone }));
   walls.push(...addBlackburnEntranceWall(kit, { surface }));
   walls.push(...addSchoolForecourt(kit, { surface }));
   walls.push(...addSchoolStreetWall(kit, { surface }));
