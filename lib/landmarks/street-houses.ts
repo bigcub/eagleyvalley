@@ -108,6 +108,30 @@ export function addStreetHouses(
     kit.batch(flat, m);
   };
 
+  // Wall-mounted street name plate (text as on the photographed plate).
+  function addPlate(x: number, y: number, z: number, n: P, text: string) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 768;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#e9e7df';
+    ctx.fillRect(0, 0, 768, 160);
+    ctx.strokeStyle = '#252725';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(6, 6, 756, 148);
+    ctx.fillStyle = '#222421';
+    ctx.font = 'bold 96px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 384, 84, 720);
+    const map = new T.CanvasTexture(canvas);
+    map.colorSpace = T.SRGBColorSpace;
+    const plate = new T.PlaneGeometry(0.78, 0.16);
+    plate.rotateY(Math.atan2(n[0], n[1]));
+    plate.translate(x, y, z);
+    kit.batch(plate, new T.MeshStandardMaterial({ map, roughness: 0.9 }));
+  }
+
   for (const f of buildings) {
     const house = STREET_HOUSES[f.id];
     if (!house) continue;
@@ -118,7 +142,11 @@ export function addStreetHouses(
     const type = TYPE[house.style];
     const wall = faces[house.face];
     const frame = frameColours[house.frames ?? 'white'];
-    const sill = house.blackSills ? pubPaint : null;
+    const sill = house.surround
+      ? kit.mat(`streetPaint${house.surround}`, house.surround)
+      : house.blackSills
+        ? pubPaint
+        : null;
     const dressing =
       house.face === 'buff'
         ? buffDressing
@@ -413,8 +441,55 @@ export function addStreetHouses(
       const du = plan.doors[0],
         wu = plan.windows[0];
       F.door(du, g0, 0.86);
+      const jamb = sill ?? dressing;
       for (const s of [-0.53, 0.53])
-        F.B(du + s, g0 + 1.05, 0.06, 0.18, 2.2, 0.14, dressing);
+        F.B(du + s, g0 + 1.05, 0.06, 0.18, 2.2, 0.14, jamb);
+      if (house.arched) {
+        // Round head: fanlight and a ring of voussoirs over the door.
+        const [cx, cz] = [
+          fa[0] + t[0] * du + n[0] * 0.07,
+          fa[1] + t[1] * du + n[1] * 0.07,
+        ];
+        const fan = new T.CylinderGeometry(
+          0.43,
+          0.43,
+          0.04,
+          16,
+          1,
+          false,
+          0,
+          Math.PI,
+        );
+        fan.rotateZ(Math.PI / 2);
+        fan.rotateY(Math.atan2(-n[1], n[0]));
+        fan.translate(cx, g0 + 2.1, cz);
+        kit.batch(fan, glass);
+        for (let k = 0; k < 7; k++) {
+          const a0 = (k / 7) * Math.PI,
+            a1 = ((k + 1) / 7) * Math.PI,
+            at = (a: number, r: number) =>
+              new T.Vector3(
+                cx + t[0] * Math.cos(a) * r,
+                g0 + 2.1 + Math.sin(a) * r,
+                cz + t[1] * Math.cos(a) * r,
+              );
+          kit.beam(at(a0, 0.53), at(a1, 0.53), 0.2, 0.16, jamb);
+        }
+        F.B(du, g0 + 2.04, 0.06, 0.9, 0.08, 0.1, jamb);
+      }
+      if (house.plate) {
+        const u = Math.min(
+          L - 0.42,
+          Math.max(0.42, du + (du < L / 2 ? -0.95 : 0.95)),
+        );
+        addPlate(
+          fa[0] + t[0] * u + n[0] * 0.03,
+          g0 + 2.6,
+          fa[1] + t[1] * u + n[1] * 0.03,
+          n,
+          house.plate,
+        );
+      }
       F.window(wu, g0 + 0.8, 1.15, 1.35);
       F.window(wu, g1 + 0.6, 1.1, 1.25);
       if (house.overDoor) F.window(du, g1 + 0.95, 0.5, 0.6);
@@ -561,7 +636,7 @@ export function streetHousePlan(p: P[], house: StreetHouse, fronts: Segment[]) {
     for (let k = 0; k < units; k++) doors.push(k * unit + 0.85);
   } else if (house.style === 'cottageRow') {
     // Door on the right as seen from the street, window on the left.
-    const right = t[0] * n[1] - t[1] * n[0] > 0;
+    const right = t[0] * n[1] - t[1] * n[0] > 0 === (house.doorSide !== 'left');
     doors.push(right ? L - 0.85 : 0.85);
     windows.push(right ? (L - 1.3) / 2 : L - (L - 1.3) / 2);
   } else if (house.style === 'cottage') doors.push(Math.min(1.2, L / 3));

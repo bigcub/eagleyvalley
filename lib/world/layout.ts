@@ -1601,7 +1601,17 @@ export type StreetHouse = {
   door?: string;
   blackSills?: boolean;
   overDoor?: boolean;
+  /** Door end as seen from the street (cottageRow default right). */
+  doorSide?: 'left' | 'right';
+  /** Round-headed stone door arch. */
+  arched?: boolean;
+  /** Painted door surround, window heads and sills. */
+  surround?: string;
+  /** Street name plate beside the door. */
+  plate?: string;
 };
+/** School Street north fronts face the street, square to 549512306. */
+const SCHOOL_NORTH_FRONT: P = [-0.414, 0.91];
 const houses = (ids: string[], house: StreetHouse) =>
   Object.fromEntries(ids.map((id) => [`727${id}`, house]));
 const terrace = (faces: Record<string, StreetHouseFace>, seen: boolean) =>
@@ -1761,8 +1771,71 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
         style: 'cottageRow',
         face: 'sandstone',
         seen: true,
+        front: SCHOOL_NORTH_FRONT,
         frames,
         door,
+        ...extra,
+      } as StreetHouse,
+    ]),
+  ),
+  // School Street beyond the alley (548–552) and the south corner houses
+  // (499–503), panoramas 1iQy8MVIscmjrQHXftz_UQ and KaaGeWPfiZeRnwL60JUIog
+  // (Aug 2022). North group: arched door to the west of one window. South
+  // pairs: doors at the outer ends; 503 carries the street name plate.
+  ...Object.fromEntries(
+    (
+      [
+        ['548', { frames: 'white', seen: false }],
+        ['549', { frames: 'white', door: '#b5bdb8' }],
+        ['550', { frames: 'brown', door: '#5a3424' }],
+        ['551', { frames: 'brown', door: '#6b4a2e' }],
+        ['552', { frames: 'brown', door: '#5a2b2b', seen: false }],
+      ] as [string, Partial<StreetHouse>][]
+    ).map(([id, extra]) => [
+      `727434${id}`,
+      {
+        style: 'cottageRow',
+        face: 'sandstone',
+        seen: true,
+        doorSide: 'left',
+        arched: true,
+        front: SCHOOL_NORTH_FRONT,
+        ...extra,
+      } as StreetHouse,
+    ]),
+  ),
+  ...Object.fromEntries(
+    (
+      [
+        [
+          '499',
+          'right',
+          { frames: 'brown', door: '#4a2a2a', surround: '#4d4a53' },
+        ],
+        [
+          '500',
+          'left',
+          { frames: 'dark', door: '#2a2625', surround: '#9b4b3b' },
+        ],
+        [
+          '501',
+          'right',
+          { frames: 'brown', door: '#5a3424', blackSills: true },
+        ],
+        [
+          '503',
+          'left',
+          { frames: 'brown', door: '#8a5a32', plate: 'SCHOOL STREET' },
+        ],
+      ] as [string, 'left' | 'right', Partial<StreetHouse>][]
+    ).map(([id, doorSide, extra]) => [
+      `727434${id}`,
+      {
+        style: 'cottageRow',
+        face: 'sandstone',
+        seen: true,
+        doorSide,
+        front: [-SCHOOL_NORTH_FRONT[0], -SCHOOL_NORTH_FRONT[1]] as P,
         ...extra,
       } as StreetHouse,
     ]),

@@ -1,12 +1,12 @@
 # Status
 
-Updated 4 October 2026. Local world v0.3.98; last pushed world v0.3.47.
+Updated 4 October 2026. Local world v0.3.99; last pushed world v0.3.47.
 
 ## Current priority
 
 School Street is the active area, as requested by the user. The [walking-video audit](audits/school-street-video.md) records the reference from 10:28 and the onward route. The [historical drone audit](audits/drone-video-002.md) records the second video, published 3 January 2018. Historical footage does not establish current conditions.
 
-The first School Street layout pass is local v0.3.95. It has procedural setts, a fitted 5.2m carriageway, narrow pavements and the tall south stone wall with five identifiable blocked recesses, coping, curved west end and eastern return. Widths, heights and positions are estimates. The western School House public junction, cross-run ends and surface transition remain open. The north terrace 727434536–547 is rebuilt as stone cottages in v0.3.98 from Street View; 548–552 and the 499–503 corner houses are still placeholders. Private School House steps and ownership remain unresolved.
+The first School Street layout pass is local v0.3.95. It has procedural setts, a fitted 5.2m carriageway, narrow pavements and the tall south stone wall with five identifiable blocked recesses, coping, curved west end and eastern return. Widths, heights and positions are estimates. The western School House public junction, cross-run ends and surface transition remain open. The north terrace 727434536–547 is rebuilt as stone cottages in v0.3.98, and 548–552 and the 499–503 corner houses in v0.3.99, from Street View. Private School House steps and ownership remain unresolved.
 
 Next, finish those public junction joins, then inventory and reconstruct each School Street stone house. Georeference the video's onward bridge, brook and woodland views before applying them elsewhere. Keep the western mapped footpath separate from a vehicle route.
 
