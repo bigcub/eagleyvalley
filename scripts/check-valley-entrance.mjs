@@ -84,13 +84,14 @@ async function follow(route, mode, reverse = false) {
   );
 }
 
-fs.mkdirSync('outputs', { recursive: true });
 const data = JSON.parse(fs.readFileSync('public/eagley-map.json', 'utf8'));
 const road = (id) => data.roads.find((f) => f.id === id).points;
-const sw = (u, v) => [
-  50.53 + u * 0.904 + v * 0.427,
-  -98.6 + u * 0.427 - v * 0.904,
-];
+const a = [17.39, -81.98],
+  b = [7.44, -54.06];
+const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+const ux = (b[0] - a[0]) / len,
+  uz = (b[1] - a[1]) / len;
+const at = (u, d) => [a[0] + ux * u + uz * d, a[1] + uz * u - ux * d];
 const drive = [
   ...road('155008522').slice(1),
   ...road('120133751').slice(1),
@@ -99,132 +100,85 @@ const drive = [
   ...road('73858744').slice(1),
   ...road('727434505').slice(1),
   ...road('655432303').slice(1, 17),
-  ...road('73858749').slice(1),
-  ...road('1234563552').slice(1),
-  sw(8, -6.5),
+  ...road('73858749').slice(1, 5),
 ];
 await start();
+const version = fs
+  .readFileSync('lib/world-version.ts', 'utf8')
+  .match(/WORLD_VERSION = '([^']+)'/)[1];
+assert.ok(
+  (await page.locator('body').innerText()).includes(version),
+  'wrong preview version',
+);
 const results = { drive: await follow(drive, 'drive') };
 assert.equal(
   results.drive.index,
   results.drive.total,
-  'School approach drive incomplete',
+  'Valley approach drive incomplete',
 );
 await page.keyboard.press('e');
-const walk = [
-  [8, -3.4],
-  [4, -3.4],
-  [0.5, -3.4],
-  [4, -3.4],
-  [8, -3.4],
-  [12, -3.4],
-  [16, -3.4],
-  [20, -3.4],
-  [23, -3.35],
-  [25.5, -3.1],
-  [26.6, -1.5],
-  [26.65, 0.1],
-  [26.6, -1.5],
-  [25.5, -3.1],
-  [23, -3.35],
-  [20, -3.4],
-  [16, -3.4],
-  [12, -3.4],
-  [8, -3.4],
+// Both doors, both retaining sides and the public pavement in both directions.
+const route = [
+  at(12.5, 6.4),
+  at(14.8, 6.4),
+  at(14.8, 5),
+  at(14.8, 4),
+  at(14.8, 3),
+  at(14.8, 2),
+  at(13.75, 1),
+  at(13.75, 0.9),
+  at(15.85, 0.9),
+  at(17.3, 1),
+  at(17.3, 3),
+  at(17.3, 4.7),
+  at(14.8, 5),
+  at(12.3, 4),
+  at(12.3, 2),
+  at(13.75, 0.9),
+  at(14.8, 2),
+  at(14.8, 3),
+  at(14.8, 4),
+  at(14.8, 5),
+  at(14.8, 6.4),
 ];
-results.walk = await follow(
-  walk.map((p) => sw(...p)),
-  'walk',
+results.walk = await follow(route, 'walk');
+await page.screenshot({ path: 'outputs/valley-entrance-walk.png' });
+// Return to the same car, then reverse back down Scholars Rise.
+const car = results.drive.state.player;
+results.return = await follow([[car.x, car.z]], 'walk');
+await page.keyboard.press('e');
+const state = await page.evaluate(() =>
+  JSON.parse(window.render_game_to_text()),
 );
-assert.equal(
-  results.walk.index,
-  results.walk.total,
-  'School pavement walk incomplete',
-);
-await page.screenshot({ path: 'outputs/m20b-school-walk.png' });
-// Walk both fitted School Street pavements from the existing public approach,
-// crossing only at the ends and returning to the parked car with normal inputs.
-const street = (u, side) => [
-  86.36 + u * 0.906 - side * (side < 0 ? 2.8 : 3.025) * 0.423,
-  -87.94 + u * 0.423 + side * (side < 0 ? 2.8 : 3.025) * 0.906,
-];
-const link = [
-  sw(20, -3.4),
-  sw(25.5, -3.1),
-  sw(26.6, -1.5),
-  [74.22, -82.9],
-  [77.4, -83.33],
-  [80.69, -84.95],
-  [85.15, -87.83],
-  [86.36, -87.94],
-];
-const north = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 58].map((u) =>
-  street(u, -1),
-);
-const south = [58, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5].map((u) =>
-  street(u, 1),
-);
-results.streetWalk = await follow(
+assert.equal(state.mode, 'drive', 'Valley car re-entry failed');
+results.reverse = await follow(
   [
-    ...link,
-    ...north,
-    ...south,
-    [86.36, -87.94],
-    ...link.toReversed(),
-    sw(8, -3.4),
-  ],
-  'walk',
-);
-assert.equal(
-  results.streetWalk.index,
-  results.streetWalk.total,
-  'School Street pavement loop incomplete',
-);
-await page.screenshot({ path: 'outputs/school-street-pavement-walk.png' });
-// Filtered Hough Lane link prevents a drive from the usual spawn. Set up
-// on the eastern street, then drive and reverse with normal key inputs.
-await start();
-await page.evaluate(() =>
-  window.eagley_debug.driveFrom(
-    166,
-    -50.85,
-    Math.atan2(86.36 - 166, -87.94 + 50.85),
-  ),
-);
-results.streetDrive = await follow(
-  [
-    [142.58, -61.75],
-    [125, -69.94],
-    [110, -76.93],
-    [92, -85.31],
-  ],
-  'drive',
-);
-results.streetReverse = await follow(
-  [
-    [110, -76.93],
-    [125, -69.94],
-    [142.58, -61.75],
-    [166, -50.85],
+    [23.09, -65.28],
+    [25.61, -60.03],
   ],
   'drive',
   true,
 );
-assert.equal(
-  results.streetReverse.index,
-  results.streetReverse.total,
-  'School Street reverse return incomplete',
-);
-assert.equal(
-  results.streetDrive.index,
-  results.streetDrive.total,
-  'School Street drive/return incomplete',
-);
-await page.screenshot({ path: 'outputs/school-street-drive.png' });
-console.log(JSON.stringify({ results, errors }));
 fs.writeFileSync(
-  'outputs/m20b-movement.json',
+  'outputs/valley-entrance-movement.json',
   JSON.stringify({ results, errors }, null, 2),
 );
+console.log(JSON.stringify({ results, errors }));
 await browser.close();
+assert.equal(
+  results.walk.index,
+  results.walk.total,
+  'Valley entrance walk incomplete',
+);
+assert.ok(results.walk.maxStep < 0.1, 'Valley walk has an abrupt level join');
+assert.equal(
+  results.return.index,
+  results.return.total,
+  'Return walk incomplete',
+);
+assert.equal(
+  results.reverse.index,
+  results.reverse.total,
+  'Valley reverse departure incomplete',
+);
 assert.equal(errors.length, 0);

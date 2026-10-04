@@ -1,7 +1,7 @@
 import { schoolLocal } from '../landmarks/school-forecourt';
 import { stairLocal } from '../landmarks/woodland-steps';
 import { inBridgeLightWell } from '../landmarks/bridge-mill';
-import { WOODLAND_STEPS, GARAGE_BACKING } from './layout';
+import { WOODLAND_STEPS, GARAGE_BACKING, VALLEY_ENTRANCE } from './layout';
 import * as T from 'three';
 import { densify, nearest } from '../core/geo';
 import type { Kit } from '../core/kit';
@@ -18,6 +18,7 @@ const { lerp } = T.MathUtils;
 export function addLand(scene: T.Scene, surface: Surface) {
   const { terrain, riverSeg } = surface;
   const grassMap = grassTexture();
+  const patch = VALLEY_ENTRANCE.landPatch;
   function makeLand(
     x0: number,
     z0: number,
@@ -66,6 +67,13 @@ export function addLand(scene: T.Scene, surface: Surface) {
           x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
           z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
         if (x > 0 && x < 140 && z > -40 && z < 60) continue;
+        if (
+          x > patch.x0 &&
+          x < patch.x0 + patch.width &&
+          z > patch.z0 &&
+          z < patch.z0 + patch.depth
+        )
+          continue;
         // A coarse triangle must not slope through the vertical School House
         // retaining face. Dedicated pavement and lawn close either side.
         if (x > 47 && x < 77 && z > -100 && z < -84) {
@@ -135,6 +143,9 @@ export function addLand(scene: T.Scene, surface: Surface) {
   }
   makeLand(-750, -650, 1500, 1300, 2, true);
   makeLand(0, -40, 140, 100, 0.5);
+  // Resolve the vertical excavation inside its wall thickness. Keep faces
+  // below the paving so clipping cannot expose holes along the road edge.
+  makeLand(patch.x0, patch.z0, patch.width, patch.depth, 0.125);
 }
 
 /** Eagley Brook: soil bed, water surface and drifting ripple lines. */

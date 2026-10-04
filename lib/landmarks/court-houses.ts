@@ -1,7 +1,10 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
-import { COURT_HOUSE_EAST_END as E } from '../world/layout';
+import {
+  COURT_HOUSE_EAST_END as E,
+  COURT_GARDEN_OPENINGS as G,
+} from '../world/layout';
 import { hoopRailing } from './garden-fences';
 export const courtHouseLocal = (x: number, z: number) => [
   (x - 40.42) * 0.997 - (z - 7.45) * 0.079,
@@ -98,10 +101,79 @@ export function addCourtHouses(kit: Kit, entry: number) {
     if (!courtDoorPositions.includes(u)) window(u, entry + 1.35, 0.08);
     window(u, base + 1.35, 0.08);
   }
-  // Rear openings are provisional pending a closer view.
-  for (const u of [2, 5.7, 9.9, 13.6, 17.8, 21.5])
-    for (const y of [base + 1.35, entry + 1.35, entry + 4.05])
-      window(u, y, -7.9);
+  // PA14: explicit photographed garden-face schedule, separate from the
+  // garage-facing doors/bridges. Glass and bars sit outside the stone shell.
+  const gardenWhite = kit.mat('courtGardenFrame', '#e5e7e1', 0.75);
+  const gardenGlass = kit.mat('courtGardenGlass', '#819ba4', 0.4);
+  const face = G.wallV - 0.13;
+  for (const group of G.groups)
+    for (const [rowIndex, row] of G.rows.entries()) {
+      const paired = group.kind === 'paired',
+        width = paired ? G.pairedWidth : G.lightWidth,
+        height = paired ? row.height : row.lightHeight,
+        bottom = base + (paired ? row.bottom : row.lightBottom),
+        y = bottom + height / 2,
+        u = group.u;
+      B(u, y, face + 0.05, width + 0.14, height + 0.14, 0.14, gardenWhite);
+      B(u, y, face - 0.035, width, height, 0.05, gardenGlass);
+      // Two paired leaves with finer glazing bars, rather than a single sash.
+      const columns = paired ? 4 : 1;
+      for (let k = 1; k < columns; k++)
+        B(
+          u - width / 2 + (width * k) / columns,
+          y,
+          face - 0.075,
+          k === 2 ? 0.065 : 0.027,
+          height,
+          0.035,
+          gardenWhite,
+        );
+      for (let k = 1; k < (paired ? 4 : 2); k++)
+        B(
+          u,
+          bottom + (height * k) / (paired ? 4 : 2),
+          face - 0.075,
+          width,
+          0.03,
+          0.035,
+          gardenWhite,
+        );
+      B(u, bottom - 0.08, face + 0.015, width + 0.3, 0.14, 0.3, stone);
+      B(u, bottom + height + 0.13, face + 0.04, width + 0.28, 0.2, 0.22, stone);
+      if (!paired) continue;
+      if (rowIndex === 0) {
+        // Glazed garden-door composition; operation of individual leaves is
+        // concealed. No private access or new collision opening is inferred.
+        B(u, bottom + 0.12, face - 0.08, width, 0.15, 0.035, gardenWhite);
+      } else {
+        // Photograph shows shallow black Juliet rails on both upper rows.
+        const railV = face - 0.24;
+        for (const h of [0.1, 0.98])
+          B(u, bottom + h, railV, width + 0.18, 0.04, 0.04, dark);
+        for (let k = 0; k <= 10; k++)
+          B(
+            u - width / 2 + (width * k) / 10,
+            bottom + 0.54,
+            railV,
+            0.02,
+            0.9,
+            0.02,
+            dark,
+          );
+        for (const side of [-1, 1])
+          B(
+            u + side * (width / 2 + 0.08),
+            bottom + 0.54,
+            face - 0.12,
+            0.025,
+            0.94,
+            0.24,
+            dark,
+          );
+      }
+    }
+  for (const u of G.downpipes)
+    B(u, base + 4.1, face - 0.08, 0.065, 8.1, 0.065, dark);
   // UP-003: the end facing the court (east) has one white opening on each
   // storey, the lowest in the well. Keep the west end unresolved.
   const sash = kit.mat('courtHouseSashWhite', '#e5e7e1', 0.75);

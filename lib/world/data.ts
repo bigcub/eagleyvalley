@@ -1,5 +1,5 @@
 import type { Feature } from '../core/geo';
-import { OSM } from './layout';
+import { OSM, SCHOOL_STREET } from './layout';
 
 export type Survey = {
   x0: number;
@@ -49,6 +49,7 @@ export async function loadWorldData(): Promise<WorldData> {
 
 /** Carriageway or path width in metres. Mostly inferred from highway class. */
 export function roadWidth(f: Feature) {
+  if (OSM.schoolStreetSetts.includes(f.id)) return SCHOOL_STREET.width;
   if (f.id === OSM.houghRoadBridge) return 3.8;
   if (f.id === OSM.busTurningLoop) return 6.4;
   return f.tags.highway === 'trunk'

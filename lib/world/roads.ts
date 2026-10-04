@@ -1,4 +1,5 @@
 import { addBridgeParking } from '../landmarks/bridge-parking';
+import { valleyEntranceLocal } from '../landmarks/valley-entrance';
 import {
   addBlackburnEntrance,
   blackburnLocal,
@@ -7,6 +8,7 @@ import * as T from 'three';
 import { densify, nearest, segments, type Feature, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { gravelTexture } from '../materials/gravel-texture';
+import { schoolStreetSetts } from '../materials/school-street-setts';
 import { addBrookParking } from '../landmarks/brook-mill-grounds';
 import { addEagleyBrowSurface } from '../landmarks/eagley-brow';
 import { addEagleyHoughBend } from '../landmarks/eagley-hough-bend';
@@ -17,7 +19,13 @@ import {
   inHoughCarriageway,
 } from '../landmarks/hough-junction';
 import { roadWidth, type WorldData } from './data';
-import { EAGLEY_HOUGH_BEND, LOWER_EAGLEY, OSM } from './layout';
+import {
+  EAGLEY_HOUGH_BEND,
+  LOWER_EAGLEY,
+  OSM,
+  SCHOOL_STREET,
+  VALLEY_ENTRANCE,
+} from './layout';
 import type { Surface } from './surface';
 
 const { lerp } = T.MathUtils;
@@ -28,6 +36,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   const { ribbon, box, mat, m } = kit;
   const { roadY, roadSeg, gateApproach } = surface;
   const { asphalt, blockPaving, paving, kerb, paint } = m;
+  const schoolSetts = schoolStreetSetts(kit);
   const gravel = mat('riversideGravel', '#aaa99a');
   gravel.map = gravelTexture();
   gravel.bumpMap = gravel.map;
@@ -50,6 +59,17 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
       const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
         z = (a[1] + b[1]) / 2 + (dx / len) * offset;
       const [eu, ev] = blackburnLocal(x, z);
+      const [vu, vd] = valleyEntranceLocal(x, z);
+      // The entrance owns this pavement patch; leave the carriageway kerb.
+      if (
+        f.id === OSM.scholarsRise &&
+        material === paving &&
+        vu >= VALLEY_ENTRANCE.u0 &&
+        vu <= VALLEY_ENTRANCE.u1 &&
+        vd > 0 &&
+        vd < surface.valleyEntranceDepth(vu) + 0.2
+      )
+        return false;
       if (
         eu > -14 &&
         eu < 16 &&
@@ -100,6 +120,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
 
   function surfaceMaterial(f: Feature, foot: boolean) {
     if (foot) return f.id === OSM.riversidePath ? gravel : paving;
+    if (OSM.schoolStreetSetts.includes(f.id)) return schoolSetts;
     return f.id === OSM.schoolStreetFront ||
       (f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop)
       ? blockPaving
@@ -118,7 +139,12 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
     if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
     const w = roadWidth(f),
       foot = w < 2,
-      p = densify(f.points, foot || f.id === OSM.threadfoldWayLoop ? 0.35 : 3);
+      p = densify(
+        f.points,
+        foot || f.id === OSM.threadfoldWayLoop || f.id === OSM.scholarsRise
+          ? 0.35
+          : 3,
+      );
     const own = segments([f]);
     // The footbridge deck follows the walking surface, which eases it onto
     // the junction island at its north end.
@@ -151,13 +177,20 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         // The mill-side edge of the Hough approach is the M05 road wall's
         // corner return; a pavement there lay behind it, over the passage.
         const millSide = f.id === OSM.houghMillApproach && side === -1;
+        const walkWidth = OSM.schoolStreetSetts.includes(f.id)
+          ? side === 1 && f.id === OSM.schoolStreetMain
+            ? SCHOOL_STREET.northPavement
+            : SCHOOL_STREET.pavement
+          : 1.1;
         if (f.id !== OSM.busTurningLoop && !millSide)
           roadEdge(
             walkPoints,
-            1.1,
+            walkWidth,
             paving,
             (x, z) => yfn(x, z) + 0.07,
-            side * (w / 2 + 0.7),
+            side *
+              (w / 2 +
+                (OSM.schoolStreetSetts.includes(f.id) ? walkWidth / 2 : 0.7)),
             f,
           );
         roadEdge(

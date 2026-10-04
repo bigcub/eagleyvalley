@@ -32,7 +32,23 @@ export const OSM = {
   gatehouse: '571633838',
   schoolHouse: '727404344',
   valleyMill: '73858746',
+  scholarsRise: '73858749',
+  scholarsAngledPair: ['727404347', '727404348'],
+  scholarsModernRow: [
+    '727404354',
+    '727404355',
+    '727404357',
+    '727404356',
+    '727404358',
+    '727404359',
+    '727404360',
+  ],
   schoolStreetFront: '73858752',
+  schoolStreetMain: '549512306',
+  schoolStreetCross: '727434561',
+  /** M25a wet-walk video 10:28 onward; mapped sett/cobblestone runs.
+   * The School House forecourt block paving is a separate surface. */
+  schoolStreetSetts: ['549512306', '727434561'],
   eagleyHall: '549512305',
   /** Three attached houses opposite the Bridge Mill garages. */
   courtHouses: ['727427311', '727427312', '727427313'],
@@ -46,7 +62,26 @@ export const OSM = {
     '727427300',
     '727427299',
   ],
-  wakefieldHouses: ['727427283', '727427284', '727427285', '727427286', '727427287', '727427290', '727427291', '727427292', '727427293', '727427294', '727427303', '727427304', '727427305', '727427306', '727427307', '727427308', '727427309', '727427310'],
+  wakefieldHouses: [
+    '727427283',
+    '727427284',
+    '727427285',
+    '727427286',
+    '727427287',
+    '727427290',
+    '727427291',
+    '727427292',
+    '727427293',
+    '727427294',
+    '727427303',
+    '727427304',
+    '727427305',
+    '727427306',
+    '727427307',
+    '727427308',
+    '727427309',
+    '727427310',
+  ],
   garageRange: '727427314',
   separateGarage: '727427315',
 };
@@ -863,6 +898,114 @@ export const BROOK_EAST_BANDS = {
   flankOpenings: [-11, -7.7, -4.4, 4.4, 7.7, 11],
 };
 
+/** M21d lower east entrance. Mapped facade/road, photographed level relation;
+ * apron and retaining dimensions estimated, concealed descent provisional. */
+export const VALLEY_ENTRANCE = {
+  // June 2024 CGJK / May 2012 g1IQ: lower doors and retaining edges.
+  // Local u runs south, d outward. Dimensions and descent estimated.
+  u0: 11.4,
+  u1: 18.2,
+  apronDepth: 1.4,
+  roadMargin: 0.32,
+  pavementWidth: 1.1,
+  thresholdRise: 0.13,
+  landPatch: { x0: 8, z0: -76, width: 16, depth: 18 },
+};
+
+/** M22a1, August 2022 xFx / Zxl overlapping fronts. OSM front anchors;
+ * seven counted upper groups. Dimensions, panes and foundation heights fitted.
+ * Garage apertures are photographed groups, not inferred ownership/access. */
+export const SCHOLARS_MODERN_ROW = {
+  from: [50.01, -146.39] as P,
+  to: [86.87, -133.34] as P,
+  depth: 9.6,
+  eaves: 8.65,
+  ridge: 10.2,
+  homes: [
+    { u: 2.82, width: 1.05, balcony: false, door: true },
+    { u: 8.46, width: 2.1, balcony: true, door: false },
+    { u: 14.1, width: 2.1, balcony: true, door: false },
+    { u: 19.74, width: 1.05, balcony: false, door: true },
+    { u: 25.38, width: 1.05, balcony: false, door: true },
+    { u: 31.02, width: 2.1, balcony: true, door: false },
+    { u: 36.66, width: 2.1, balcony: true, door: false },
+  ],
+  gables: [
+    { u: 2.82, width: 5.64, rise: 1.55 },
+    { u: 8.46, width: 5.64, rise: 1.55 },
+    { u: 14.1, width: 5.64, rise: 1.55 },
+    { u: 22.56, width: 11.28, rise: 2.8 },
+    { u: 31.02, width: 5.64, rise: 1.55 },
+    { u: 36.66, width: 5.64, rise: 1.55 },
+  ],
+  garages: [
+    { u: 14.1, width: 4.2 },
+    { u: 31.02, width: 4.2 },
+  ],
+};
+
+/** M22a2, May 2012 pv7 / August 2022 b_P and Vcg. The angled pair
+ * is separate from the straight row. Front anchors mapped; dimensions fitted.
+ * One narrow group per front/floor, one broad group per outer return/floor.
+ * Garage and door positions are apertures, not an internal access survey. */
+export const SCHOLARS_ANGLED_PAIR = {
+  from: [90.18, -134.19] as P,
+  to: [98.28, -125.94] as P,
+  depth: 14.2,
+  eaves: 8.65,
+  ridge: 11.45,
+  returnCentre: -2.9,
+  returnGableWidth: 5.8,
+  returnGableRise: 1.55,
+  backGableCentre: -10,
+  backGableWidth: 8.4,
+  backGableRise: 2.8,
+  easternTallGroup: { v: -11.8, bottom: 3.6, height: 1.95, width: 1.05 },
+};
+
+/** M21e1, Geograph 3075250, 25 July 2012. Six west conversion groups counted;
+ * the central three are broad at the top. Lower central groups tree-hidden.
+ * Mapped anchors, fitted centres/heights/widths; no threshold survey. */
+export const VALLEY_ENGINE_WEST = {
+  from: [-63.45, -72.02] as P,
+  to: [-53.27, -100.59] as P,
+  groups: [
+    { u: 2.8, width: 1.65, columns: 2, concealedBase: false },
+    { u: 8.2, width: 1.65, columns: 2, concealedBase: false },
+    { u: 14.0, width: 3.15, columns: 3, concealedBase: true },
+    { u: 19.0, width: 3.15, columns: 3, concealedBase: true },
+    { u: 24.0, width: 3.15, columns: 3, concealedBase: false },
+    { u: 28.2, width: 1.65, columns: 2, concealedBase: false },
+  ],
+  rows: [
+    { bottom: 0.45, top: 6.15, divisions: 5 },
+    { bottom: 6.95, top: 9.15, divisions: 2 },
+    { bottom: 9.95, top: 13.95, divisions: 5 },
+  ],
+  bands: [6.55, 9.5],
+};
+
+/** M21e2 south return, Geograph 3075250, 25 July 2012. Three tall groups,
+ * central blind arch head and blank upper panel photographed. Mapped endpoints;
+ * fitted dimensions and partly obscured base openings remain estimates. */
+export const VALLEY_ENGINE_SOUTH = {
+  from: [-53.12, -68.35] as P,
+  to: [-63.45, -72.02] as P,
+  tall: [
+    { u: 2.0, width: 1.65, top: 9.15 },
+    { u: 5.5, width: 2.5, top: 7.15 },
+    { u: 9.0, width: 1.65, top: 9.15 },
+  ],
+  bottom: 2.85,
+  arch: { u: 5.5, width: 2.95, top: 9.2 },
+  upperPanel: { u: 5.5, width: 7.1, bottom: 9.75, top: 12.35 },
+  base: [
+    { u: 1.25, width: 1.35, bottom: 0.35, top: 2.3, arched: true },
+    { u: 9.0, width: 0.95, bottom: 0.35, top: 1.95, arched: false },
+  ],
+  bands: [2.65, 9.5],
+};
+
 /** M21a Valley Mill east elevation. OSM end anchors, 2012 Alan Murray-Rust
  * photographs and June 2024 CGJKJDqjUkB1pntPvj9yVQ. Counts photographed;
  * positions, heights, projections and cupola profile estimated. */
@@ -947,19 +1090,11 @@ export const VALLEY_MILL = {
     openHeight: 1.6,
     capRise: 1.05,
   },
-  // Preserved generic opening centres, NOT a counted survey. These five
+  // Preserved generic opening centres, NOT a counted survey. These three
   // other mapped edges are placeholders pending M21e, not historic bay counts.
   provisionalEdges: [
     { edge: 0, centres: [3.1044] },
     { edge: 4, centres: [1.7167, 5.15] },
-    { edge: 5, centres: [1.8271, 5.4813, 9.1355] },
-    {
-      edge: 6,
-      centres: [
-        1.685, 5.0549, 8.4249, 11.7948, 15.1647, 18.5347, 21.9046, 25.2746,
-        28.6445,
-      ],
-    },
     { edge: 7, centres: [2.3019, 6.9057] },
   ],
 };
@@ -1090,32 +1225,152 @@ export const BRIDGE_PARKING = {
 /** M25 mapped courtyard front edges. Counts from August 2022 panoramas;
  * dimensions and concealed elevations remain fitted/provisional. */
 export const WAKEFIELD_HOUSES: {
-  id: string; a: P; b: P; group: string; kind: 'town' | 'arched' | 'plain' | 'bay';
+  id: string;
+  a: P;
+  b: P;
+  group: string;
+  kind: 'town' | 'arched' | 'plain' | 'bay';
 }[] = [
-  {id:'727427283',a:[-82.28,-32.39],b:[-77.34,-30.61],group:'north',kind:'town'},
-  {id:'727427284',a:[-77.34,-30.61],b:[-72.38,-28.87],group:'north',kind:'town'},
-  {id:'727427285',a:[-72.38,-28.87],b:[-67.46,-27.07],group:'north',kind:'town'},
-  {id:'727427286',a:[-67.46,-27.07],b:[-62.54,-25.29],group:'north',kind:'town'},
-  {id:'727427287',a:[-88.54,-38.83],b:[-80.98,-36.09],group:'north-west',kind:'plain'},
-  {id:'727427290',a:[-61.21,-29],b:[-53.66,-26.29],group:'north-east',kind:'plain'},
-  {id:'727427291',a:[-50.99,-21.94],b:[-44.98,-19.8],group:'east',kind:'plain'},
-  {id:'727427292',a:[-53.03,-16.24],b:[-50.99,-21.94],group:'east',kind:'arched'},
-  {id:'727427293',a:[-55.08,-10.51],b:[-53.03,-16.24],group:'east',kind:'arched'},
-  {id:'727427294',a:[-57.12,-4.8],b:[-55.08,-10.51],group:'east',kind:'arched'},
-  {id:'727427303',a:[-55.23,8.32],b:[-48.91,10.62],group:'south',kind:'plain'},
-  {id:'727427304',a:[-48.75,10.17],b:[-43.97,11.94],group:'south',kind:'plain'},
-  {id:'727427305',a:[-43.97,11.94],b:[-39.17,13.73],group:'south',kind:'plain'},
-  {id:'727427306',a:[-39.33,14.22],b:[-32.12,16.91],group:'south',kind:'plain'},
-  {id:'727427307',a:[-66.99,-6.16],b:[-70.9,4.73],group:'west',kind:'bay'},
-  {id:'727427308',a:[-70.9,4.73],b:[-74.83,15.63],group:'west',kind:'bay'},
-  {id:'727427309',a:[-74.83,15.63],b:[-77.13,21.8],group:'west-end',kind:'plain'},
-  {id:'727427310',a:[-72.98,17.13],b:[-62.81,20.96],group:'west-return',kind:'arched'},
+  {
+    id: '727427283',
+    a: [-82.28, -32.39],
+    b: [-77.34, -30.61],
+    group: 'north',
+    kind: 'town',
+  },
+  {
+    id: '727427284',
+    a: [-77.34, -30.61],
+    b: [-72.38, -28.87],
+    group: 'north',
+    kind: 'town',
+  },
+  {
+    id: '727427285',
+    a: [-72.38, -28.87],
+    b: [-67.46, -27.07],
+    group: 'north',
+    kind: 'town',
+  },
+  {
+    id: '727427286',
+    a: [-67.46, -27.07],
+    b: [-62.54, -25.29],
+    group: 'north',
+    kind: 'town',
+  },
+  {
+    id: '727427287',
+    a: [-88.54, -38.83],
+    b: [-80.98, -36.09],
+    group: 'north-west',
+    kind: 'plain',
+  },
+  {
+    id: '727427290',
+    a: [-61.21, -29],
+    b: [-53.66, -26.29],
+    group: 'north-east',
+    kind: 'plain',
+  },
+  {
+    id: '727427291',
+    a: [-50.99, -21.94],
+    b: [-44.98, -19.8],
+    group: 'east',
+    kind: 'plain',
+  },
+  {
+    id: '727427292',
+    a: [-53.03, -16.24],
+    b: [-50.99, -21.94],
+    group: 'east',
+    kind: 'arched',
+  },
+  {
+    id: '727427293',
+    a: [-55.08, -10.51],
+    b: [-53.03, -16.24],
+    group: 'east',
+    kind: 'arched',
+  },
+  {
+    id: '727427294',
+    a: [-57.12, -4.8],
+    b: [-55.08, -10.51],
+    group: 'east',
+    kind: 'arched',
+  },
+  {
+    id: '727427303',
+    a: [-55.23, 8.32],
+    b: [-48.91, 10.62],
+    group: 'south',
+    kind: 'plain',
+  },
+  {
+    id: '727427304',
+    a: [-48.75, 10.17],
+    b: [-43.97, 11.94],
+    group: 'south',
+    kind: 'plain',
+  },
+  {
+    id: '727427305',
+    a: [-43.97, 11.94],
+    b: [-39.17, 13.73],
+    group: 'south',
+    kind: 'plain',
+  },
+  {
+    id: '727427306',
+    a: [-39.33, 14.22],
+    b: [-32.12, 16.91],
+    group: 'south',
+    kind: 'plain',
+  },
+  {
+    id: '727427307',
+    a: [-66.99, -6.16],
+    b: [-70.9, 4.73],
+    group: 'west',
+    kind: 'bay',
+  },
+  {
+    id: '727427308',
+    a: [-70.9, 4.73],
+    b: [-74.83, 15.63],
+    group: 'west',
+    kind: 'bay',
+  },
+  {
+    id: '727427309',
+    a: [-74.83, 15.63],
+    b: [-77.13, 21.8],
+    group: 'west-end',
+    kind: 'plain',
+  },
+  {
+    id: '727427310',
+    a: [-72.98, 17.13],
+    b: [-62.81, 20.96],
+    group: 'west-return',
+    kind: 'arched',
+  },
 ];
 export const WAKEFIELD_LOW_WING: P[] = [
- [-32.12,16.91],[-31.1,14.19],[-25.67,16.22],[-27.84,22.04],[-33.16,20.05],
+  [-32.12, 16.91],
+  [-31.1, 14.19],
+  [-25.67, 16.22],
+  [-27.84, 22.04],
+  [-33.16, 20.05],
 ];
 export const WAKEFIELD_SOUTH_END: P[] = [
- [-41.43,19.81],[-39.33,14.22],[-32.12,16.91],[-33.16,20.05],[-34.1,22.55],
+  [-41.43, 19.81],
+  [-39.33, 14.22],
+  [-32.12, 16.91],
+  [-33.16, 20.05],
+  [-34.1, 22.55],
 ];
 
 /** No.5 Bridge Mill: red front door on the main west wall, south of the
@@ -1184,6 +1439,56 @@ export const COURT_GARDENS = {
   eastShrubs: { x: 75.95, fromZ: -0.1, toZ: 10.8 },
 };
 
+/** PA14 / UP-003, garden face counted independently of the entrance face.
+ * Each of three homes has two tall paired groups and one narrow side light
+ * on each of three rows. The near/east and middle homes have the narrow
+ * light towards their east ends; the far/west home has it at the west end.
+ * Local u runs west to east. Centres, sizes and pane divisions are fitted
+ * estimates; the photograph does not resolve which ground leaves open. */
+export const COURT_GARDEN_OPENINGS = {
+  groups: [
+    { u: 0.85, kind: 'light' },
+    { u: 3.1, kind: 'paired' },
+    { u: 5.65, kind: 'paired' },
+    { u: 9.4, kind: 'paired' },
+    { u: 11.95, kind: 'paired' },
+    { u: 14.35, kind: 'light' },
+    { u: 17.25, kind: 'paired' },
+    { u: 19.8, kind: 'paired' },
+    { u: 22.25, kind: 'light' },
+  ],
+  rows: [
+    { bottom: 0.2, height: 2.25, lightBottom: 0.72, lightHeight: 1.08 },
+    { bottom: 3.02, height: 2.12, lightBottom: 3.52, lightHeight: 1.12 },
+    { bottom: 5.78, height: 2.06, lightBottom: 6.25, lightHeight: 1.08 },
+  ],
+  pairedWidth: 1.45,
+  lightWidth: 0.55,
+  wallV: -7.76,
+  downpipes: [0, 7.86, 15.72, 23.6],
+} as const;
+
+/** IMG_8691 and user's 4 October correction. Rear groups align vertically;
+ * No.3 alone has a downpipe to the gutter. Centres/dimensions fitted, not measured.
+ * West-to-east, No.5 to No.1; eastern groups retain earlier inferred spacing. */
+export const BRIDGE_REAR_OPENINGS = {
+  homes: [
+    { door: 80.895, window: null },
+    { door: 84.767, window: 87.218 },
+    { door: 90.343, window: 92.622 },
+    { door: 95.953, window: 98.662 },
+    { door: 102.3615, window: 105.221 },
+  ],
+  upperRows: [
+    { bottom: 4.0, height: 2.15 },
+    { bottom: 7.33, height: 2.15 },
+  ],
+  downpipeX: 88.8,
+  // 4 October close patio photo: sash sill well above the door threshold;
+  // heads near the door transom head. Heights fitted to the photographed ratio.
+  groundSash: { bottom: 0.68, height: 2.05 },
+};
+
 /** Old Bridge Mill rear gardens, numbered from the Hough Lane (east) end.
  * User photos from No.3 and of the fences: low trellis fences divide the
  * gardens, a tall clipped hedge closes the brook end with iron gates, and a
@@ -1236,3 +1541,25 @@ export function inBridgeJunction(
   // South of the mill corner there is no wall: meet the level passage.
   return x < (z < D.wallA[1] ? no5WallX(z) : BRIDGE_JUNCTION.x1 + 0.05);
 }
+
+/** M25b VID-001 10:54–11:15. Centreline mapped; offsets, height and
+ * recess centres fitted from overlapping frames, not surveyed. */
+export const SCHOOL_STREET = {
+  width: 5.2,
+  northPavement: 0.65,
+  pavement: 0.85,
+  formationMargin: 0.9,
+  wallHeight: 2.45,
+  southWall: [
+    [87.59, -80.47],
+    [87.29, -81.37],
+    [87.39, -82.17],
+    [88.09, -82.87],
+    [141.99, -57.77],
+    [144.29, -56.47],
+    [145.77, -55.09],
+  ] as P[],
+  // Five identifiable recesses across overlapping western wall views.
+  // The concealed eastern extent is deliberately not populated by a spacing rule.
+  recesses: [5.5, 12.2, 19.4, 27.1, 34.0],
+};

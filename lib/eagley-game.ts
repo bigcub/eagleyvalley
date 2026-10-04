@@ -208,6 +208,18 @@ export async function createGame(host: HTMLElement, onHud: (s: Hud) => void) {
     ground: surface.ground,
     terrain: surface.terrain,
     canStand: collision.canStand,
+    driveFrom(x, z, yaw) {
+      if (![x, z, yaw].every(Number.isFinite) || !collision.canStand(x, z, 1))
+        throw Error('Driving test start must be clear of solid boundaries');
+      manualTime = true;
+      const car = play.cars[play.state.active];
+      Object.assign(car, { x, z, yaw });
+      play.state.mode = 'drive';
+      Object.assign(play.state.player, { x, z, yaw, speed: 0 });
+      play.updateCamera(1);
+      play.updateHud();
+      render();
+    },
   });
   const context = modelContext();
   if (context?.registerTool) {

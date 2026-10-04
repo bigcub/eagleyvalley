@@ -40,6 +40,8 @@ import {
   PASSAGE_GATE,
   TURNING_CIRCLE,
   TURNING_CIRCLE_DETAILS,
+  VALLEY_ENTRANCE,
+  SCHOOL_STREET,
 } from './layout';
 import {
   createEagleyHoughBendPlan,
@@ -58,6 +60,10 @@ import { gateLocal, gateWorld } from '../landmarks/bridge-side-gate';
 import { brookTerrace } from '../landmarks/brook-terrace';
 import { brookParking } from '../landmarks/brook-mill-grounds';
 import { courtHouseGround } from '../landmarks/court-houses';
+import {
+  valleyEntranceLevel,
+  valleyEntranceWorld,
+} from '../landmarks/valley-entrance';
 import {
   courtRockeryTerrain,
   courtSideGardenTerrain,
@@ -123,6 +129,46 @@ export function createSurface(data: WorldData) {
 
   // Datums for the terraced mill sites.
   const brookDatum = sampledTerrain(91, -55) - 0.35;
+  // Fixed EA datum prevents the new excavation moving the mill shell.
+  const valleyMillBase = Math.min(
+    ...buildings
+      .find((f) => f.id === OSM.valleyMill)!
+      .points.map((p) => sampledTerrain(...p)),
+  );
+  // Fit the apron boundary to the mapped road bend, just behind its kerb.
+  // A dense table gives a continuous edge without repeatedly searching roads.
+  const valleyDepths = Array.from({ length: 69 }, (_, i) => {
+    const u = lerp(VALLEY_ENTRANCE.u0, VALLEY_ENTRANCE.u1, i / 68);
+    let low = 0,
+      high = 12;
+    for (let j = 0; j < 20; j++) {
+      const d = (low + high) / 2;
+      const p = valleyEntranceWorld(u, d),
+        n = nearest(...p, gateRoadSegments);
+      if (n.d > roadWidth(n.s.f) / 2 + VALLEY_ENTRANCE.roadMargin) low = d;
+      else high = d;
+    }
+    return (low + high) / 2;
+  });
+  function valleyEntranceDepth(u: number) {
+    const t = clamp(
+      ((u - VALLEY_ENTRANCE.u0) / (VALLEY_ENTRANCE.u1 - VALLEY_ENTRANCE.u0)) *
+        68,
+      0,
+      68,
+    );
+    const i = Math.min(67, Math.floor(t));
+    return lerp(valleyDepths[i], valleyDepths[i + 1], t - i);
+  }
+  function valleyEntranceY(x: number, z: number) {
+    return valleyEntranceLevel(
+      x,
+      z,
+      valleyMillBase,
+      vehicleRoadY,
+      valleyEntranceDepth,
+    );
+  }
   const bridgeBase = Math.min(
     ...buildings
       .find((f) => f.name === 'Bridge Mill')!
@@ -745,6 +791,23 @@ export function createSurface(data: WorldData) {
   let inJunctionTerrain = false;
   const terrainZones: Zone[] = [
     {
+      // Keep grass below the fitted narrow slab pavements; centreline heights
+      // retain their existing EA datum. No raised movement kerb.
+      name: 'school-street-pavement-formation',
+      y: (x, z) => {
+        const n = nearest(x, z, roadSeg);
+        return OSM.schoolStreetSetts.includes(n.s?.f.id) &&
+          n.d > SCHOOL_STREET.width / 2 &&
+          n.d < SCHOOL_STREET.width / 2 + SCHOOL_STREET.formationMargin
+          ? sampledTerrain(n.x, n.z) + 0.03
+          : undefined;
+      },
+    },
+    {
+      name: 'valley-mill-entrance',
+      y: (x, z) => offset(valleyEntranceY(x, z), -0.13),
+    },
+    {
       name: 'school-front-garden',
       y: (x, z) =>
         inSchoolGarden(x, z, schoolForecourtPlan)
@@ -1022,6 +1085,7 @@ export function createSurface(data: WorldData) {
   }
 
   const groundZones: Zone[] = [
+    { name: 'valley-mill-entrance', y: valleyEntranceY },
     { name: 'school-forecourt', y: schoolGround },
     { name: 'blackburn-entrance', y: entranceGround },
     { name: 'garage-back-formation', y: garageBackingY },
@@ -1133,6 +1197,9 @@ export function createSurface(data: WorldData) {
   }
 
   return {
+    valleyMillBase,
+    valleyEntranceDepth,
+    valleyEntranceY,
     schoolForecourtPlan,
     schoolPavementY,
     schoolHouseBase,

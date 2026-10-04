@@ -1,4 +1,6 @@
+import { addSchoolStreetWall } from '../landmarks/school-street';
 import { bridgeParkingWalls } from '../landmarks/bridge-parking';
+import { addValleyEntrance } from '../landmarks/valley-entrance';
 import { addSchoolForecourt } from '../landmarks/school-forecourt';
 import {
   addBlackburnEntranceWall,
@@ -53,6 +55,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { stone, dark, trim } = kit.m;
   const { terrain, ground, roadY, riverY, roadSeg, riverSeg } = surface;
   const walls: Wall[] = bridgeParkingWalls();
+  walls.push(...addValleyEntrance(kit, { surface }));
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
   walls.push(...addGarageBacking(kit, { surface, data }));
@@ -75,6 +78,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addEagleyHoughBendWall(kit, { surface }));
   walls.push(...addBlackburnEntranceWall(kit, { surface }));
   walls.push(...addSchoolForecourt(kit, { surface }));
+  walls.push(...addSchoolStreetWall(kit, { surface }));
   walls.push(
     ...addBridgeRoadWall(kit, { surface, data, lowerStone: passageStone }),
   );

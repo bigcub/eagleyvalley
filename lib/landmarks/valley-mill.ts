@@ -1,4 +1,5 @@
 import { addValleyArcade } from './valley-arcade';
+import { addValleyEngineHouse } from './valley-engine-house';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 import type { P } from '../core/geo';
@@ -23,6 +24,7 @@ export function addValleyMill(
   kit.polygon([...points, points[0]], slate, base + V.height + 0.04);
   addValleyArcade(kit, { base, facade: V.north });
   addValleyArcade(kit, { base, facade: V.south });
+  addValleyEngineHouse(kit, { base });
   // Retain the previous profiles on uncounted elevations; no new survey claim.
   for (const edge of V.provisionalEdges) {
     const a = points[edge.edge],

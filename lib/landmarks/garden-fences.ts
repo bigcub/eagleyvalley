@@ -32,6 +32,62 @@ function latticeMaterial(kit: Kit) {
   return m;
 }
 
+/** UP-003 supports close boarding. Board widths, grain and weathering are
+ * representative estimates, generated here without using reference pixels. */
+function closeBoardMaterial(kit: Kit) {
+  const m = kit.mat('gardenCloseBoard', '#ffffff');
+  if (m.map) return m;
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 1024;
+  const ctx = c.getContext('2d')!;
+  let seed = 4187;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  for (let board = 0; board < 4; board++) {
+    const x = board * 128,
+      shade = Math.round(128 + rand() * 20);
+    ctx.fillStyle = `rgb(${shade + 10},${shade - 5},${shade - 29})`;
+    ctx.fillRect(x, 0, 128, c.height);
+    // Dark joint and pale edge make separate vertical boards readable.
+    ctx.fillStyle = '#3d352b';
+    ctx.fillRect(x, 0, 3, c.height);
+    ctx.fillStyle = '#c6b49766';
+    ctx.fillRect(x + 3, 0, 2, c.height);
+    for (let line = 0; line < 70; line++) {
+      const gx = x + 6 + rand() * 117,
+        wave = rand() * 3,
+        phase = rand() * Math.PI * 2;
+      ctx.strokeStyle = line % 3 ? '#31291e16' : '#eee3ce19';
+      ctx.lineWidth = 0.5 + rand() * 1.1;
+      ctx.beginPath();
+      for (let y = 0; y <= c.height; y += 16) {
+        const px = gx + Math.sin((y / c.height) * Math.PI * 4 + phase) * wave;
+        if (y === 0) ctx.moveTo(px, y);
+        else ctx.lineTo(px, y);
+      }
+      ctx.stroke();
+    }
+    const kx = x + 32 + rand() * 64,
+      ky = 180 + rand() * 650;
+    ctx.strokeStyle = '#55473630';
+    for (let ring = 1; ring <= 4; ring++) {
+      ctx.beginPath();
+      ctx.ellipse(kx, ky, 2 + ring * 1.6, 5 + ring * 5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  const texture = new T.CanvasTexture(c);
+  texture.wrapS = texture.wrapT = T.RepeatWrapping;
+  texture.colorSpace = T.SRGBColorSpace;
+  texture.anisotropy = 8;
+  m.map = m.bumpMap = texture;
+  m.bumpScale = 0.008;
+  return m;
+}
+
 /** A vertical quad from a to b with UVs in metres / tile. */
 function panel(
   a: P,
@@ -41,6 +97,7 @@ function panel(
   bottom: number,
   top: number,
   tile: number,
+  tileHeight = tile,
 ) {
   const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
   const g = new T.BufferGeometry();
@@ -73,9 +130,9 @@ function panel(
         len / tile,
         0,
         len / tile,
-        (top - bottom) / tile,
+        (top - bottom) / tileHeight,
         0,
-        (top - bottom) / tile,
+        (top - bottom) / tileHeight,
       ],
       2,
     ),
@@ -135,7 +192,7 @@ export function boardFence(
   ground: Ground,
   height: number,
 ): Wall {
-  const boards = kit.mat('gardenCloseBoard', '#8b7b62');
+  const boards = closeBoardMaterial(kit);
   const post = kit.mat('gardenFencePost', '#6e6250');
   const posts = bays(a, b, 1.8);
   const rot = Math.atan2(b[0] - a[0], b[1] - a[1]);
@@ -146,10 +203,10 @@ export function boardFence(
     const q = posts[i - 1],
       yq = ground(...q),
       len = Math.hypot(p[0] - q[0], p[1] - q[1]);
-    const g = panel(q, p, yq, y, 0.05, height, 0.12);
+    const g = panel(q, p, yq, y, 0.05, height, 0.48, 2.4);
     kit.batch(g, boards);
     // Thin rear layer so the panel reads from both sides without DoubleSide.
-    const back = panel(p, q, y, yq, 0.05, height, 0.12);
+    const back = panel(p, q, y, yq, 0.05, height, 0.48, 2.4);
     kit.batch(back, boards);
     kit.box(
       (p[0] + q[0]) / 2,

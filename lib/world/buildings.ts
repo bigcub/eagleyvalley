@@ -1,3 +1,5 @@
+import { addScholarsRow } from '../landmarks/scholars-row';
+import { addScholarsEnd } from '../landmarks/scholars-end';
 import { addWakefieldHouses } from '../landmarks/wakefield-houses';
 import { addThreadfoldHouses } from '../landmarks/threadfold-houses';
 import { addValleyMill } from '../landmarks/valley-mill';
@@ -77,6 +79,11 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     colliders.push(bounds(p));
 
     // Dedicated landmark models.
+    if (OSM.scholarsAngledPair.includes(f.id)) {
+      if (f.id === OSM.scholarsAngledPair[0])
+        addScholarsEnd(kit, { buildings: data.buildings, ground, terrain });
+      continue;
+    }
     if (OSM.wakefieldHouses.includes(f.id)) {
       if (f.id === OSM.wakefieldHouses[0])
         addWakefieldHouses(kit, { buildings: data.buildings, ground });
@@ -85,6 +92,11 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     if (OSM.threadfoldHouses.includes(f.id)) {
       if (f.id === OSM.threadfoldHouses[0])
         addThreadfoldHouses(kit, { ground, roadSeg });
+      continue;
+    }
+    if (OSM.scholarsModernRow.includes(f.id)) {
+      if (f.id === OSM.scholarsModernRow[0])
+        addScholarsRow(kit, { buildings: data.buildings, ground, terrain });
       continue;
     }
     if (OSM.courtHouses.includes(f.id)) {
@@ -104,7 +116,7 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
       continue;
     }
     if (f.id === OSM.valleyMill) {
-      addValleyMill(kit, { base: lowest(p), points: p });
+      addValleyMill(kit, { base: surface.valleyMillBase, points: p });
       continue;
     }
     if (f.name === 'Brook Mill') {
@@ -223,8 +235,8 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
       for (let j = 0; j < p.length; j++) {
         const a = p[j],
           b = p[(j + 1) % p.length];
-        // Bridge Mill: south frontage and blank east end have dedicated models.
-        if (bridge && ((a[1] + b[1]) / 2 > 17 || j === 1)) continue;
+        // Bridge Mill: both long faces and the blank east end have dedicated models.
+        if (bridge && ((a[1] + b[1]) / 2 > 17 || j === 0 || j === 1)) continue;
         const dx = b[0] - a[0],
           dz = b[1] - a[1],
           len = Math.hypot(dx, dz);
@@ -239,8 +251,6 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
             x = a[0] + dx * t,
             z = a[1] + dz * t;
           for (let level = 0; level < levels; level++) {
-            // Bridge Mill rear ground floor: French doors in bridge-rear.ts.
-            if (bridge && j === 0 && level === 0) continue;
             // West end: No.5's side door replaces the southern passage-level
             // window and its basement light (bridge-mill.ts).
             if (bridge && j === 3 && k === 0 && level < 2) continue;

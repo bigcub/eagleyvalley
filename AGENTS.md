@@ -20,7 +20,7 @@ Read [docs/STATUS.md](docs/STATUS.md) for where things stand and what to do next
 These override older notes, photos and map data. Keep them.
 
 - **Bridge Mill south frontage** follows the user's photos: two visible storeys above the passage, buff stone, white multi-pane sashes, alternating doors and windows, coloured panelled doors with broad transoms, black lanterns and downpipes, iron railings, potted topiary.
-- **Bridge Mill rear** is the same buff stone as the front. No red or pink panels. Each rear house has paired white French doors, with a solid timber fence between patios (IMG_8274).
+- **Bridge Mill rear** is the same buff stone as the front. No red or pink panels. Each rear house has paired white French doors, with a solid timber fence between patios (IMG_8274). Rear opening positions follow IMG_8691; ground-floor rear sashes have raised sills above the French-door thresholds, as in the user's close patio photo; only No.3 has a rear downpipe, running to the gutter.
 - **Bridge Mill east end**, facing the turning circle, is blank. The west end has windows.
 - **The Bridge Mill wall is rejected** as it appears from Eagley Way. Audit the low road-facing boundary separately from the tall retaining face opposite the passage doors. That face slopes and steps with the road above.
 - **The passage** has weathered rounded setts, mossy joints and a tall, dark retaining wall opposite the doors. Avoid uniform paving and clean brick-like walls.
@@ -46,24 +46,24 @@ Metres. x east, z south, origin latitude 53.6138, longitude -2.428. Game y is me
 
 The Git repository and app root is this directory. Vinext (Vite) static export, React 19, TypeScript, Three.js.
 
-| Path | What lives there |
-| --- | --- |
-| `lib/eagley-game.ts` | Orchestrator: renderer, lights, builds the world in order, game loop, test hooks |
-| `lib/core/geo.ts` | Points, segments, `nearest`, `inPoly`, `densify`, bounds |
-| `lib/core/kit.ts` | Mesh kit: `box`, `beam`, `ribbon`, `polygon`, batching by material, shared materials in `kit.m` |
-| `lib/core/mesh.ts` | Path sweeps (kerbs), strips and draped polygons |
-| `lib/world/layout.ts` | Named OSM IDs and hand-traced footprints. Put new magic IDs and polygons here |
-| `lib/world/surface.ts` | Every height: `sampledTerrain`, `terrain`, `roadY`, `ground`. Ordered, named zones |
-| `lib/world/roads.ts` | Carriageways, footways, kerbs, markings, parking surfaces |
-| `lib/world/buildings.ts` | Generic building generator plus dispatch to landmark models, building colliders |
-| `lib/world/boundaries.ts` | Walls, fences, rails, gates; every solid boundary registers a collision line |
-| `lib/world/vegetation.ts` | Trees, hedges, ivy, shrubs, street lights |
-| `lib/world/land.ts`, `collision.ts`, `data.ts` | Grass mesh and brook; movement blockers; data loading and road widths |
-| `lib/landmarks/` | One module per distinctive building or place. Each takes `(kit, options)` |
-| `lib/materials/`, `lib/vegetation/` | Procedural textures; instanced plant models |
-| `lib/game/` | Player controller and camera, cars, map overlay, review markers, audio, test hooks |
-| `app/page.tsx`, `components/review-flags.tsx` | Start screen, HUD, touch controls, location feedback |
-| `public/eagley-map.json`, `eagley-terrain.bin`, `eagley-survey.json` | OSM features, terrain grid, canopy peaks |
+| Path                                                                 | What lives there                                                                                |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `lib/eagley-game.ts`                                                 | Orchestrator: renderer, lights, builds the world in order, game loop, test hooks                |
+| `lib/core/geo.ts`                                                    | Points, segments, `nearest`, `inPoly`, `densify`, bounds                                        |
+| `lib/core/kit.ts`                                                    | Mesh kit: `box`, `beam`, `ribbon`, `polygon`, batching by material, shared materials in `kit.m` |
+| `lib/core/mesh.ts`                                                   | Path sweeps (kerbs), strips and draped polygons                                                 |
+| `lib/world/layout.ts`                                                | Named OSM IDs and hand-traced footprints. Put new magic IDs and polygons here                   |
+| `lib/world/surface.ts`                                               | Every height: `sampledTerrain`, `terrain`, `roadY`, `ground`. Ordered, named zones              |
+| `lib/world/roads.ts`                                                 | Carriageways, footways, kerbs, markings, parking surfaces                                       |
+| `lib/world/buildings.ts`                                             | Generic building generator plus dispatch to landmark models, building colliders                 |
+| `lib/world/boundaries.ts`                                            | Walls, fences, rails, gates; every solid boundary registers a collision line                    |
+| `lib/world/vegetation.ts`                                            | Trees, hedges, ivy, shrubs, street lights                                                       |
+| `lib/world/land.ts`, `collision.ts`, `data.ts`                       | Grass mesh and brook; movement blockers; data loading and road widths                           |
+| `lib/landmarks/`                                                     | One module per distinctive building or place. Each takes `(kit, options)`                       |
+| `lib/materials/`, `lib/vegetation/`                                  | Procedural textures; instanced plant models                                                     |
+| `lib/game/`                                                          | Player controller and camera, cars, map overlay, review markers, audio, test hooks              |
+| `app/page.tsx`, `components/review-flags.tsx`                        | Start screen, HUD, touch controls, location feedback                                            |
+| `public/eagley-map.json`, `eagley-terrain.bin`, `eagley-survey.json` | OSM features, terrain grid, canopy peaks                                                        |
 
 Rules for changes:
 

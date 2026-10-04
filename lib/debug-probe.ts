@@ -12,6 +12,7 @@ type Probe = {
   ground: (x: number, z: number) => number;
   terrain: (x: number, z: number) => number;
   canStand: (x: number, z: number, r: number) => boolean;
+  driveFrom: (x: number, z: number, yaw: number) => void;
 };
 
 function materialKey(m: T.Material) {
@@ -102,6 +103,9 @@ function surfaceGrid(
 
 export function installDebugProbe(probe: Probe) {
   testHooks().eagley_debug = {
+    // Test setup for streets disconnected from the spawn by filtered links.
+    // Movement after setup still uses the normal controller and collisions.
+    driveFrom: probe.driveFrom,
     fingerprint: () => sceneFingerprint(probe.scene),
     at: (x: number, z: number) => ({
       ground: probe.ground(x, z),
