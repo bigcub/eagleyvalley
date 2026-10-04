@@ -8,6 +8,7 @@ import { addBrookRoof } from '../landmarks/brook-roof';
 import { addBrookWestFixtures } from '../landmarks/brook-west-fixtures';
 import { addBrookWest } from '../landmarks/brook-west';
 import { addBrookWestEntrance } from '../landmarks/brook-west-entrance';
+import { addStreetHouses } from '../landmarks/street-houses';
 import * as T from 'three';
 import {
   bounds,
@@ -45,6 +46,7 @@ import {
   BRIDGE_MILL_FOOTPRINT,
   inBridgeJunction,
   OSM,
+  STREET_HOUSES,
 } from './layout';
 import { passageWallZ } from '../landmarks/bridge-passage';
 import type { Surface } from './surface';
@@ -79,6 +81,7 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     colliders.push(bounds(p));
 
     // Dedicated landmark models.
+    if (STREET_HOUSES[f.id]) continue;
     if (OSM.scholarsAngledPair.includes(f.id)) {
       if (f.id === OSM.scholarsAngledPair[0])
         addScholarsEnd(kit, { buildings: data.buildings, ground, terrain });
@@ -343,6 +346,13 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     if (!mill && !garage && Number(f.id) % 3 === 0)
       box(cx + 1, base + h + 1.7, cz, 1, 1.9, 0.75, brick, frame.theta);
   }
+
+  addStreetHouses(kit, {
+    buildings: data.buildings,
+    ground,
+    terrain,
+    roadSeg,
+  });
 
   // Bridge Mill frontage and engine house sit on the passage level.
   const lightWells = addBridgeFront(kit, surface.passageY, {

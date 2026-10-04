@@ -1563,3 +1563,165 @@ export const SCHOOL_STREET = {
   // The concealed eastern extent is deliberately not populated by a spacing rule.
   recesses: [5.5, 12.2, 19.4, 27.1, 34.0],
 };
+
+/**
+ * Light first pass on the outer Threadfold Way loop, Cottonfields and Hough
+ * Lane. Each house gets a type from Street View (Aug 2022, Jun 2024,
+ * Apr 2023); `seen: false` means the type is carried from visible
+ * neighbours. Openings follow the type, not a per-house count.
+ */
+export type StreetHouseStyle =
+  | 'estate'
+  | 'townhouse'
+  | 'terrace'
+  | 'cottage'
+  | 'pub';
+export type StreetHouseFace =
+  | 'buff'
+  | 'grit'
+  | 'red'
+  | 'dark'
+  | 'white'
+  | 'cream';
+export type StreetHouse = {
+  style: StreetHouseStyle;
+  face: StreetHouseFace;
+  seen: boolean;
+  garage?: boolean;
+  oculus?: boolean;
+  porch?: boolean;
+  /** Outward facing, where the nearest street is ambiguous. */
+  front?: P;
+};
+const houses = (ids: string[], house: StreetHouse) =>
+  Object.fromEntries(ids.map((id) => [`727${id}`, house]));
+const terrace = (faces: Record<string, StreetHouseFace>, seen: boolean) =>
+  Object.fromEntries(
+    Object.entries(faces).map(([id, face]) => [
+      `727${id}`,
+      { style: 'terrace', face, seen } as StreetHouse,
+    ]),
+  );
+export const STREET_HOUSES: Record<string, StreetHouse> = {
+  // Threadfold Way, panoramas 0N-Rpc4AFucYY_73dIp2FQ and gUumhreI878pOWaZQbFBXA.
+  ...houses(['427252', '427253', '427254', '427255', '427257', '427273'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    garage: true,
+  }),
+  ...houses(['427274'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    garage: true,
+    oculus: true,
+  }),
+  ...houses(['427258', '427259', '427260', '427261'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+  }),
+  ...houses(['427269', '427270', '427271', '427272'], {
+    style: 'estate',
+    face: 'buff',
+    seen: false,
+    garage: true,
+  }),
+  ...houses(['427275', '427276', '427277', '427278'], {
+    style: 'estate',
+    face: 'buff',
+    seen: false,
+  }),
+  ...houses(
+    [
+      '427256',
+      '427262',
+      '427263',
+      '427264',
+      '427266',
+      '427265',
+      '427268',
+      '427267',
+    ],
+    { style: 'townhouse', face: 'red', seen: true },
+  ),
+  // Cottonfields, panorama fwT3uQd6UF-u5KE5s14CHg. The townhouse row faces
+  // south onto Cottonfields; its ends also border the cul-de-sac spur.
+  ...houses(
+    ['427242', '427243', '427244', '427245', '427246', '427247', '427248'],
+    { style: 'townhouse', face: 'red', seen: true, front: [0, 1] },
+  ),
+  ...houses(['427241'], {
+    style: 'townhouse',
+    face: 'red',
+    seen: false,
+    front: [0, 1],
+  }),
+  ...houses(['427234', '427235', '427236', '427237'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    garage: true,
+  }),
+  ...houses(['427232', '427233', '427238', '427239', '427240'], {
+    style: 'estate',
+    face: 'buff',
+    seen: false,
+    garage: true,
+  }),
+  // Hough Lane, panoramas qhk1TO3wrs1KF3ACqP29Ig, P4nxuImCWrbU2pHtno5IQA,
+  // k9fM7igas8BaGDksX4o9fQ and KnrG3stULULRcdylLOmhBw. Facing sequences
+  // were read from oblique views and may be one house out.
+  '727434553': { style: 'pub', face: 'grit', seen: true },
+  ...houses(['574973', '574974'], {
+    style: 'cottage',
+    face: 'grit',
+    seen: true,
+  }),
+  ...terrace({ '574971': 'grit', '574988': 'white', '574989': 'grit' }, true),
+  ...terrace(
+    {
+      '574977': 'white',
+      '574996': 'white',
+      '574997': 'grit',
+      '574998': 'dark',
+      '575000': 'grit',
+      '575001': 'red',
+      '575003': 'cream',
+      '575002': 'white',
+      '575005': 'red',
+      '575004': 'red',
+      '575009': 'red',
+      '575008': 'white',
+      '575007': 'white',
+      '575006': 'red',
+      '575012': 'red',
+      '575014': 'cream',
+      '575016': 'grit',
+      '575015': 'red',
+    },
+    true,
+  ),
+  '727575013': { style: 'terrace', face: 'red', seen: true, porch: true },
+  ...terrace(
+    {
+      '574972': 'grit',
+      '434503': 'grit',
+      '434508': 'grit',
+      '434555': 'grit',
+      '434556': 'grit',
+      '434557': 'grit',
+      '434558': 'grit',
+      '574975': 'red',
+      '574976': 'cream',
+      '574999': 'dark',
+      '575010': 'red',
+      '575011': 'red',
+      '575017': 'red',
+      '575018': 'red',
+      '574987': 'white',
+    },
+    false,
+  ),
+};

@@ -1,6 +1,6 @@
 # Status
 
-Updated 4 October 2026. Local world v0.3.95; last pushed world v0.3.47.
+Updated 4 October 2026. Local world v0.3.96; last pushed world v0.3.47.
 
 ## Current priority
 
@@ -14,13 +14,14 @@ Next, finish those public junction joins, then inventory and reconstruct each Sc
 
 ## Recent work
 
-| Area                            | Local work                                                                                                                                        | Still open                                                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Bridge Mill rear, v0.3.90–91    | Opening centres follow the user's photographs; rear sash sills sit above French-door thresholds; only No.3 has a rear downpipe to the gutter.     | Measured dimensions, concealed eastern spacing and user review.                                                           |
-| Court-house gardens, v0.3.85–86 | Counted garden opening groups, Juliet rails and procedural close-board fences. [Audit](audits/court-garden-elevation.md).                         | Hidden operable leaves, light-well details, west boundary/shared strip and user review.                                   |
-| Valley Mill, v0.3.87–89         | Connected entrance apron/retaining returns and separate engine-house west/south faces. [Audit](audits/valley-mill.md).                            | Hidden entrance steps versus provisional slope, north-return count, enclosure/parking and concealed lower groups.         |
-| Scholars Rise, v0.3.92–93       | Dedicated seven-front row and angled pair 727404347/348, with independently counted openings and roofs. [Audit](audits/scholars-rise-housing.md). | Rear/end counts, fitted roof intersections and threshold/apron layout; older stone terrace and other homes remain queued. |
-| School Street, v0.3.94–95       | Setts and first connected main-street road/pavement/wall pass.                                                                                    | Public junction joins, individual stone houses, gutters/drains, hidden details, measured scale and user review.           |
+| Area                                                | Local work                                                                                                                                        | Still open                                                                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Bridge Mill rear, v0.3.90–91                        | Opening centres follow the user's photographs; rear sash sills sit above French-door thresholds; only No.3 has a rear downpipe to the gutter.     | Measured dimensions, concealed eastern spacing and user review.                                                           |
+| Court-house gardens, v0.3.85–86                     | Counted garden opening groups, Juliet rails and procedural close-board fences. [Audit](audits/court-garden-elevation.md).                         | Hidden operable leaves, light-well details, west boundary/shared strip and user review.                                   |
+| Valley Mill, v0.3.87–89                             | Connected entrance apron/retaining returns and separate engine-house west/south faces. [Audit](audits/valley-mill.md).                            | Hidden entrance steps versus provisional slope, north-return count, enclosure/parking and concealed lower groups.         |
+| Scholars Rise, v0.3.92–93                           | Dedicated seven-front row and angled pair 727404347/348, with independently counted openings and roofs. [Audit](audits/scholars-rise-housing.md). | Rear/end counts, fitted roof intersections and threshold/apron layout; older stone terrace and other homes remain queued. |
+| Outer Threadfold, Cottonfields, Hough Lane, v0.3.96 | 84 generic houses replaced by typed models from Street View: estate, townhouse, terrace, cottage, Spread Eagle. [Audit](audits/street-houses.md). | Per-house counts, dormers/gables/bays, rears, drives and front walls; user review.                                        |
+| School Street, v0.3.94–95                           | Setts and first connected main-street road/pavement/wall pass.                                                                                    | Public junction joins, individual stone houses, gutters/drains, hidden details, measured scale and user review.           |
 
 Earlier modelling and validation are recorded by version in [progress.md](../progress.md). Keep inspected, modelled, tested and accepted separate. Passing tests establish movement and rendering continuity, not local accuracy.
 
@@ -34,7 +35,7 @@ The v0.3.95 checks passed build, TypeScript, oxlint and whitespace. Full journey
 
 Main-route ride46/46 retained maximum height jerk0.0196m and pitch step0.26°; Hough jerk0.0074m and pitch0.16° were unchanged. That route does not traverse School Street. Its separate drive/reverse and walk checks are documented in the audit. Regression height changes were confined to School Street and collision changes to its new wall. Two street directions, western overhead and skill controls/state captures were inspected with visible WORLD0.3.95.
 
-Most buildings remain generic placeholders. Mapped centrelines and EA terrain provide the base, while many widths, wall heights, kerb radii and building details are estimated. Preserve smooth driving and road-level pavement movement. The v0.4.0 raised road network was reverted after it rocked the car and slowed loading. No road signs, double yellow lines or objective box.
+Most buildings outside the typed streets remain generic placeholders. Mapped centrelines and EA terrain provide the base, while many widths, wall heights, kerb radii and building details are estimated. Preserve smooth driving and road-level pavement movement. The v0.4.0 raised road network was reverted after it rocked the car and slowed loading. No road signs, double yellow lines or objective box.
 
 ## Rejected by the user, still open
 

@@ -12,6 +12,12 @@ Fresh build, TypeScript, oxlint, formatter and whitespace checks pass. Journey, 
 
 Drone source VID-002 added 4 October after the School Street pass. User supplied Eagley Mills - Bolton - Drone, Simon Rostron, from 0:28. Publication 3 January 2018 confirmed in expanded description. Sampled aerial views support mill roofs, curved road/parking, neighbouring housing, School House roof and Brook Mill tower circular-feature comparison. Timestamped limits in docs/audits/drone-video-002.md; TODO/photo list/related audits updated. School Street priority retained, world v0.3.94 unchanged, no video/frames distributed, documentation-only whitespace check.
 
+## v0.3.96, 4 October 2026
+
+User asked for a light first pass on the generic houses of outer Threadfold Way, Hough Lane and Cottonfields. 84 mapped houses now use typed models from seven Street View panoramas (Aug 2022, Jun 2024, Apr 2023): buff stone estate houses with garages and canopies, three-storey brick townhouses on buff stone garage storeys with Juliet balconies, Victorian terraces with per-house brick/stone/render facings and chimney stacks, a single-storey stone cottage and the Spread Eagle. Dual-pitch roofs are clipped to the mapped footprints. Opening counts follow the type; rear windows, heights and pitches are estimates. [Audit](docs/audits/street-houses.md).
+
+Build, TypeScript, oxlint and whitespace pass. Journey 55/55, vehicle switch and frontage walk pass; locations and Hough walks pass with no browser errors; ride max jerk 0.0196m and pitch step 0.26°, Hough 0.0074m/0.16°, unchanged. Matched game views inspected at each panorama position. Collisions, ground and terrain unchanged.
+
 ## v0.3.95, 4 October 2026
 
 School Street M25b first main-street correction: fitted narrower 5.2m sett carriageway, 0.65m north and 0.85m south pavements, dedicated tall south stone wall with five identifiable blocked recesses, slim coping, damp lower course, curved western end and eastern return to mapped corner building. Reference VID-001 overlapping frames about11:01/11:15. Wall dimensions, trace, recess centres and widths estimated; concealed eastern count not inferred from wall length. Named pavement terrain formation keeps grass below slabs and movement at road level. Clearance adjusted after normal-input walk failures. Existing western mapped footpath remains pedestrian; School House private entry unresolved.
