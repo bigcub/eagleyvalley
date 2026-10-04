@@ -208,6 +208,66 @@ for (const [name, id] of [
     `${name} drive incomplete`,
   );
 }
+// M25b School Street west square: drive into the bay and reverse out, then
+// walk into the bay, out through the bollard line and back.
+await page.evaluate(() =>
+  window.eagley_debug.driveFrom(104, -78.4, Math.atan2(92 - 104, -84.5 + 78.4)),
+);
+results.squareDrive = await follow(
+  [
+    [92, -84.6],
+    [87.6, -89.5],
+    [89.2, -94.5],
+  ],
+  'drive',
+);
+assert.equal(
+  results.squareDrive.index,
+  results.squareDrive.total,
+  'Square drive incomplete',
+);
+results.squareReverse = await follow(
+  [
+    [87.6, -89.5],
+    [92, -84.6],
+    [100, -80.7],
+  ],
+  'drive',
+  true,
+);
+assert.equal(
+  results.squareReverse.index,
+  results.squareReverse.total,
+  'Square reverse incomplete',
+);
+await page.keyboard.press('e');
+results.squareWalk = await follow(
+  [
+    [95, -83.5],
+    [90, -87],
+    [88.5, -93],
+    [89.5, -97.6],
+    [87.5, -90],
+    [84, -86.5],
+    [80.1, -84.8],
+    [77.4, -83.3],
+    [80.1, -84.8],
+    [86, -85],
+    [95, -83.5],
+  ],
+  'walk',
+);
+assert.equal(
+  results.squareWalk.index,
+  results.squareWalk.total,
+  'Square walk blocked',
+);
+console.log(
+  'SQUAREWALK',
+  JSON.stringify(results.squareWalk.worst),
+  results.squareWalk.maxStep,
+);
+assert.ok(results.squareWalk.maxStep < 0.12, 'Square walking step too large');
 for (const r of Object.values(results).flat()) if (r.state) delete r.state;
 console.log(JSON.stringify({ results, errors }, null, 1));
 await browser.close();

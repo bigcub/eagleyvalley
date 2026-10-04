@@ -46,6 +46,8 @@ export const OSM = {
   schoolStreetFront: '73858752',
   schoolStreetMain: '549512306',
   schoolStreetCross: '727434561',
+  /** Mapped paved path from the School Street end past the School House. */
+  schoolStreetWestPath: '648996292',
   /** M25a wet-walk video 10:28 onward; mapped sett/cobblestone runs.
    * The School House forecourt block paving is a separate surface. */
   schoolStreetSetts: ['549512306', '727434561'],
@@ -1840,4 +1842,67 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
       } as StreetHouse,
     ]),
   ),
+};
+
+/**
+ * M25b School Street west end: block-paved square and walled bay (OSM
+ * cross-run 727434561) beside the School House. Traced from a Google aerial
+ * scaled to the OSM terrace corners (about 20px/m) and checked against Aug
+ * 2022 Street View u4WK-uzOE3KV1sbD3C8m2A and YGooBqD1oEUGn0MV_Z9FXw.
+ * Positions, wall heights and the bay grade are estimates. The School House
+ * forecourt strip west of the wall start is left unchanged (M20g/M25d).
+ */
+export const SCHOOL_STREET_WEST = {
+  paving: [
+    [86.0, -99.6],
+    [93.4, -96.4],
+    [93.0, -89.5],
+    [92.9, -88.5],
+    [90.0, -82.3],
+    [88.3, -83.0],
+    [87.6, -82.4],
+    [87.5, -81.4],
+    [87.8, -80.4],
+    [84.5, -78.6],
+    [78.6, -81.2],
+    [82.0, -89.2],
+    [79.4, -89.75],
+  ] as P[],
+  // Setts give way to block paving here; the street's slab pavements stop.
+  settEndX: 91.6,
+  // Retaining wall with railings: School House side, bay back, No.34 side.
+  wall: [
+    [78.7, -88.7],
+    [86.0, -99.6],
+    [93.4, -96.4],
+    [93.0, -89.5],
+  ] as P[],
+  // Five bollards along the paving edge; the mapped path 648996292 crosses
+  // the row through the gap between the third and fourth. Spacing estimated.
+  bollards: {
+    from: [82.0, -89.2] as P,
+    to: [78.6, -81.2] as P,
+    at: [0, 0.2, 0.42, 0.68, 0.92],
+  },
+  // Paving edges that meet other surfaces (indices into `paving`); the
+  // rest are walls or the unmodelled raised corner by the wall start.
+  openEdges: [2, 3, 4, 5, 6, 7, 8, 9, 10],
+  // Road heights the square's plane is fitted to: setts end, cross-run south
+  // stub and the mapped path beside the bollards.
+  anchors: [
+    [91.6, -85.4],
+    [86.0, -88.0],
+    [84.6, -81.0],
+    [80.0, -84.0],
+    [78.6, -82.2],
+  ] as P[],
+  // Bay level: rises gently from its mouth on the cross-run centreline.
+  mouth: [86.4, -89.0] as P,
+  axis: [0.371, -0.928] as P,
+  rise: 0.045,
+  blend: 1.5,
+  // Terrain behind each wall is lowered this far so coarse grass triangles
+  // cannot cross the wall and show through the paving. Narrower on the School
+  // House side, where mapped footway 727434562 runs about 1.4m behind it.
+  seams: [1.0, 2.2, 2.2],
 };

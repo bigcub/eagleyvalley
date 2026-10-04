@@ -23,6 +23,7 @@ import { addEagleyBrowPosts } from '../landmarks/eagley-brow';
 import { addEagleyHoughBendWall } from '../landmarks/eagley-hough-bend';
 import { addTurningCircleFurniture } from '../landmarks/turning-circle-details';
 import { addStreetFrontages } from '../landmarks/street-frontages';
+import { addSchoolStreetWest } from '../landmarks/school-street-west';
 import { addWoodlandSteps } from '../landmarks/woodland-steps';
 import { addBridgeSideGate, gateWorld } from '../landmarks/bridge-side-gate';
 import {
@@ -81,6 +82,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addBlackburnEntranceWall(kit, { surface }));
   walls.push(...addSchoolForecourt(kit, { surface }));
   walls.push(...addSchoolStreetWall(kit, { surface }));
+  walls.push(...addSchoolStreetWest(kit, { surface }));
   walls.push(
     ...addBridgeRoadWall(kit, { surface, data, lowerStone: passageStone }),
   );

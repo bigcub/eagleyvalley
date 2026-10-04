@@ -42,6 +42,7 @@ import {
   TURNING_CIRCLE_DETAILS,
   VALLEY_ENTRANCE,
   SCHOOL_STREET,
+  SCHOOL_STREET_WEST,
 } from './layout';
 import {
   createEagleyHoughBendPlan,
@@ -536,6 +537,88 @@ export function createSurface(data: WorldData) {
     return undefined;
   }
 
+  // M25b west square and bay: the EA grid carries the raised School House
+  // plot into the paving. One plane fitted to the surrounding road heights
+  // (setts end, south stub, path at the bollards) replaces it; the bay rises
+  // gently from its mouth. Open edges blend back over 1.5m. Uses sampled
+  // terrain only, so road heights that read terrain cannot recurse here.
+  const schoolBayWall = SCHOOL_STREET_WEST.wall
+    .slice(1)
+    .map((b, i) => ({ a: SCHOOL_STREET_WEST.wall[i], b }));
+  const schoolSquareEdges = SCHOOL_STREET_WEST.openEdges.map((i) => {
+    const p = SCHOOL_STREET_WEST.paving;
+    return { a: p[i], b: p[(i + 1) % p.length] };
+  });
+  function unzonedGround(x: number, z: number) {
+    const r = nearest(x, z, roadSeg);
+    return r.d < roadWidth(r.s.f) / 2 + 1.3
+      ? sampledTerrain(r.x, r.z) + 0.38
+      : sampledTerrain(x, z) + 0.13;
+  }
+  let schoolSquarePlane: number[] | undefined;
+  function schoolSquareFit(x: number, z: number) {
+    const W = SCHOOL_STREET_WEST;
+    if (!schoolSquarePlane) {
+      // Least-squares plane y = a + b(x - x0) + c(z - z0) through the anchors.
+      const [x0, z0] = W.mouth;
+      const M = [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+        v = [0, 0, 0];
+      for (const [ax, az] of W.anchors) {
+        const row = [1, ax - x0, az - z0],
+          y = unzonedGround(ax, az);
+        for (let r = 0; r < 3; r++) {
+          v[r] += row[r] * y;
+          for (let c = 0; c < 3; c++) M[r][c] += row[r] * row[c];
+        }
+      }
+      const det = (m: number[][]) =>
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+        m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+        m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+      const d = det(M);
+      schoolSquarePlane = [0, 1, 2].map(
+        (k) =>
+          det(M.map((row, r) => row.map((c, j) => (j === k ? v[r] : c)))) / d,
+      );
+    }
+    const [a, b, c] = schoolSquarePlane,
+      s = (x - W.mouth[0]) * W.axis[0] + (z - W.mouth[1]) * W.axis[1];
+    return (
+      a + b * (x - W.mouth[0]) + c * (z - W.mouth[1]) + W.rise * Math.max(0, s)
+    );
+  }
+  // Height a point would have without the square, except that roads whose
+  // centreline lies in the square take the square's level. The terrain zone
+  // sits 0.38m under the paving, so road heights read from terrain there
+  // (centreline + 0.38) land exactly on the square on both sides of its edge.
+  function schoolSquareOriginal(x: number, z: number) {
+    const r = nearest(x, z, roadSeg);
+    if (r.d >= roadWidth(r.s.f) / 2 + 1.3) return sampledTerrain(x, z) + 0.13;
+    return inPoly(r.x, r.z, SCHOOL_STREET_WEST.paving)
+      ? schoolSquareFit(r.x, r.z)
+      : sampledTerrain(r.x, r.z) + 0.38;
+  }
+  function schoolBayY(x: number, z: number, seams = false) {
+    const W = SCHOOL_STREET_WEST;
+    if (inPoly(x, z, W.paving)) {
+      const edge = nearest(x, z, schoolSquareEdges).d;
+      return lerp(
+        schoolSquareOriginal(x, z),
+        schoolSquareFit(x, z),
+        smoothstep(edge, 0, W.blend),
+      );
+    }
+    if (
+      seams &&
+      schoolBayWall.some((s, i) => nearest(x, z, [s]).d < W.seams[i])
+    )
+      return schoolSquareFit(x, z);
+    return undefined;
+  }
   const schoolForecourtPlan = createSchoolForecourtPlan();
   // Photographed level front garden, fitted to its west EA anchor. Estimated.
   const schoolHouseBase = sampledTerrain(...schoolWorld(0, 0)) + 0.15;
@@ -790,6 +873,10 @@ export function createSurface(data: WorldData) {
   // terrain on centrelines that lie inside the junction.
   let inJunctionTerrain = false;
   const terrainZones: Zone[] = [
+    {
+      name: 'school-street-west-bay',
+      y: (x, z) => offset(schoolBayY(x, z, true), -0.38),
+    },
     {
       // Keep grass below the fitted narrow slab pavements; centreline heights
       // retain their existing EA datum. No raised movement kerb.
@@ -1087,6 +1174,7 @@ export function createSurface(data: WorldData) {
   const groundZones: Zone[] = [
     { name: 'valley-mill-entrance', y: valleyEntranceY },
     { name: 'school-forecourt', y: schoolGround },
+    { name: 'school-street-west-bay', y: schoolBayY },
     { name: 'blackburn-entrance', y: entranceGround },
     { name: 'garage-back-formation', y: garageBackingY },
     {

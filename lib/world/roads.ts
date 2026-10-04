@@ -25,6 +25,7 @@ import {
   OSM,
   SCHOOL_STREET,
   VALLEY_ENTRANCE,
+  SCHOOL_STREET_WEST,
 } from './layout';
 import type { Surface } from './surface';
 
@@ -137,13 +138,24 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
     if (f.id === OSM.busTurningLoop) continue; // M02 draws one connected loop.
     if (f.id === OSM.eagleyBrow) continue; // Dedicated woodland entrance below.
     if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
+    // M25b: the photographed bay and square are block paving, drawn with the
+    // west-end walls; the mapped cross-run and footpath keep their movement roles.
+    if ([OSM.schoolStreetCross, OSM.schoolStreetWestPath].includes(f.id))
+      continue;
     const w = roadWidth(f),
       foot = w < 2,
       p = densify(
         f.points,
-        foot || f.id === OSM.threadfoldWayLoop || f.id === OSM.scholarsRise
+        foot ||
+          f.id === OSM.threadfoldWayLoop ||
+          f.id === OSM.scholarsRise ||
+          f.id === OSM.schoolStreetMain
           ? 0.35
           : 3,
+      ).filter(
+        // M25b: west of the sett line the block-paved square takes over.
+        (q) =>
+          f.id !== OSM.schoolStreetMain || q[0] > SCHOOL_STREET_WEST.settEndX,
       );
     const own = segments([f]);
     // The footbridge deck follows the walking surface, which eases it onto

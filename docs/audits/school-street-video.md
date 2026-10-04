@@ -54,3 +54,11 @@ Each visible front of 727434536–547 has one ground-floor window with the door 
 ## Beyond the alley and the south corner, v0.3.99
 
 Street View Aug 2022 1iQy8MVIscmjrQHXftz_UQ (about X152 Z-58; headings 24 and 204) and KaaGeWPfiZeRnwL60JUIog (X161 Z-54; 24 and 190). 548–552: buff sandstone, round-arched stone door heads, door to the west of one ground window, upper window above it; 549–551 seen, 548 and 552 follow them. 499–503 on the south side: two mirrored pairs with doors at the outer ends; painted surrounds on 500 (red) and 499 (grey), black sills on 501; the SCHOOL STREET name plate beside 503's door. Door-to-ID assignment is by camera position and may be one house out. Gables, rears, arch dimensions and the plate's exact position are not measured.
+
+## M25b west square and bay, v0.3.100
+
+Google aerial (north up, scaled at about 20px/m from the OSM corner of 727434536) and Aug 2022 Street View u4WK-uzOE3KV1sbD3C8m2A (about X88 Z-88; headings 20, 100, 220) and YGooBqD1oEUGn0MV_Z9FXw (X93 Z-85; 230, 290, 340). No imagery saved or distributed.
+
+Observed: the setts stop at the square; grey concrete block paving covers the square and a walled bay running north-north-east on the line of cross-run 727434561. The bay is about 7.5m wide and 10m deep. It is bounded by coursed sandstone retaining walls with coping and black railings: the School House side, the back, and a side wall along No.34's (536) rendered gable, ending at a square pier with a low brown utility door. A row of five black bollards separates the paving from asphalt on the west, where the forecourt road and parking continue. Double yellow lines are omitted as instructed.
+
+Modelled in `lib/landmarks/school-street-west.ts`, outline and level anchors in `SCHOOL_STREET_WEST`. Traced corners, wall heights, bollard spacing and the bay's 4.5% grade are estimates. The EA grid carries the raised School House plot into the bay; the named level zone replaces that with one fitted plane. Not modelled yet: the asphalt west of the bollards, the lamp, the parking area, and anything inside the School House plot or its private access (M25d).

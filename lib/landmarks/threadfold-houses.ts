@@ -2,10 +2,7 @@ import * as T from 'three';
 import type { Kit } from '../core/kit';
 import { nearest, type P, type Segment } from '../core/geo';
 import { drape } from '../core/mesh';
-import {
-  roofUV,
-  slateMaterial,
-} from '../materials/building-surfaces';
+import { roofUV, slateMaterial } from '../materials/building-surfaces';
 import { housingBrick, housingUV } from '../materials/housing-brick';
 import { OSM, THREADFOLD_HOUSES as H } from '../world/layout';
 
@@ -253,12 +250,26 @@ export function addThreadfoldHouses(
     // Rear type is provisional. No.8 brochure confirms two first-floor windows
     // and garden doors. Other houses, top and ground divisions are interpreted,
     // not individually photographed counts. Keep separate from the front survey.
-    const rearWindow = (u: number, bottom: number, height: number, width: number, panes = 2) => {
+    const rearWindow = (
+      u: number,
+      bottom: number,
+      height: number,
+      width: number,
+      panes = 2,
+    ) => {
       const v = -H.depth - 0.08;
       B(u, bottom + height / 2, v, width + 0.12, height + 0.12, 0.12, white);
       B(u, bottom + height / 2, v - 0.075, width, height, 0.04, glass);
       for (let k = 1; k < panes; k++)
-        B(u - width / 2 + width * k / panes, bottom + height / 2, v - 0.105, 0.045, height, 0.03, white);
+        B(
+          u - width / 2 + (width * k) / panes,
+          bottom + height / 2,
+          v - 0.105,
+          0.045,
+          height,
+          0.03,
+          white,
+        );
       B(u, bottom + height - 0.33, v - 0.105, width, 0.035, 0.03, white);
       B(u, bottom - 0.1, v - 0.04, width + 0.25, 0.14, 0.25, pale);
       B(u, bottom + height + 0.1, v - 0.01, width + 0.18, 0.16, 0.16, pale);
