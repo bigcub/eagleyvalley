@@ -257,20 +257,9 @@ export function addBridgeGardens(
     g.computeVertexNormals();
     batch(g, grass);
   }
-  function hedge(a: number[], b: number[], height: number) {
-    const length = Math.hypot(b[0] - a[0], b[1] - a[1]),
-      steps = Math.ceil(length / 0.55);
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps,
-        x = a[0] + (b[0] - a[0]) * t,
-        z = a[1] + (b[1] - a[1]) * t;
-      shrub(x, z, height * (0.92 + 0.08 * Math.sin(i * 1.7)), terrain(x, z));
-    }
-  }
   for (const plot of plots) lawn(plot);
-  // Divisions, brook-end hedge and gates are in bridge-garden-fences.ts.
-  hedge([111.5, -4.3], [113.1, -1.8], 1.3);
-  hedge([113.1, -1.8], [113.4, 10.8], 1.3);
+  // Divisions and brook-end gates are in bridge-garden-fences.ts; the eastern
+  // clipped hedge and gate-side bed are in bridge-gate-planting.ts.
   // Rear patios and solid dividers are modelled in bridge-rear.ts from IMG_8274.
 }
 

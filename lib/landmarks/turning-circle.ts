@@ -64,6 +64,9 @@ export function createTurningCirclePlan() {
     return [x + (dx / d) * inset, z + (dz / d) * inset];
   });
   const road = [...outer, ...C.mouth];
+  // The loop paving ends at the asphalt edge. Filling the whole road beneath
+  // asphalt let differently triangulated grades expose small paving shards.
+  const blockRoad = [...outer, ...C.asphaltMouth.slice(2, 7)];
   const formation = [...back, ...C.mouth];
   const start = Math.ceil((D.bed.start / (C.outer.length - 1)) * 150);
   const end = Math.floor((D.bed.end / (C.outer.length - 1)) * 150);
@@ -112,6 +115,7 @@ export function createTurningCirclePlan() {
     islandNormals,
     grass,
     road,
+    blockRoad,
     formation,
     edge: outline(formation),
     bedFront,
@@ -149,7 +153,7 @@ export function addTurningCircle(kit: Kit, { surface }: { surface: Surface }) {
   // The island plates cover this road fill. No disconnected road ribbons or
   // abrupt UV seams at each mapped centreline segment.
   kit.batch(
-    drape(p.road, (x, z) => y(x, z) + 0.015, 1.5),
+    drape(p.blockRoad, (x, z) => y(x, z) + 0.015, 1),
     kit.m.blockPaving,
   );
   kit.batch(

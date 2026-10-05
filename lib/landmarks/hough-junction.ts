@@ -2,7 +2,7 @@ import * as T from 'three';
 import type { Kit } from '../core/kit';
 import { inPoly, nearest, outline, type P } from '../core/geo';
 import { drape, sweep } from '../core/mesh';
-import { HOUGH_JUNCTION as D } from '../world/layout';
+import { BROOK_EAST_PARKING, HOUGH_JUNCTION as D } from '../world/layout';
 
 type Wall = { a: P; b: P };
 type V = [number, number];
@@ -459,6 +459,8 @@ const northPavement: P[] = [
   ...D.northBack,
 ];
 const northPavementEdges = outline(northPavement);
+// DQl340/20: continuous pavement between the kerb and back-edge rail.
+const railPavement: P[] = [...KERB_LINES[7].pts, ...D.rail.slice().reverse()];
 
 /** Lower adjacent coarse grass cells as well as the filled return, so their
  * triangles cannot cut through the asphalt. Movement uses the actual outline. */
@@ -589,6 +591,7 @@ export function addHoughJunction(
   kit: Kit,
   roadY: (x: number, z: number) => number,
   ground: (x: number, z: number) => number,
+  threadfoldY: (x: number, z: number) => number,
 ) {
   const { box, batch, mat } = kit;
   const { dark, kerb, asphalt } = kit.m;
@@ -609,7 +612,18 @@ export function addHoughJunction(
   );
 
   // Kerbs with a face, pavements behind them, skirts on their open edge.
-  for (const k of lines) {
+  const openLines = lines.flatMap((line) =>
+    line.pts.slice(1).flatMap((b, i) => {
+      const a = line.pts[i];
+      // The parking mouth continues through the junction module's west edge.
+      if (
+        inPoly((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, BROOK_EAST_PARKING.outline)
+      )
+        return [];
+      return [{ ...line, pts: [a, b], out: [line.out[i], line.out[i + 1]] }];
+    }),
+  );
+  for (const k of openLines) {
     if (k.pts.length < 2) continue;
     const base = k.pts.map((p) => roadY(...p));
     const lift = k.pts.map((p) => kerbHeight(...p) - KERB_H);
@@ -643,6 +657,11 @@ export function addHoughJunction(
 
   batch(
     drape(northPavement, (x, z) => roadY(x, z) + kerbHeight(x, z) - 0.006, 0.6),
+    paving,
+  );
+
+  batch(
+    drape(railPavement, (x, z) => threadfoldY(x, z) + PAVE_H + 0.006, 0.6),
     paving,
   );
 
@@ -770,9 +789,8 @@ export function addHoughJunction(
   }
   // Black heritage lamp on Threadfold Way's east pavement (DQl heading 340).
   {
-    const x = 147.7,
-      z = -31.2,
-      y = roadY(x, z) + PAVE_H;
+    const [x, z] = D.lamp;
+    const y = roadY(x, z) + PAVE_H;
     box(x, y + 2.1, z, 0.12, 4.2, 0.12, dark);
     box(x, y + 0.2, z, 0.24, 0.4, 0.24, dark);
     box(x, y + 4.35, z, 0.34, 0.45, 0.34, dark);

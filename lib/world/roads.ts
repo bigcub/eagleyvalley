@@ -1,18 +1,29 @@
+import { addHallWoodlandSurface } from '../landmarks/hall-woodland-entrance';
+import { addThreadfoldBendPavement } from '../landmarks/threadfold-bend';
 import { addBridgeParking } from '../landmarks/bridge-parking';
+import { addSchoolStreetParking } from '../landmarks/school-street-parking';
+import { addBrookEastParking } from '../landmarks/brook-east-parking';
 import { valleyEntranceLocal } from '../landmarks/valley-entrance';
 import {
   addBlackburnEntrance,
   blackburnLocal,
 } from '../landmarks/blackburn-entrance';
 import * as T from 'three';
-import { densify, nearest, segments, type Feature, type P } from '../core/geo';
+import {
+  densify,
+  inPoly,
+  nearest,
+  segments,
+  type Feature,
+  type P,
+} from '../core/geo';
 import type { Kit } from '../core/kit';
 import { gravelTexture } from '../materials/gravel-texture';
 import { schoolStreetSetts } from '../materials/school-street-setts';
 import { addBrookParking } from '../landmarks/brook-mill-grounds';
 import { addEagleyBrowSurface } from '../landmarks/eagley-brow';
 import { addEagleyHoughBend } from '../landmarks/eagley-hough-bend';
-import { addTurningCircle } from '../landmarks/turning-circle';
+import { addTurningCircle, inTurningCircle } from '../landmarks/turning-circle';
 import {
   HOUGH_CENTRE,
   HOUGH_RADIUS,
@@ -26,6 +37,8 @@ import {
   SCHOOL_STREET,
   VALLEY_ENTRANCE,
   SCHOOL_STREET_WEST,
+  SCHOOL_STREET_PARKING,
+  BROOK_EAST_PARKING,
 } from './layout';
 import type { Surface } from './surface';
 
@@ -37,6 +50,10 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   const { ribbon, box, mat, m } = kit;
   const { roadY, roadSeg, gateApproach } = surface;
   const { asphalt, blockPaving, paving, kerb, paint } = m;
+  addHallWoodlandSurface(kit, { surface });
+  addSchoolStreetParking(kit, { surface });
+  addBrookEastParking(kit, { surface });
+  addThreadfoldBendPavement(kit, { surface });
   const schoolSetts = schoolStreetSetts(kit);
   const gravel = mat('riversideGravel', '#aaa99a');
   gravel.map = gravelTexture();
@@ -59,6 +76,28 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
         len = Math.hypot(dx, dz) || 1;
       const x = (a[0] + b[0]) / 2 - (dz / len) * offset,
         z = (a[1] + b[1]) / 2 + (dx / len) * offset;
+      // The open asphalt parking joins the frontage without a pavement strip
+      // or kerb across its entrance and manoeuvring aisle.
+      if (
+        f.id === OSM.threadfoldWayLoop &&
+        (material === paving || material === kerb) &&
+        inPoly(x, z, BROOK_EAST_PARKING.outline)
+      )
+        return false;
+      if (
+        f.id === OSM.schoolStreetFront &&
+        offset > 0 &&
+        (material === paving || material === kerb) &&
+        inPoly(x, z, SCHOOL_STREET_PARKING.outline)
+      )
+        return false;
+      // M02 owns the turning-circle kerbs and paving. Generic approach strips
+      // previously continued across its asphalt mouth.
+      if (
+        (material === paving || material === kerb) &&
+        inTurningCircle(x, z, surface.turningCirclePlan)
+      )
+        return false;
       const [eu, ev] = blackburnLocal(x, z);
       const [vu, vd] = valleyEntranceLocal(x, z);
       // The entrance owns this pavement patch; leave the carriageway kerb.
@@ -122,8 +161,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   function surfaceMaterial(f: Feature, foot: boolean) {
     if (foot) return f.id === OSM.riversidePath ? gravel : paving;
     if (OSM.schoolStreetSetts.includes(f.id)) return schoolSetts;
-    return f.id === OSM.schoolStreetFront ||
-      (f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop)
+    return f.name === 'Threadfold Way' && f.id !== OSM.threadfoldWayLoop
       ? blockPaving
       : asphalt;
   }

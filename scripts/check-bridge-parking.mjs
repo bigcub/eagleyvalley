@@ -27,6 +27,13 @@ await page.waitForFunction(
   () => !document.querySelector('#start-btn').disabled,
 );
 await page.screenshot({ path: 'outputs/title-final.png' });
+const expectedVersion = fs
+  .readFileSync('lib/world-version.ts', 'utf8')
+  .match(/WORLD_VERSION = ['"]([^'"]+)['"]/)[1];
+assert.ok(
+  (await page.locator('body').innerText()).includes(expectedVersion),
+  'Wrong preview world',
+);
 await page.locator('#start-btn').click();
 const state = () =>
   page.evaluate(() => JSON.parse(window.render_game_to_text()));
@@ -134,13 +141,13 @@ const manoeuvres = await page.evaluate(() => {
     window.advanceTime(1600, false);
     set([]);
   };
-  const drive = (targets, reversing = false) => {
+  const drive = (targets, reversing = false, tolerance = 1.1) => {
     const reached = [];
     for (const t of targets) {
       let done = false;
       for (let n = 0; n < 1200; n++) {
         const p = read().player;
-        if (Math.hypot(t[0] - p.x, t[1] - p.z) < 1.1) {
+        if (Math.hypot(t[0] - p.x, t[1] - p.z) < tolerance) {
           done = true;
           break;
         }
@@ -173,8 +180,17 @@ const manoeuvres = await page.evaluate(() => {
   const parked = read().player;
   const departure = drive([[20, 15.6]]);
   const reverse = read().player;
+  const centralApproach = drive([
+    [33.1, 15.6],
+    [33.1, 3],
+  ]);
+  const central = drive([[33.1, 16.5]], true, 0.3);
+  const centralExit = drive([[33.1, 9]]);
+  const easternApproach = drive([[20, 4.7]]);
+  const eastern = drive([[35.8, 4.7]], true, 0.3);
+  const easternExit = drive([[25, 4.7]]);
   const ramp = drive([
-    [30, 12],
+    [25, 14],
     [43, 13],
     [56, 12],
     [64, 11.5],
@@ -188,6 +204,12 @@ const manoeuvres = await page.evaluate(() => {
   window.advanceTime(1);
   return {
     parking,
+    centralApproach,
+    central,
+    centralExit,
+    easternApproach,
+    eastern,
+    easternExit,
     parked,
     departure,
     reverse,
@@ -197,12 +219,28 @@ const manoeuvres = await page.evaluate(() => {
   };
 });
 console.log('MANOEUVRES', JSON.stringify(manoeuvres));
+fs.writeFileSync(
+  'outputs/bridge-manoeuvres.json',
+  JSON.stringify(manoeuvres, null, 2),
+);
 assert.equal(
   manoeuvres.parking.filter((p) => p.done).length,
   2,
   'Reverse parking approach failed',
 );
 assert.ok(manoeuvres.reverse.x > 18.8, 'Departure from bay failed');
+for (const label of [
+  'centralApproach',
+  'central',
+  'centralExit',
+  'easternApproach',
+  'eastern',
+  'easternExit',
+])
+  assert.ok(
+    manoeuvres[label].every((p) => p.done),
+    `${label} parking manoeuvre blocked`,
+  );
 assert.equal(
   manoeuvres.ramp.filter((p) => p.done).length,
   4,

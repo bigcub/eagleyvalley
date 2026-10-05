@@ -15,6 +15,8 @@ async function start() {
   await page.goto(process.env.GAME_URL || 'http://127.0.0.1:3000');
   await page.waitForFunction(
     () => window.eagley_debug && !document.querySelector('#start-btn').disabled,
+    null,
+    { timeout: 60000 },
   );
   await page.locator('#start-btn').click();
 }
@@ -221,6 +223,39 @@ assert.equal(
   'School Street drive/return incomplete',
 );
 await page.screenshot({ path: 'outputs/school-street-drive.png' });
+// Flag 56288c8a: enter the asphalt parking from the connected frontage,
+// park beside its wooded edge, reverse out, then walk the apron both ways.
+await start();
+await page.evaluate(() =>
+  window.eagley_debug.driveFrom(45.5, -93.64, Math.atan2(22, 10)),
+);
+const parking = [
+  [54, -89.5],
+  [62, -85.7],
+  [71, -81.5],
+  [75.5, -77.8],
+];
+results.parkingDrive = await follow(parking, 'drive');
+assert.equal(
+  results.parkingDrive.index,
+  parking.length,
+  'Parking drive incomplete',
+);
+await page.screenshot({ path: 'outputs/school-street-parked.png' });
+results.parkingReverse = await follow(
+  [...parking.slice(0, -1).toReversed(), [45.5, -93.64]],
+  'drive',
+  true,
+);
+assert.equal(results.parkingReverse.index, 4, 'Parking reverse incomplete');
+await page.keyboard.press('e');
+results.parkingWalk = await follow(
+  [...parking, ...parking.toReversed(), [48, -92]],
+  'walk',
+);
+assert.equal(results.parkingWalk.index, 9, 'Parking walk incomplete');
+assert.ok(results.parkingWalk.maxStep < 0.18, 'Parking walking level jump');
+assert.ok(results.parkingDrive.maxStep < 0.08, 'Parking driving level jump');
 console.log(JSON.stringify({ results, errors }));
 fs.writeFileSync(
   'outputs/m20b-movement.json',

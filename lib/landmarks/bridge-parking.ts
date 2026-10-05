@@ -1,4 +1,3 @@
-import * as T from 'three';
 import { inPoly, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { drape } from '../core/mesh';
@@ -13,6 +12,10 @@ export const inBridgeParkingIsland = (x: number, z: number) =>
  * Bay groups fitted from aerial references; paint condition and dimensions estimated. */
 export function addBridgeParking(kit: Kit, { surface }: { surface: Surface }) {
   const { courtY } = surface;
+  kit.batch(
+    drape(D.apron, (x, z) => surface.courtApronY(x, z) + 0.018, 0.6),
+    kit.m.asphalt,
+  );
   // Following the well edge as part of the perimeter avoids triangles dropping
   // through its retaining face. Door bridges already supply the crossings.
   const edge = D.surface;
@@ -79,7 +82,7 @@ export function addBridgeParking(kit: Kit, { surface }: { surface: Surface }) {
   // The shared lower formation is used by grass and player movement as well.
 }
 
-/** Existing retaining rail, with the three entrance crossings kept open. */
+/** Retaining rails and western hedge, with the three entrance crossings open. */
 export function bridgeParkingWalls(): { a: P; b: P }[] {
   const at = (u: number, v: number): P => [
     40.42 + u * 0.997 + v * 0.079,
@@ -96,30 +99,7 @@ export function bridgeParkingWalls(): { a: P; b: P }[] {
   lines.push({ a: world(previous), b: world(W.u1) });
   // East-end well rail beside the court, meeting the rockery coping.
   lines.push({ a: world(W.u1), b: at(W.u1, W.north) });
-  return lines;
-}
-
-/** Only the photographed western clipped hedge; crowns and species fitted. */
-export function addBridgeParkingPlanting(
-  kit: Kit,
-  { surface, leaf }: { surface: Surface; leaf: T.Material },
-) {
   const h = D.hedge;
-  const core = kit.mat('bridgeCourtHedge', '#45543a');
-  for (let z = h.fromZ; z < h.toZ; z += 0.7) {
-    const y = surface.courtY(h.x, z);
-    kit.box(h.x, y + h.height / 2, z, h.width, h.height, 0.75, core);
-    for (let k = 0; k < 28; k++) {
-      const angle = k * 2.399 + z;
-      const g = new T.PlaneGeometry(0.24, 0.25);
-      g.rotateY(angle);
-      g.rotateX(Math.sin(k + z) * 0.6);
-      g.translate(
-        h.x + Math.cos(angle) * 0.48,
-        y + 0.18 + (k % 6) * 0.14,
-        z + Math.sin(angle) * 0.38,
-      );
-      kit.batch(g, leaf);
-    }
-  }
+  lines.push({ a: [h.x, h.fromZ], b: [h.x, h.toZ] });
+  return lines;
 }

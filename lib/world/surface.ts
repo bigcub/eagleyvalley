@@ -1,3 +1,5 @@
+import { createHallWoodlandPlan } from '../landmarks/hall-woodland-entrance';
+import { createThreadfoldBendPlan } from '../landmarks/threadfold-bend';
 import {
   createSchoolForecourtPlan,
   inSchoolPavement,
@@ -10,6 +12,7 @@ import {
 } from '../landmarks/blackburn-entrance';
 import * as T from 'three';
 import {
+  bounds,
   inPoly,
   nearest,
   outline,
@@ -27,6 +30,7 @@ import {
   BROOK_WEST_ENTRANCE,
   BROOK_WEST,
   BROOK_PARKING_ENTRY,
+  BROOK_EAST_PARKING,
   GARAGE_BACKING,
   EAGLEY_BROW_ENTRANCE,
   EAGLEY_HOUGH_BEND,
@@ -43,6 +47,7 @@ import {
   VALLEY_ENTRANCE,
   SCHOOL_STREET,
   SCHOOL_STREET_WEST,
+  SCHOOL_STREET_PARKING,
   HOUGH_TERRACE_ROAD,
 } from './layout';
 import {
@@ -92,6 +97,12 @@ type Zone = { name: string; y: (x: number, z: number) => number | undefined };
 const { lerp, smoothstep, clamp } = T.MathUtils;
 
 export function createSurface(data: WorldData) {
+  const hallWoodlandPlan = createHallWoodlandPlan(data);
+  function hallWoodlandY(x: number, z: number) {
+    const n = nearest(x, z, hallWoodlandPlan.spine);
+    return sampledTerrain(n.x, n.z) + 0.38;
+  }
+  const threadfoldBendPlan = createThreadfoldBendPlan(data);
   const { roads, water, buildings, survey, elevations } = data;
   const roadSeg = segments(roads),
     gateRoadSegments = roadSeg.filter((s) => roadWidth(s.f) > 2),
@@ -449,6 +460,33 @@ export function createSurface(data: WorldData) {
       ? brookEntryY(x, z)
       : brookParkingPlane(x, z);
   }
+  const brookEastEdge = outline(BROOK_EAST_PARKING.outline);
+  const brookEastBounds = bounds(BROOK_EAST_PARKING.outline);
+  const brookEastDatum = sampledTerrain(...BROOK_EAST_PARKING.datum) + 0.13;
+  function brookEastParkingY(x: number, z: number) {
+    const B = brookEastBounds;
+    if (x < B.minX || x > B.maxX || z < B.minZ || z > B.maxZ) return undefined;
+    if (!inPoly(x, z, BROOK_EAST_PARKING.outline)) return undefined;
+    const n = nearest(x, z, brookEntryRoad);
+    // Keep the existing carriageway grade; the apron eases down behind it.
+    const road = vehicleRoadY(x, z);
+    const fit = lerp(
+      road,
+      brookEastDatum,
+      smoothstep(n.d, ...BROOK_EAST_PARKING.roadBlend),
+    );
+    const old =
+      n.d < roadWidth(n.s.f) / 2 + 1.3 ? road : sampledTerrain(x, z) + 0.13;
+    return lerp(
+      old,
+      fit,
+      smoothstep(
+        nearest(x, z, brookEastEdge).d,
+        0,
+        BROOK_EAST_PARKING.edgeBlend,
+      ),
+    );
+  }
   const brookWestEntry = brookParkingY(...BROOK_WEST_ENTRANCE.centre) + 0.02;
   function brookWestApproachY(x: number, z: number) {
     const distance = Math.max(
@@ -480,6 +518,25 @@ export function createSurface(data: WorldData) {
   }
   function courtY(x: number, z: number) {
     return lerp(courtFormation(x, z), passageY, junctionWeight(x, z));
+  }
+  const courtApronStart = sampledTerrain(...BRIDGE_PARKING.entranceRoad) + 0.38;
+  function courtApronY(x: number, z: number) {
+    if (inPoly(x, z, court)) return courtY(x, z);
+    const a = BRIDGE_PARKING.entranceRoad,
+      b = BRIDGE_PARKING.entrance;
+    const dx = b[0] - a[0],
+      dz = b[1] - a[1];
+    const t = clamp(
+      ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz),
+      0,
+      1,
+    );
+    const entry = lerp(courtApronStart, courtEntryY, smoothstep(t, 0, 1));
+    return lerp(
+      courtY(x, z),
+      entry,
+      smoothstep(nearest(x, z, courtOutline).d, 0, 3),
+    );
   }
   /** Side-garden ground at the open north end of the east well. */
   const wellGarden = () => sampledTerrain(66, -6) + 0.13;
@@ -546,10 +603,6 @@ export function createSurface(data: WorldData) {
   const schoolBayWall = SCHOOL_STREET_WEST.wall
     .slice(1)
     .map((b, i) => ({ a: SCHOOL_STREET_WEST.wall[i], b }));
-  const schoolSquareEdges = SCHOOL_STREET_WEST.openEdges.map((i) => {
-    const p = SCHOOL_STREET_WEST.paving;
-    return { a: p[i], b: p[(i + 1) % p.length] };
-  });
   function unzonedGround(x: number, z: number) {
     const r = nearest(x, z, roadSeg);
     return r.d < roadWidth(r.s.f) / 2 + 1.3
@@ -597,6 +650,14 @@ export function createSurface(data: WorldData) {
   // sits 0.38m under the paving, so road heights read from terrain there
   // (centreline + 0.38) land exactly on the square on both sides of its edge.
   function schoolSquareOriginal(x: number, z: number) {
+    // The former nearest-road switch sat in open ground west of the square.
+    // Its footpath and frontage-road datums disagree. Now this is paved,
+    // carry the square's fitted grade through that short connecting throat.
+    if (
+      x >= SCHOOL_STREET_PARKING.squareBlend[1] &&
+      inPoly(x, z, SCHOOL_STREET_PARKING.outline)
+    )
+      return schoolSquareFit(x, z);
     const r = nearest(x, z, roadSeg);
     if (r.d >= roadWidth(r.s.f) / 2 + 1.3) return sampledTerrain(x, z) + 0.13;
     return inPoly(r.x, r.z, SCHOOL_STREET_WEST.paving)
@@ -606,11 +667,13 @@ export function createSurface(data: WorldData) {
   function schoolBayY(x: number, z: number, seams = false) {
     const W = SCHOOL_STREET_WEST;
     if (inPoly(x, z, W.paving)) {
-      const edge = nearest(x, z, schoolSquareEdges).d;
+      // One grade across the parking/bollard join and square. The old blend
+      // to whichever mapped path was nearest produced steep triangles here.
+      // Retain the blend only at the eastern sett-road connection.
       return lerp(
-        schoolSquareOriginal(x, z),
         schoolSquareFit(x, z),
-        smoothstep(edge, 0, W.blend),
+        schoolSquareOriginal(x, z),
+        smoothstep(x, W.settBlend[0], W.settBlend[1]),
       );
     }
     if (
@@ -619,6 +682,28 @@ export function createSurface(data: WorldData) {
     )
       return schoolSquareFit(x, z);
     return undefined;
+  }
+  const schoolParkingRoad = roadSeg.filter(
+      (s) => s.f.id === OSM.schoolStreetFront,
+    ),
+    schoolParkingEdge = outline(SCHOOL_STREET_PARKING.outline),
+    schoolParkingBounds = bounds(SCHOOL_STREET_PARKING.outline);
+  function schoolParkingY(x: number, z: number) {
+    const P = SCHOOL_STREET_PARKING;
+    const B = schoolParkingBounds;
+    if (x < B.minX || x > B.maxX || z < B.minZ || z > B.maxZ) return undefined;
+    if (!inPoly(x, z, P.outline)) return undefined;
+    const n = nearest(x, z, schoolParkingRoad),
+      edge = nearest(x, z, schoolParkingEdge).d;
+    const roadLevel = sampledTerrain(n.x, n.z) + 0.38,
+      east = smoothstep(x, P.squareBlend[0], P.squareBlend[1]);
+    // Retain the road's EA centreline grade and ease the parking onto it.
+    // The square and School House pavement own their existing edge levels.
+    return lerp(
+      lerp(schoolSquareOriginal(x, z), schoolSquareFit(x, z), east),
+      lerp(roadLevel, schoolSquareFit(x, z), east),
+      smoothstep(edge, 0, P.blend),
+    );
   }
   const schoolForecourtPlan = createSchoolForecourtPlan();
   // Photographed level front garden, fitted to its west EA anchor. Estimated.
@@ -875,6 +960,28 @@ export function createSurface(data: WorldData) {
   let inJunctionTerrain = false;
   const terrainZones: Zone[] = [
     {
+      name: 'hall-woodland-entrance-formation',
+      y: (x, z) =>
+        inPoly(x, z, hallWoodlandPlan.formation)
+          ? Math.min(sampledTerrain(x, z), hallWoodlandY(x, z) - 0.16)
+          : undefined,
+    },
+    {
+      name: 'bridge-court-entrance-apron',
+      y: (x, z) =>
+        inPoly(x, z, BRIDGE_PARKING.apron)
+          ? Math.min(sampledTerrain(x, z), courtApronY(x, z) - 0.18)
+          : undefined,
+    },
+    {
+      name: 'threadfold-east-bend-pavement-formation',
+      y: (x, z) => {
+        if (!inPoly(x, z, threadfoldBendPlan.formation)) return undefined;
+        const n = nearest(x, z, threadfoldBendPlan.road);
+        return Math.min(sampledTerrain(x, z), roadY(x, z, n) - 0.08);
+      },
+    },
+    {
       // The corrected Hough Lane centreline runs into the west bank; keep
       // grass under the carriageway and pavements. Centrelines keep their
       // own datum, so road heights are unchanged.
@@ -898,6 +1005,24 @@ export function createSurface(data: WorldData) {
     {
       name: 'school-street-west-bay',
       y: (x, z) => offset(schoolBayY(x, z, true), -0.38),
+    },
+    {
+      name: 'school-street-parking-formation',
+      y: (x, z) => {
+        const y = schoolParkingY(x, z);
+        if (y === undefined) return undefined;
+        // Preserve centreline terrain so roadY cannot read back the parking
+        // excavation. The surface still covers the narrow retained strip.
+        return nearest(x, z, schoolParkingRoad).d < 0.5 ? undefined : y - 0.38;
+      },
+    },
+    {
+      name: 'brook-east-parking-formation',
+      y: (x, z) => {
+        // Centreline samples remain unchanged, avoiding terrain/road recursion.
+        if (nearest(x, z, brookEntryRoad).d < 0.5) return undefined;
+        return offset(brookEastParkingY(x, z), -0.38);
+      },
     },
     {
       // Keep grass below the fitted narrow slab pavements; centreline heights
@@ -1156,6 +1281,12 @@ export function createSurface(data: WorldData) {
     return plane;
   }
   function roadY(x: number, z: number, r = nearest(x, z, roadSeg)) {
+    if (
+      [OSM.hallLane, OSM.northWoodlandPath].includes(r.s?.f.id) &&
+      inPoly(x, z, hallWoodlandPlan.formation)
+    )
+      return hallWoodlandY(x, z);
+    if (inPoly(x, z, BRIDGE_PARKING.apron)) return courtApronY(x, z);
     if (inPoly(x, z, court) && r.s?.f.id === OSM.bridgeMillCourtAccess)
       return courtY(x, z);
     const entrance = entranceGround(x, z);
@@ -1194,9 +1325,28 @@ export function createSurface(data: WorldData) {
   }
 
   const groundZones: Zone[] = [
+    {
+      name: 'hall-woodland-entrance',
+      y: (x, z) =>
+        inPoly(x, z, hallWoodlandPlan.paving) ? hallWoodlandY(x, z) : undefined,
+    },
+    {
+      name: 'bridge-court-entrance-apron',
+      y: (x, z) =>
+        inPoly(x, z, BRIDGE_PARKING.apron) ? courtApronY(x, z) : undefined,
+    },
+    {
+      name: 'threadfold-east-bend-pavement',
+      y: (x, z) =>
+        inPoly(x, z, threadfoldBendPlan.pavement)
+          ? roadY(x, z, nearest(x, z, threadfoldBendPlan.road))
+          : undefined,
+    },
     { name: 'valley-mill-entrance', y: valleyEntranceY },
     { name: 'school-forecourt', y: schoolGround },
     { name: 'school-street-west-bay', y: schoolBayY },
+    { name: 'school-street-parking', y: schoolParkingY },
+    { name: 'brook-east-parking', y: brookEastParkingY },
     { name: 'blackburn-entrance', y: entranceGround },
     { name: 'garage-back-formation', y: garageBackingY },
     {
@@ -1307,6 +1457,9 @@ export function createSurface(data: WorldData) {
   }
 
   return {
+    hallWoodlandPlan,
+    hallWoodlandY,
+    threadfoldBendPlan,
     valleyMillBase,
     valleyEntranceDepth,
     valleyEntranceY,
@@ -1333,6 +1486,7 @@ export function createSurface(data: WorldData) {
     roadY,
     riverY,
     courtY,
+    courtApronY,
     brookParkingY,
     browRoadY,
     eagleyHoughBendPlan,

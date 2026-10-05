@@ -1,6 +1,9 @@
 import { addScholarsRow } from '../landmarks/scholars-row';
 import { addScholarsEnd } from '../landmarks/scholars-end';
 import { addWakefieldHouses } from '../landmarks/wakefield-houses';
+import { addSpreadEagle } from '../landmarks/spread-eagle';
+import { addValeViewTerrace } from '../landmarks/vale-view-terrace';
+import { addWakefieldWest } from '../landmarks/wakefield-west';
 import { addThreadfoldHouses } from '../landmarks/threadfold-houses';
 import { addValleyMill } from '../landmarks/valley-mill';
 import { addBrookNorthReturn } from '../landmarks/brook-north-return';
@@ -81,7 +84,21 @@ export function addBuildings(kit: Kit, surface: Surface, data: WorldData) {
     colliders.push(bounds(p));
 
     // Dedicated landmark models.
+    if (f.id === OSM.spreadEagle) {
+      addSpreadEagle(kit, { footprint: p, ground });
+      continue;
+    }
     if (STREET_HOUSES[f.id]) continue;
+    if (OSM.valeViewTerrace.includes(f.id)) {
+      if (f.id === OSM.valeViewTerrace[0])
+        addValeViewTerrace(kit, { buildings: data.buildings, ground });
+      continue;
+    }
+    if (OSM.wakefieldWest.includes(f.id)) {
+      if (f.id === OSM.wakefieldWest[0])
+        addWakefieldWest(kit, { buildings: data.buildings, ground });
+      continue;
+    }
     if (OSM.scholarsAngledPair.includes(f.id)) {
       if (f.id === OSM.scholarsAngledPair[0])
         addScholarsEnd(kit, { buildings: data.buildings, ground, terrain });

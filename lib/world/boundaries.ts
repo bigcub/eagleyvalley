@@ -1,3 +1,9 @@
+import { bridgeGateHedgeWalls } from '../landmarks/bridge-gate-planting';
+import { addHallLaneBoundary } from '../landmarks/hough-wooded-banks';
+import {
+  addHallWoodlandWall,
+  addHallWoodlandGates,
+} from '../landmarks/hall-woodland-entrance';
 import { addSchoolStreetWall } from '../landmarks/school-street';
 import { bridgeParkingWalls } from '../landmarks/bridge-parking';
 import { addValleyEntrance } from '../landmarks/valley-entrance';
@@ -58,6 +64,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   const { stone, dark, trim } = kit.m;
   const { terrain, ground, roadY, riverY, roadSeg, riverSeg } = surface;
   const walls: Wall[] = bridgeParkingWalls();
+  walls.push(...addHallWoodlandWall(kit, { surface }));
+  walls.push(...addHallLaneBoundary(kit, { surface, data }));
+  walls.push(...addHallWoodlandGates(kit, { surface }));
   walls.push(...addValleyEntrance(kit, { surface }));
   const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
 
@@ -65,6 +74,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addBrookParkingBoundaries(kit, { surface }));
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
   walls.push(...addBridgeGardenFences(kit, { surface }));
+  walls.push(...bridgeGateHedgeWalls());
   walls.push(...passageBedWalls());
   walls.push(...addCourtGardens(kit, { surface }));
   walls.push(...addEagleyBrowPosts(kit, { surface, data }));
@@ -499,7 +509,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
           false,
         );
   }
-  walls.push(...addHoughJunction(kit, surface.vehicleRoadY, ground));
+  walls.push(
+    ...addHoughJunction(kit, surface.vehicleRoadY, ground, (x, z) =>
+      surface.roadY(x, z, nearest(x, z, surface.threadfoldBendPlan.road)),
+    ),
+  );
   walls.push(
     ...addHoughFootbridge(
       kit,

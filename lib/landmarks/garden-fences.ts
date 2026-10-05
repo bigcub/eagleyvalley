@@ -222,6 +222,39 @@ export function boardFence(
   return { a, b };
 }
 
+/** Procedural small leaves for a clipped hedge core. No reference pixels. */
+export function clippedLeafMaterial(kit: Kit, name: string) {
+  const core = kit.mat(name, '#b8c3a6');
+  if (!core.map) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#263b21';
+    ctx.fillRect(0, 0, 64, 128);
+    let seed = 6729;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    for (let i = 0; i < 1400; i++) {
+      ctx.save();
+      ctx.translate(rand() * 64, rand() * 128);
+      ctx.rotate(rand() * Math.PI);
+      ctx.fillStyle = `hsl(${88 + rand() * 20} 27% ${18 + rand() * 16}%)`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 1 + rand(), 2 + rand() * 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    core.map = new T.CanvasTexture(canvas);
+    core.map.colorSpace = T.SRGBColorSpace;
+    core.bumpMap = core.map;
+    core.bumpScale = 0.015;
+  }
+  return core;
+}
+
 /** Clipped hedge: dense core with leaf cards breaking the outline. */
 export function clippedHedge(
   kit: Kit,
@@ -231,8 +264,9 @@ export function clippedHedge(
   ground: Ground,
   height: number,
   width: number,
+  coreMaterial?: T.Material,
 ) {
-  const core = kit.mat('gardenClippedHedge', '#3f5034');
+  const core = coreMaterial ?? kit.mat('gardenClippedHedge', '#3f5034');
   const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
   const rot = Math.atan2(b[0] - a[0], b[1] - a[1]);
   const n = Math.max(1, Math.round(len / 0.7));

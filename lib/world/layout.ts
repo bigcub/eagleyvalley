@@ -1,5 +1,9 @@
 import { inPoly, type P } from '../core/geo';
 
+/** Rendered brook width, estimated from the mapped centreline. The same
+ * footprint excludes inferred canopy-peak trunks, following flag efef2098. */
+export const BROOK_WATER_WIDTH = 7;
+
 // OpenStreetMap way IDs the world treats specially. Names describe the feature,
 // not necessarily the OSM name tag.
 export const OSM = {
@@ -52,6 +56,9 @@ export const OSM = {
    * The School House forecourt block paving is a separate surface. */
   schoolStreetSetts: ['549512306', '727434561'],
   eagleyHall: '549512305',
+  hallLane: '328981148',
+  northWoodlandPath: '655432302',
+  spreadEagle: '727434553',
   /** Three attached houses opposite the Bridge Mill garages. */
   courtHouses: ['727427311', '727427312', '727427313'],
   threadfoldHouses: [
@@ -64,6 +71,16 @@ export const OSM = {
     '727427300',
     '727427299',
   ],
+  valeViewTerrace: [
+    '727404361',
+    '727404363',
+    '727404364',
+    '727404366',
+    '727404365',
+    '727404367',
+    '727404362',
+  ],
+  wakefieldWest: ['727427279', '727427280', '727427281', '727427282'],
   wakefieldHouses: [
     '727427283',
     '727427284',
@@ -95,8 +112,9 @@ export const OSM = {
 export const BRIDGE_MILL_COURT: P[] = [
   [6, 2],
   [24, 2],
-  [35, 5],
-  [37, 7],
+  [35, 0.5],
+  [38.8, 0.5],
+  [38.8, 7],
   [40, 9],
   // UP-003 and Google aerial: the court fills the gap between the modern
   // block's east well and the old mill, ending at the rockery near Z0.5.
@@ -217,12 +235,14 @@ export const HOUGH_JUNCTION = {
     [147.81, -30.54],
   ] as P[],
   rail: [
-    [147.28, -27.7],
-    [147.2, -29.7],
-    [147.03, -31.3],
-    [146.19, -33.1],
-    [144.71, -36.08],
+    [148.3, -28.5],
+    [148.3, -29.9],
+    [148.12, -31.85],
+    [147.44, -33.74],
+    [145.92, -36.78],
   ] as P[],
+  // DQl headings340/20: lamp aligned with the back-edge rail. Fitted, not surveyed.
+  lamp: [148.12, -31.85] as P,
   wallHeight: 0.8,
   // Stop before the bridge mouth, rather than closing the walked connection.
   wallEnd: [147.8, -14.1] as P,
@@ -271,6 +291,8 @@ export const EAGLEY_HOUGH_BEND = {
   startX: 99.36,
   wallEndX: 113.7,
   wallThickness: 0.55,
+  // DQl headings340/20: lamp aligned with the back-edge rail. Fitted, not surveyed.
+  lamp: [148.12, -31.85] as P,
   wallHeight: 0.8,
   bounds: { x0: 98, x1: 129, z0: 10, z1: 40 },
   gradeBlend: {
@@ -449,6 +471,39 @@ export const LANDSCAPING_GATE = {
   ] as P[],
 };
 
+/** B02: June2024 EAG-043/GXa. Garden hedge and planted gate bed;
+ * fitted offsets/heights, not surveyed property boundaries. */
+export const BRIDGE_GATE_PLANTING = {
+  hedge: [
+    [111.5, -4.3],
+    [113.1, -1.8],
+    [113.4, 10.8],
+    [113.4, 17.8],
+    [113.65, 19.5],
+  ] as P[],
+  hedgeHeight: 1.45,
+  hedgeWidth: 0.65,
+  // Keep the photographed lawn around the existing canopy-peak tree open.
+  lawn: [
+    [116.3, 21.3],
+    [116.1, 12],
+    [119.2, 5.7],
+    [125.0, 8.1],
+    [122.9, 16.6],
+    [119.1, 23.0],
+  ] as P[],
+  bed: [
+    [108.0, 19.3, 1.8],
+    [109.2, 19.8, 1.1],
+    [110.3, 20.0, 0.8],
+    [111.5, 20.2, 0.85],
+    [112.1, 19.2, 1.15],
+    [108.5, 17.6, 1.9],
+    [110.0, 18.2, 1.6],
+    [111.6, 17.7, 1.5],
+  ],
+};
+
 /** M09. Visible lower flight only; six treads and dimensions are estimated.
  * The upper stair count and concealed connection remain unresolved. */
 export const WOODLAND_STEPS = {
@@ -538,6 +593,42 @@ export const BROOK_PARKING = {
     [40, -57.8],
     [48.3, -57],
   ] as P[],
+};
+
+/** June2024 entrance views: clipped roadside runs, rounded internal beds,
+ * and two narrow conifers. Crown centres, dimensions and heights estimated.
+ * Paths stay within the existing M10 beds; no extra hedge across the entrance. */
+export const BROOK_PARKING_PLANTING = {
+  hedges: [
+    {
+      path: [
+        [15.8, -43.3],
+        [29, -57],
+        [39.8, -57],
+      ] as P[],
+      bed: 0,
+      height: 1.05,
+    },
+    {
+      path: [
+        [48.7, -57],
+        [62.5, -55.7],
+      ] as P[],
+      bed: 1,
+      height: 1.05,
+    },
+  ],
+  islands: [
+    { x: 35.2, z: -49.2, height: 0.9, rx: 1.15, rz: 1.0, bed: 2 },
+    { x: 37.0, z: -49.1, height: 0.85, rx: 1.0, rz: 1.0, bed: 2 },
+    { x: 34.2, z: -34.8, height: 0.9, rx: 1.5, rz: 1.2, bed: 3 },
+    { x: 36.3, z: -34.2, height: 0.95, rx: 1.35, rz: 1.5, bed: 3 },
+    { x: 34.3, z: -31.4, height: 0.85, rx: 1.4, rz: 1.55, bed: 3 },
+    { x: 36.4, z: -31.3, height: 0.9, rx: 1.1, rz: 1.5, bed: 3 },
+  ],
+  crownSpacing: 0.8,
+  coniferHeight: 5.1,
+  coniferRadius: 1.05,
 };
 
 /** M12a. UP-001/002 west gabled entrance. Dimensions/trace interpreted,
@@ -674,6 +765,27 @@ export const BROOK_NORTH = {
     { u: 41.375, kind: 'glazed', evidence: 'photographed' },
     { u: 44.685, kind: 'loading', evidence: 'photographed' },
   ],
+};
+
+/** Eastern Brook Mill court. Aerial/June 2024 entrance interpretation, not a
+ * survey. Preserve the planted strip beside Threadfold and its open mouth. */
+export const BROOK_EAST_PARKING = {
+  outline: [
+    [114.7, -46.8],
+    [120, -46.3],
+    [124.4, -42.7],
+    [127.2, -38.5],
+    [128.9, -34],
+    [132, -33.8],
+    [140, -36],
+    [143, -31],
+    [136, -28.5],
+    [129, -26],
+    [113.4, -27],
+  ] as P[],
+  datum: [114, -35] as P,
+  edgeBlend: 1.5,
+  roadBlend: [4.5, 11] as const,
 };
 
 /** M10 entrance grade. Extent inferred from the mapped road and parking mouth;
@@ -1135,19 +1247,34 @@ export const THREADFOLD_HOUSES = {
 
 /** M24 Bridge Mill court. Google aerial and UP-003, reference only.
  * Outlines, bay sizes, ramp extent and paint are fitted estimates.
- * Western five/northern five/eastern three positions visible in aerial;
+ * Western five/northern five/central three/eastern three occupied positions visible;
  * southern three positions partly canopy-hidden, provisional. */
 export const BRIDGE_PARKING = {
-  tree: { x: 34.5, z: 18.0, h: 5.4 },
-  hedge: { x: 7.6, fromZ: 8.4, toZ: 22.2, width: 0.9, height: 0.95 },
+  // F136 Aug2022 and aerial: broad open entrance, not a narrow access ribbon.
+  // Outline fitted against mapped access655432310, not surveyed.
+  apron: [
+    [-2.48, -5.33],
+    [1.3, -4],
+    [4.7, 0],
+    [6, 8],
+    [14, 7],
+    [24, 2],
+    [18, -4],
+    [12, -8],
+    [5, -11],
+    [0.24, -12.85],
+  ] as P[],
+  entranceRoad: [-1.12, -9.09] as P,
+  hedge: { x: 7.9, fromZ: 8.4, toZ: 22.2, width: 1.5, height: 1.25 },
   rampStartX: 28,
   rampEndX: 43,
   entrance: [13.67, -3.73] as P,
   surface: [
     [6, 2],
     [24, 2],
-    [35, 5],
-    [37, 7],
+    [35, 0.5],
+    [38.8, 0.5],
+    [38.8, 7],
     [39.9, 10.54],
     [64.2, 8.65],
     [65.59, 8.57],
@@ -1172,6 +1299,11 @@ export const BRIDGE_PARKING = {
     ] as P[],
     [
       [28.3, 14.1],
+      // Three asphalt bays cut into the lawn from the north; aerial and F136.
+      [29.2, 14.1],
+      [29.2, 18.9],
+      [37, 18.9],
+      [37, 14.1],
       [37.7, 14.1],
       [37.3, 19.5],
       [35.1, 23.1],
@@ -1191,11 +1323,19 @@ export const BRIDGE_PARKING = {
     },
     { start: [12, 3.2] as P, count: 5, width: 2.6, depth: 4.8, angle: 0 },
     {
-      start: [37, 14.1] as P,
+      start: [29.2, 14.1] as P,
       count: 3,
       width: 2.6,
       depth: 4.8,
-      angle: Math.PI,
+      angle: 0,
+    },
+    {
+      // Separate eastern row beside the block's west end. Fitted dimensions.
+      start: [38.5, 0.8] as P,
+      count: 3,
+      width: 2.6,
+      depth: 4.8,
+      angle: -Math.PI / 2,
     },
     {
       start: [21.4, 28.5] as P,
@@ -1222,6 +1362,26 @@ export const BRIDGE_PARKING = {
       [35.6, 23.5],
     ],
   ] as P[][],
+};
+
+/** B03 F136 Aug2022: continuous wooded bank above the garages. Mapped
+ * road anchors the stretch; planting bands and specimens are fitted estimates. */
+export const COURT_WOODLAND_EDGE = {
+  // Court-side wooded bank west of the garage backing wall. F136 conceals
+  // the precise slope/edge; this footprint is a fitted planting estimate.
+  lowerBank: [
+    [11, 33],
+    [29, 32],
+    [34, 27],
+    [34, 34],
+    [30, 46],
+    [20, 52],
+    [11, 52],
+  ] as P[],
+  startX: 18,
+  endX: 74,
+  bands: [7.8, 11.8, 15.8],
+  spacing: 2.8,
 };
 
 /** M25 mapped courtyard front edges. Counts from August 2022 panoramas;
@@ -1600,9 +1760,27 @@ export type StreetHouse = {
   /** cottageRow: photographed frame colour, door colour, sills and the
    * small window over the door. */
   frames?: 'white' | 'brown' | 'dark';
+  /** Main front-window frame colours, ground then upper, observed separately. */
+  glazingFrames?: [StreetHouse['frames'], StreetHouse['frames']];
   door?: string;
+  /** Individually observed leaf detail; hidden doors retain plain leaves. */
+  doorDetail?:
+    | 'oval-glazed'
+    | 'paired-glazed'
+    | 'paired-panelled'
+    | 'arched-glazed';
   blackSills?: boolean;
+  /** Window sills only; lintels and door jambs retain their masonry. */
+  windowSills?: string;
   overDoor?: boolean;
+  /** Estimated width/height from the individual upper opening; top aligns
+   * with the main upper window. Unspecified openings retain earlier sizes. */
+  overDoorSize?: [number, number];
+  /** Individually observed glazing of the smaller upper window. */
+  overDoorGlazing?: StreetGlazing;
+  /** Individually observed front glazing, ground then upper. Hidden groups
+   * retain the existing provisional frame; lead spacing is interpreted. */
+  glazing?: [StreetGlazing | undefined, StreetGlazing | undefined];
   /** Door end as seen from the street (cottageRow default right). */
   doorSide?: 'left' | 'right';
   /** Round-headed stone door arch. */
@@ -1612,6 +1790,14 @@ export type StreetHouse = {
   /** Street name plate beside the door. */
   plate?: string;
 };
+export type StreetGlazing =
+  | 'six-pane'
+  | 'four-pane'
+  | 'top-light'
+  | 'two-sash'
+  | 'diamond-top-light'
+  | 'diamond-leaded'
+  | 'rectangular-leaded';
 /** School Street north fronts face the street, square to 549512306. */
 const SCHOOL_NORTH_FRONT: P = [-0.414, 0.91];
 const houses = (ids: string[], house: StreetHouse) =>
@@ -1694,7 +1880,6 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
   // Hough Lane, panoramas qhk1TO3wrs1KF3ACqP29Ig, P4nxuImCWrbU2pHtno5IQA,
   // k9fM7igas8BaGDksX4o9fQ and KnrG3stULULRcdylLOmhBw. Facing sequences
   // were read from oblique views and may be one house out.
-  '727434553': { style: 'pub', face: 'grit', seen: true },
   ...houses(['574973', '574974'], {
     style: 'cottage',
     face: 'grit',
@@ -1754,18 +1939,115 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
   ...Object.fromEntries(
     (
       [
-        ['536', 'white', '#3f6273'],
-        ['537', 'brown', '#5a3424'],
-        ['538', 'white', '#8fa3a4'],
-        ['540', 'white', '#5a3424'],
-        ['539', 'white', '#2d3135'],
-        ['544', 'brown', '#b9bcb6'],
-        ['543', 'brown', '#e4e4dc'],
-        ['542', 'brown', '#6b3d22', { overDoor: true }],
-        ['541', 'white', '#1f2224', { overDoor: true, blackSills: true }],
-        ['547', 'white', '#1f2224'],
-        ['546', 'dark', '#1f2224', { face: 'painted' as const }],
-        ['545', 'dark', '#5a3424', { overDoor: true, blackSills: true }],
+        [
+          '536',
+          'white',
+          '#3f6273',
+          {
+            glazing: ['two-sash', 'two-sash'],
+            overDoor: true,
+            overDoorGlazing: 'two-sash',
+          },
+        ],
+        [
+          '537',
+          'brown',
+          '#5a3424',
+          {
+            glazing: ['rectangular-leaded', 'rectangular-leaded'],
+            doorDetail: 'oval-glazed',
+          },
+        ],
+        [
+          '538',
+          'white',
+          '#8fa3a4',
+          { glazing: ['six-pane', 'six-pane'], doorDetail: 'paired-glazed' },
+        ],
+        [
+          '540',
+          'brown',
+          '#5a3424',
+          { glazing: ['diamond-leaded', 'diamond-leaded'] },
+        ],
+        [
+          '539',
+          'dark',
+          '#2d3135',
+          {
+            glazing: ['two-sash', 'two-sash'],
+            overDoor: true,
+            overDoorGlazing: 'top-light',
+            overDoorSize: [0.8, 1.15],
+          },
+        ],
+        ['544', 'brown', '#b9bcb6', { glazing: [undefined, 'four-pane'] }],
+        [
+          '543',
+          'brown',
+          '#e4e4dc',
+          {
+            glazing: ['top-light', 'top-light'],
+            overDoor: true,
+            overDoorGlazing: 'top-light',
+            windowSills: '#242827',
+          },
+        ],
+        [
+          '542',
+          'brown',
+          '#6b3d22',
+          {
+            doorDetail: 'paired-panelled',
+            overDoor: true,
+            glazing: ['four-pane', 'four-pane'],
+            overDoorGlazing: 'top-light',
+            overDoorSize: [0.5, 0.8],
+          },
+        ],
+        [
+          '541',
+          'white',
+          '#1f2224',
+          {
+            doorDetail: 'arched-glazed',
+            overDoor: true,
+            glazing: ['two-sash', 'two-sash'],
+            glazingFrames: ['dark', 'white'],
+            overDoorGlazing: 'top-light',
+            windowSills: '#242827',
+          },
+        ],
+        [
+          '547',
+          'white',
+          '#1f2224',
+          {
+            glazing: ['diamond-top-light', 'diamond-top-light'],
+            windowSills: '#242827',
+          },
+        ],
+        [
+          '546',
+          'dark',
+          '#1f2224',
+          {
+            face: 'painted' as const,
+            glazing: ['four-pane', 'four-pane'],
+            windowSills: '#242827',
+          },
+        ],
+        [
+          '545',
+          'dark',
+          '#5a3424',
+          {
+            overDoor: true,
+            glazing: ['top-light', 'top-light'],
+            overDoorGlazing: 'top-light',
+            windowSills: '#242827',
+          },
+        ],
       ] as [string, StreetHouse['frames'], string, Partial<StreetHouse>?][]
     ).map(([id, frames, door, extra]) => [
       `727434${id}`,
@@ -1870,6 +2152,12 @@ export const SCHOOL_STREET_WEST = {
   ] as P[],
   // Setts give way to block paving here; the street's slab pavements stop.
   settEndX: 91.6,
+  // Render-only overlap closes the resampled road strip's short end gap.
+  // Estimated 0.5m allowance along the mapped street; movement is unchanged.
+  settJoinOverlap: [0.453, 0.211] as P,
+  // August 2022 u4WK 270 / YGoo 290: square-side four-sided lantern.
+  // Fitted beside the School House retaining return; position/size estimated.
+  lamp: { point: [79.95, -89.75] as P, column: 4.5, lantern: 0.65 },
   // Retaining wall with railings: School House side, bay back, No.34 side.
   wall: [
     [78.7, -88.7],
@@ -1905,6 +2193,34 @@ export const SCHOOL_STREET_WEST = {
   // cannot cross the wall and show through the paving. Narrower on the School
   // House side, where mapped footway 727434562 runs about 1.4m behind it.
   seams: [1.0, 2.2, 2.2],
+  /** Parking pass: retain the east blend into the sett-road datum. */
+  settBlend: [90, 92.9],
+};
+
+/** Flag 56288c8a, Aug 2022 u4WK Street View and north-up Google aerial,
+ * 4 October 2026. Asphalt south of the School House frontage joins the
+ * west square's bollard line. Corners fitted to mapped roads and the square;
+ * concealed bay totals and the wooded southern edge are not surveyed. */
+export const SCHOOL_STREET_PARKING = {
+  outline: [
+    [43.8, -95.7],
+    [48.2, -94.5],
+    [60.0, -88.9],
+    [69.2, -85.0],
+    [74.2, -85.4],
+    [82.0, -89.2],
+    [78.6, -81.2],
+    [79.0, -73.5],
+    [76.0, -72.3],
+    [62.0, -78.5],
+    [56.0, -80.5],
+    [50.3, -85.5],
+    [46.2, -90.1],
+    [42.8, -92.0],
+  ] as P[],
+  blend: 2.0,
+  /** Ease from the frontage road grade to the square's fitted grade. */
+  squareBlend: [72, 77],
 };
 
 /**
@@ -1934,4 +2250,155 @@ export const HOUGH_TERRACE_ROAD = {
   // bank stands above it (P4nxuImCWrbU2pHtno5IQA heading 340). Extent and
   // heights estimated; the wall keeps walkers on the pavement.
   westWall: { z0: -118, z1: -174, offset: 4.6, minRise: 0.3, maxHeight: 1.4 },
+};
+
+/** Western fronts facing flag 6599a642. Mapped edges, fitted opening centres;
+ * August 2022 Street View. Tree-hidden openings are deliberately unresolved. */
+export const WAKEFIELD_WEST: {
+  id: string;
+  a: P;
+  b: P;
+  kind: 'gable' | 'hidden' | 'round' | 'garage';
+}[] = [
+  {
+    id: OSM.wakefieldWest[0],
+    a: [-97.54, -1.15],
+    b: [-94.57, -9.46],
+    kind: 'gable',
+  },
+  {
+    id: OSM.wakefieldWest[1],
+    a: [-94.57, -9.46],
+    b: [-91.58, -17.78],
+    kind: 'hidden',
+  },
+  {
+    id: OSM.wakefieldWest[2],
+    a: [-93.89, -18.63],
+    b: [-91.57, -25.24],
+    kind: 'round',
+  },
+  {
+    id: OSM.wakefieldWest[3],
+    a: [-99.46, 4.16],
+    b: [-97.54, -1.15],
+    kind: 'garage',
+  },
+];
+
+/** Vale View older stone fronts, west to east. Mapped edges; opening centres
+ * fitted to individually inspected August 2022 views. Hidden counts unresolved. */
+export const VALE_VIEW_FRONTS: {
+  id: string;
+  a: P;
+  b: P;
+  style: 'west' | 'sash' | 'dark' | 'white' | 'hidden' | 'east';
+}[] = [
+  {
+    id: OSM.valeViewTerrace[0],
+    a: [3.64, -120.29],
+    b: [9.71, -117.45],
+    style: 'west',
+  },
+  {
+    id: OSM.valeViewTerrace[1],
+    a: [10.17, -118.48],
+    b: [13.78, -116.82],
+    style: 'sash',
+  },
+  {
+    id: OSM.valeViewTerrace[2],
+    a: [13.78, -116.82],
+    b: [17.4, -115.15],
+    style: 'dark',
+  },
+  {
+    id: OSM.valeViewTerrace[3],
+    a: [17.4, -115.15],
+    b: [21.01, -113.46],
+    style: 'white',
+  },
+  {
+    id: OSM.valeViewTerrace[4],
+    a: [21.01, -113.46],
+    b: [24.61, -111.81],
+    style: 'hidden',
+  },
+  {
+    id: OSM.valeViewTerrace[5],
+    a: [24, -110.52],
+    b: [30.25, -107.59],
+    style: 'east',
+  },
+];
+export const VALE_VIEW_CHIMNEYS: { point: P; pots: number }[] = [
+  { point: [7, -124], pots: 1 },
+  { point: [16, -120.5], pots: 2 },
+  { point: [25, -116.5], pots: 3 },
+];
+
+/** Spread Eagle, mapped road-facing edge. Counts from Aug 2022 views;
+ * all heights, opening centres, roof depths and split positions estimated. */
+export const SPREAD_EAGLE = {
+  a: [208.8, -105.28] as P,
+  b: [196.53, -90.43] as P,
+  southExtent: 6.46,
+  depth: 8.2,
+  rearRidge: 12.8,
+  rearHalf: 4.62,
+  eave: 5.8,
+  southEave: 6.4,
+  rise: 1.9,
+  upper: [17.16, 12.66, 8.56, 4.76, 2.16],
+  lower: [
+    { u: 17.16, w: 1.25 },
+    { u: 12.66, w: 1.45 },
+    { u: 10.46, w: 0.68 },
+    { u: 8.56, w: 1.25 },
+    { u: 2.16, w: 1.5 },
+  ],
+  entrance: 14.96,
+  serviceDoor: 4.76,
+  chimneys: [16.86, 8.66, 1.76],
+  baskets: [16.36, 13.46, 9.96, 3.96],
+};
+
+/** M26c outside eastern Threadfold bend. OSM655432303, June2024 u-FH305,
+ * VID-00113:18. Fitted widths against retained wall, not measured. */
+export const THREADFOLD_BEND = {
+  startX: 100,
+  fullWidthX: 110,
+  joinWidth: 1.7,
+  width: 1.45,
+  innerOffset: 3.35,
+  junction: [146.8, -21] as P,
+  junctionRadius: 10,
+  fullWidthRadius: 14,
+  terrainInnerOffset: 0.6,
+  terrainMargin: 2.25,
+  renderHeight: 0.075,
+};
+
+/** M26d Aug2022 IjY135 and VID-00115:08/15:21. Estimated, not surveyed. */
+export const HALL_WOODLAND_ENTRANCE = {
+  laneLead: 12,
+  laneWidth: 4.6,
+  pathLength: 14,
+  pathWidth: 1.8,
+  taperStart: 5,
+  formationMargin: 2.2,
+  wallOffset: 0.6,
+  wallWidth: 0.35,
+  wallHeight: 0.48,
+  gateCentre: [214.19, 29.82] as P,
+  gateDirection: [18.67, 25.62] as P,
+  gateLeft: -2.3,
+  pedestrianHinge: 0.45,
+  pedestrianLeaf: 1.2,
+  enclosureDepth: 1.8,
+  enclosureSide: 3.15,
+  gateHeight: 1.1,
+  pedestrianApronExtra: 1.1,
+  boardAlong: 4.0,
+  boardSide: 2.7,
 };

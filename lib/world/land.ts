@@ -1,7 +1,12 @@
 import { schoolLocal } from '../landmarks/school-forecourt';
 import { stairLocal } from '../landmarks/woodland-steps';
 import { inBridgeLightWell } from '../landmarks/bridge-mill';
-import { WOODLAND_STEPS, GARAGE_BACKING, VALLEY_ENTRANCE } from './layout';
+import {
+  WOODLAND_STEPS,
+  GARAGE_BACKING,
+  VALLEY_ENTRANCE,
+  BROOK_WATER_WIDTH,
+} from './layout';
 import * as T from 'three';
 import { densify, nearest } from '../core/geo';
 import type { Kit } from '../core/kit';
@@ -165,7 +170,9 @@ export function addWater(
   });
   for (const w of data.water) {
     kit.ribbon(densify(w.points), 10, kit.m.soil, (x, z) => riverY(x, z) - 0.4);
-    kit.ribbon(densify(w.points), 7, waterMat, (x, z) => riverY(x, z));
+    kit.ribbon(densify(w.points), BROOK_WATER_WIDTH, waterMat, (x, z) =>
+      riverY(x, z),
+    );
   }
   const lines: T.Line[] = [];
   for (let i = 0; i < 70; i++) {

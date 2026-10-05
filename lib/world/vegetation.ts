@@ -1,8 +1,15 @@
+import { addCourtEdgePlanting } from '../landmarks/court-woodland-edge';
+import { addBridgeGatePlanting } from '../landmarks/bridge-gate-planting';
 import {
-  addBridgeParkingPlanting,
-  inBridgeParkingIsland,
-} from '../landmarks/bridge-parking';
-import { BRIDGE_PARKING } from './layout';
+  woodedBankPlan,
+  addHoughBankPlanting,
+} from '../landmarks/hough-wooded-banks';
+import { inBridgeParkingIsland } from '../landmarks/bridge-parking';
+import {
+  BROOK_WATER_WIDTH,
+  SCHOOL_STREET_PARKING,
+  BROOK_EAST_PARKING,
+} from './layout';
 import {
   addBlackburnEntranceHedge,
   inBlackburnEntrance,
@@ -14,7 +21,8 @@ import { addTrees } from '../vegetation/realistic-trees';
 import { addWoodlandFerns } from '../vegetation/woodland-ferns';
 import { addBrookFrontageShrubs } from '../vegetation/brook-frontage-shrubs';
 import { addRoadsideShrubs } from '../vegetation/roadside-shrubs';
-import { addBrookHedges, brookParking } from '../landmarks/brook-mill-grounds';
+import { brookParking } from '../landmarks/brook-mill-grounds';
+import { addBrookParkingPlanting } from '../landmarks/brook-parking-planting';
 import { addBridgeGardens } from '../landmarks/bridge-gardens';
 import { addBridgeGardenHedges } from '../landmarks/bridge-garden-fences';
 import { addCourtGardenPlanting } from '../landmarks/court-gardens';
@@ -43,16 +51,25 @@ export function addVegetation(
     .filter((t) => {
       const rd = nearest(t.x, t.z, roadSeg);
       return (
+        // Canopy peaks are not surveyed trunks. Keep a small trunk clearance
+        // outside the rendered water, rather than inventing a bank position.
+        nearest(t.x, t.z, surface.riverSeg).d > BROOK_WATER_WIDTH / 2 + 0.4 &&
         !inBlackburnEntrance(t.x, t.z, surface.blackburnEntrancePlan) &&
         rd.d > roadWidth(rd.s.f) / 2 + 1.5 &&
         !hitBuilding(t.x, t.z, 3) &&
         !inPoly(t.x, t.z, court) &&
         !inPoly(t.x, t.z, brookParking) &&
+        !inPoly(t.x, t.z, SCHOOL_STREET_PARKING.outline) &&
+        !inPoly(t.x, t.z, BROOK_EAST_PARKING.outline) &&
         (!inTurningCircle(t.x, t.z, surface.turningCirclePlan) ||
           inPoly(t.x, t.z, surface.turningCirclePlan.grass))
       );
     });
-  trees.push(BRIDGE_PARKING.tree);
+  const bank = woodedBankPlan(surface, data, hitBuilding);
+  // Canopy peaks already represented nearby take precedence over fitted trunks.
+  for (const t of bank.trees)
+    if (!trees.some((other) => Math.hypot(other.x - t.x, other.z - t.z) < 4))
+      trees.push(t);
   const leaf = addTrees(
     scene,
     trees.filter((t) => !inPassage(t.x, t.z)),
@@ -62,7 +79,21 @@ export function addVegetation(
         : terrain(x, z),
     (t) => inPoly(t.x, t.z, surface.turningCirclePlan.island),
   );
-  addBridgeParkingPlanting(kit, { surface, leaf });
+  addHoughBankPlanting(kit, {
+    scene,
+    surface,
+    data,
+    leaf,
+    shrubs: bank.shrubs,
+  });
+  addCourtEdgePlanting(kit, {
+    scene,
+    surface,
+    data,
+    leaf,
+    hitBuilding,
+    existingShrubs: plants.shrubs,
+  });
   addTurningCirclePlanting(kit, { scene, surface, leaf });
   addBlackburnEntranceHedge(kit, { surface, leaf });
 
@@ -107,10 +138,11 @@ export function addVegetation(
 
   addWoodlandFerns(scene, plants.ferns);
   addRoadsideShrubs(scene, plants.shrubs, leaf);
-  addBrookHedges(kit, { surface });
+  addBrookParkingPlanting(kit, { scene, surface });
   addBrookFrontageShrubs(kit, { scene, surface });
   addBridgeGardens(kit, { leaf, terrain, passageY });
   addBridgeGardenHedges(kit, { surface, leaf });
+  addBridgeGatePlanting(kit, { surface, leaf });
   addCourtGardenPlanting(kit, { surface, leaf });
   // Ivy tufts along the top of the passage retaining wall.
   for (let x = 75; x < 109; x += 1.25) {

@@ -25,6 +25,20 @@ export function addSchoolStreetWest(
     drape(W.paving, (x, z) => ground(x, z) + 0.026, 0.5),
     kit.m.blockPaving,
   );
+  // Square edge to sett-road cap. Densifying then clipping the mapped road
+  // left a narrow exposed turf strip. Drape the join over the existing height
+  // rather than changing its road or walking datum.
+  const a = W.paving[3],
+    b = W.paving[4],
+    [dx, dz] = W.settJoinOverlap;
+  kit.batch(
+    drape(
+      [a, b, [b[0] + dx, b[1] + dz], [a[0] + dx, a[1] + dz]],
+      (x, z) => ground(x, z) + 0.027,
+      0.2,
+    ),
+    kit.m.blockPaving,
+  );
 
   // Retaining walls: top sits above the raised plot behind and at least
   // 1.25m above the paving. Pieces follow the paving, so the base never
@@ -144,5 +158,48 @@ export function addSchoolStreetWest(
     kit.batch(cap, iron);
     walls.push({ a: [x, z], b: [x, z] });
   }
+  // Photographed square-side lantern. The separate western gate lamp remains
+  // with its unresolved frontage/access join rather than duplicating this one.
+  const L = W.lamp,
+    [lx, lz] = L.point,
+    ly = ground(lx, lz);
+  const column = new T.CylinderGeometry(0.045, 0.08, L.column, 12);
+  column.translate(lx, ly + L.column / 2, lz);
+  kit.batch(column, iron);
+  const foot = new T.CylinderGeometry(0.11, 0.13, 0.5, 12);
+  foot.translate(lx, ly + 0.25, lz);
+  kit.batch(foot, iron);
+  for (const h of [0.5, 1.15, L.column - 0.15]) {
+    const collar = new T.CylinderGeometry(0.08, 0.08, 0.06, 12);
+    collar.translate(lx, ly + h, lz);
+    kit.batch(collar, iron);
+  }
+  const bottom = ly + L.column,
+    top = bottom + L.lantern;
+  // Pale solid panes keep this daytime lantern batched without transparency.
+  const panes = kit.mat('schoolLanternPanes', '#c4c9bd');
+  const body = new T.CylinderGeometry(0.29, 0.14, L.lantern, 4);
+  body.rotateY(Math.PI / 4);
+  body.translate(lx, (bottom + top) / 2, lz);
+  kit.batch(body, panes);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1])
+      kit.beam(
+        new T.Vector3(lx + sx * 0.1, bottom, lz + sz * 0.1),
+        new T.Vector3(lx + sx * 0.205, top, lz + sz * 0.205),
+        0.025,
+        0.025,
+        iron,
+      );
+  kit.box(lx, bottom, lz, 0.25, 0.045, 0.25, iron);
+  kit.box(lx, top, lz, 0.48, 0.045, 0.48, iron);
+  const cap = new T.ConeGeometry(0.43, 0.18, 4);
+  cap.rotateY(Math.PI / 4);
+  cap.translate(lx, top + 0.11, lz);
+  kit.batch(cap, iron);
+  const finial = new T.SphereGeometry(0.055, 8, 6);
+  finial.translate(lx, top + 0.25, lz);
+  kit.batch(finial, iron);
+  walls.push({ a: [lx - 0.13, lz], b: [lx + 0.13, lz] });
   return walls;
 }

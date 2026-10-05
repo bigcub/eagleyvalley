@@ -13,11 +13,14 @@ import {
   slateMaterial,
 } from '../materials/building-surfaces';
 import { housingBrick } from '../materials/housing-brick';
+import { addDoorDetails } from '../materials/door-details';
+import { addWindowLeads } from '../materials/window-leads';
 import {
   STREET_HOUSES,
   type StreetHouse,
   type StreetHouseFace,
   type StreetHouseStyle,
+  type StreetGlazing,
 } from '../world/layout';
 
 // Storey heights and roof pitches are typical for each type, not measured.
@@ -147,6 +150,9 @@ export function addStreetHouses(
       : house.blackSills
         ? pubPaint
         : null;
+    const windowSill = house.windowSills
+      ? kit.mat(`streetWindowSill${house.windowSills}`, house.windowSills)
+      : sill;
     const dressing =
       house.face === 'buff'
         ? buffDressing
@@ -326,13 +332,51 @@ export function addStreetHouses(
           m,
           rot,
         );
-      const window = (u: number, sillY: number, w: number, h: number) => {
+      const window = (
+        u: number,
+        sillY: number,
+        w: number,
+        h: number,
+        glazing?: StreetGlazing,
+        windowFrames?: StreetHouse['frames'],
+      ) => {
+        const windowFrame = windowFrames ? frameColours[windowFrames] : frame;
         const cy = sillY + h / 2;
-        B(u, cy, 0.02, w + 0.12, h + 0.12, 0.1, frame);
-        B(u, cy, 0.05, w - 0.06, h - 0.06, 0.04, glass);
-        B(u, cy, 0.08, 0.05, h - 0.06, 0.03, frame);
-        if (h > 1.2) B(u, sillY + h * 0.7, 0.08, w - 0.06, 0.05, 0.03, frame);
-        B(u, sillY - 0.06, 0.08, w + 0.26, 0.1, 0.18, sill ?? dressing);
+        B(u, cy, 0.02, w + 0.12, h + 0.12, 0.1, windowFrame);
+        // The backing frame ends at depth0.07. Keep glass in front of it,
+        // below the glazing bars, so coplanar faces cannot flicker.
+        B(u, cy, 0.076, w - 0.06, h - 0.06, 0.01, glass);
+        if (!glazing) {
+          B(u, cy, 0.08, 0.05, h - 0.06, 0.03, windowFrame);
+          if (h > 1.2)
+            B(u, sillY + h * 0.7, 0.08, w - 0.06, 0.05, 0.03, windowFrame);
+        } else {
+          const leaded =
+            glazing === 'diamond-leaded' ||
+            glazing === 'diamond-top-light' ||
+            glazing === 'rectangular-leaded';
+          const rail = leaded || glazing === 'top-light' ? 0.75 : 0.5;
+          B(u, sillY + h * rail, 0.08, w - 0.06, 0.045, 0.03, windowFrame);
+          if (glazing === 'four-pane' || glazing === 'diamond-leaded')
+            B(u, cy, 0.08, 0.04, h - 0.06, 0.03, windowFrame);
+          if (glazing === 'six-pane')
+            for (const s of [-1, 1])
+              B(u + (s * w) / 6, cy, 0.08, 0.03, h - 0.06, 0.03, windowFrame);
+          if (leaded)
+            addWindowLeads(kit, {
+              pattern:
+                glazing === 'rectangular-leaded' ? 'rectangular' : 'diamond',
+              width: w - 0.08,
+              height: glazing === 'diamond-leaded' ? h * rail - 0.06 : h - 0.06,
+              point: (x, y) =>
+                new T.Vector3(
+                  a[0] + d[0] * (u + x) + o[0] * 0.081,
+                  sillY + 0.03 + y,
+                  a[1] + d[1] * (u + x) + o[1] * 0.081,
+                ),
+            });
+        }
+        B(u, sillY - 0.06, 0.08, w + 0.26, 0.1, 0.18, windowSill ?? dressing);
         if (house.face !== 'buff' || house.style !== 'estate')
           B(u, sillY + h + 0.13, 0.04, w + 0.26, 0.2, 0.1, sill ?? dressing);
       };
@@ -342,6 +386,24 @@ export function addStreetHouses(
           : doors[(id + Math.round(u * 7)) % doors.length];
         B(u, y + 1.03, 0.02, w + 0.14, 2.12, 0.1, frame);
         B(u, y + 1.0, 0.05, w, 2.0, 0.05, colour);
+        if (house.doorDetail) {
+          // Keep local right pointing right when viewed from the street.
+          const handed = d[0] * o[1] - d[1] * o[0] > 0 ? 1 : -1;
+          addDoorDetails(kit, {
+            style: house.doorDetail,
+            width: w,
+            colour,
+            glass,
+            box: (x, dy, depth, bw, h, bd, material) =>
+              B(u + x * handed, y + dy, depth, bw, h, bd, material),
+            point: (x, dy, depth) =>
+              new T.Vector3(
+                a[0] + d[0] * (u + x * handed) + o[0] * depth,
+                y + dy,
+                a[1] + d[1] * (u + x * handed) + o[1] * depth,
+              ),
+          });
+        }
         if (fan) {
           B(u, y + 2.32, 0.03, w + 0.14, 0.42, 0.1, frame);
           B(u, y + 2.32, 0.05, w - 0.04, 0.32, 0.05, glass);
@@ -490,9 +552,27 @@ export function addStreetHouses(
           house.plate,
         );
       }
-      F.window(wu, g0 + 0.8, 1.15, 1.35);
-      F.window(wu, g1 + 0.6, 1.1, 1.25);
-      if (house.overDoor) F.window(du, g1 + 0.95, 0.5, 0.6);
+      F.window(
+        wu,
+        g0 + 0.8,
+        1.15,
+        1.35,
+        house.glazing?.[0],
+        house.glazingFrames?.[0],
+      );
+      F.window(
+        wu,
+        g1 + 0.6,
+        1.1,
+        1.25,
+        house.glazing?.[1],
+        house.glazingFrames?.[1],
+      );
+      if (house.overDoor) {
+        const [width, height] = house.overDoorSize ?? [0.5, 0.6];
+        const sillY = house.overDoorSize ? g1 + 1.85 - height : g1 + 0.95;
+        F.window(du, sillY, width, height, house.overDoorGlazing);
+      }
     } else if (house.style === 'cottage') {
       const du = plan.doors[0];
       F.door(du, g0, 0.85);
