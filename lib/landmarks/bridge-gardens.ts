@@ -152,12 +152,13 @@ export function addBridgeGardens(
     );
   }
   // IMG_9029: weathered square trellis and clustered glazed pots against the wall.
-  // Location and dimensions are interpreted; keep all additions within the existing border.
+  // User flag df61fe95: the trellis faces No.2's front door (bay 5), not No.1.
+  // Dimensions and pot spacing are interpreted.
   const timber = new T.MeshStandardMaterial({ color: '#777260', roughness: 1 });
   const potMaterials = ['#244c83', '#999589', '#77513d', '#35574a'].map(
     (color) => new T.MeshStandardMaterial({ color, roughness: 0.48 }),
   );
-  const tx = 103.3,
+  const tx = 79.7 + 5 * 3.12,
     tz = passageWallZ(tx) - 0.34;
   for (let i = 0; i < 8; i++)
     box(tx - 1.05 + i * 0.3, passageY + 1.45, tz, 0.045, 1.95, 0.055, timber);
@@ -172,7 +173,9 @@ export function addBridgeGardens(
     g.translate(x, passageY + 0.65 + i * 0.065, z);
     batch(g, leaf);
   }
-  for (const [i, x] of [101.8, 102.5, 103.2, 104, 104.65].entries()) {
+  for (const [i, x] of [-1.5, -0.8, -0.1, 0.7, 1.35]
+    .map((d) => tx + d)
+    .entries()) {
     const z = passageWallZ(x) - 0.73,
       h = 0.4 + (i % 3) * 0.08,
       r = 0.23 + (i % 2) * 0.055;

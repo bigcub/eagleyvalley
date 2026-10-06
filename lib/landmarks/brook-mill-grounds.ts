@@ -3,7 +3,11 @@ import type { Kit } from '../core/kit';
 import { densify, inPoly, outline, type P } from '../core/geo';
 import { drape } from '../core/mesh';
 import { masonryUV } from '../materials/building-surfaces';
-import { BROOK_PARKING as D, BROOK_PARKING_RAIL as R } from '../world/layout';
+import {
+  BROOK_PARKING as D,
+  BROOK_PARKING_RAIL as R,
+  BROOK_PARKING_ROWS,
+} from '../world/layout';
 import type { Surface } from '../world/surface';
 
 export const brookParking = D.outline;
@@ -52,25 +56,13 @@ export function addBrookParking(kit: Kit, { surface }: { surface: Surface }) {
     );
   // Explicit rows, confined to each parking half. No lines through the aisles.
   // These are provisional represented totals, not a surveyed capacity.
-  for (const row of [
-    { a: [29.8, -54.4], b: [29.4, -50], n: 4, dx: 2.45, dz: 0.2 },
-    { a: [49, -53], b: [48.6, -48.6], n: 5, dx: 2.45, dz: 0.2 },
-    { a: [37.8, -46.1], b: [41.8, -45.8], n: 7, dx: -0.2, dz: 2.45 },
-    { a: [48.2, -46.3], b: [52.5, -45.9], n: 7, dx: -0.2, dz: 2.45 },
-    { a: [59.8, -39.3], b: [63, -39], n: 5, dx: -0.2, dz: 2.45 },
-  ]) {
+  for (const row of BROOK_PARKING_ROWS) {
     for (let i = 0; i <= row.n; i++)
       line(
         [row.a[0] + i * row.dx, row.a[1] + i * row.dz],
         [row.b[0] + i * row.dx, row.b[1] + i * row.dz],
       );
   }
-  // Short fan of bays follows the diagonal western boundary.
-  for (let i = 0; i < 4; i++)
-    line(
-      [17.8 + i * 1.75, -41.5 - i * 1.75],
-      [21.2 + i * 1.75, -38.1 - i * 1.75],
-    );
   // Hatched heads keep turning space clear beside the two middle rows.
   for (const [x, z] of [
     [35.7, -51.7],

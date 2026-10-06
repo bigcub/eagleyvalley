@@ -2,13 +2,14 @@ import { schoolLocal } from '../landmarks/school-forecourt';
 import { stairLocal } from '../landmarks/woodland-steps';
 import { inBridgeLightWell } from '../landmarks/bridge-mill';
 import {
+  THREADFOLD_MINI_PARKING,
   WOODLAND_STEPS,
   GARAGE_BACKING,
   VALLEY_ENTRANCE,
   BROOK_WATER_WIDTH,
 } from './layout';
 import * as T from 'three';
-import { densify, nearest } from '../core/geo';
+import { densify, nearest, inPoly, bounds } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { grassTexture } from '../materials/landscape-materials';
 import type { WorldData } from './data';
@@ -24,6 +25,7 @@ export function addLand(scene: T.Scene, surface: Surface) {
   const { terrain, riverSeg } = surface;
   const grassMap = grassTexture();
   const patch = VALLEY_ENTRANCE.landPatch;
+  const parkingBounds = bounds(THREADFOLD_MINI_PARKING.outline);
   function makeLand(
     x0: number,
     z0: number,
@@ -71,6 +73,18 @@ export function addLand(scene: T.Scene, surface: Surface) {
         const ids = [old.getX(i), old.getX(i + 1), old.getX(i + 2)],
           x = ids.reduce((s, j) => s + pos.getX(j), 0) / 3,
           z = ids.reduce((s, j) => s + pos.getZ(j), 0) / 3;
+        // Coarse turf faces must stop inside the retained parking cut.
+        if (
+          x >= parkingBounds.minX - step &&
+          x <= parkingBounds.maxX + step &&
+          z >= parkingBounds.minZ - step &&
+          z <= parkingBounds.maxZ + step &&
+          (inPoly(x, z, THREADFOLD_MINI_PARKING.outline) ||
+            ids.some((j) =>
+              inPoly(pos.getX(j), pos.getZ(j), THREADFOLD_MINI_PARKING.outline),
+            ))
+        )
+          continue;
         if (x > 0 && x < 140 && z > -40 && z < 60) continue;
         if (
           x > patch.x0 &&

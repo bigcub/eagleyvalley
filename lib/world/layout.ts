@@ -16,6 +16,7 @@ export const OSM = {
   /** Woodland steps at the uphill wall end opposite Bridge Mill. */
   millWoodlandSteps: '655432308',
   threadfoldWayLoop: '655432303',
+  hallCottageLane: '727434502',
   threadfoldTownhouseRoad: '61959587',
   threadfoldBrookReturn: '73858737',
   /** Narrow Hough Lane road bridge over Eagley Brook. */
@@ -195,8 +196,53 @@ export const PASSAGE_GATE = {
 /** Hough Lane road-bridge deck ends, sampled beyond both abutments. */
 export const HOUGH_DECK_SOUTH: P = [128.32, 13.36];
 export const HOUGH_DECK_NORTH: P = [146.1, -20];
+/**
+ * Hough Lane south of the road bridge. June 2024 Street View
+ * GXaLJ6-lQQXM-ZBvWlBeyw (headings 40/200/260/320) and user flags bb2f09ad,
+ * 315ad6f2: no west pavement; the lawn's dry-stone wall with large flat coping
+ * runs along the carriageway edge into the west parapet, the lawn falling
+ * behind it. East of the road a flush tarmac apron reaches the footbridge.
+ * Points are fitted to the mapped centrelines; dimensions are estimates.
+ */
+export const HOUGH_BRIDGE_SOUTH = {
+  /** Continues the shared-landscaping wall from [124.0, 14.8] to the parapet. */
+  westWall: [
+    [124.0, 14.8],
+    [125.2, 11.9],
+    [127.0, 8.6],
+    [130.94, 3.95],
+  ] as P[],
+  /** Lawn behind the wall within this distance keeps grass level. */
+  lawnReach: 3,
+  // West edge overlaps the tapered carriageway by 0.4m to hide seams.
+  apron: [
+    [134.22, 5.61],
+    [136.6, 6.71],
+    [137.2, 9.6],
+    [135.6, 12.6],
+    [133.2, 12.3],
+    [132.51, 11.51],
+  ] as P[],
+  /** Apron edges facing the lower grass bank (indices into apron). */
+  apronBank: [1, 2, 3, 4],
+};
 /** North end of the Hough footbridge, where it lands on the junction island. */
 export const HOUGH_FOOTBRIDGE_NORTH: P = [145.9, -13.64];
+
+/**
+ * Tall garden wall behind the Threadfold verge, from the existing north
+ * boundary to the cottages (user flag ad4421ab; June 2024
+ * NrBn7lFZ84Dc1-Ddye6W_g headings 30/330). Runs just behind mapped path
+ * 727434504; end point against the cottage gable is fitted, not measured.
+ */
+export const THREADFOLD_COTTAGE_WALL = {
+  points: [
+    [133.4, -51.6],
+    [137.5, -51.1],
+    [141.9, -48.2],
+  ] as P[],
+  height: 1.9,
+};
 
 /** M04, June 2024 and August 2022 Street View. Visually fitted to mapped
  * approaches, not measured. Keep the filtered crossing and separate bridge. */
@@ -263,6 +309,16 @@ export const LOWER_EAGLEY = {
   uphillLowWallStart: 61, // Leave the photographed woodland-step opening.
   uphillLowWallOffset: 4.75,
   uphillLowWallHeight: 0.8,
+};
+
+/** EAG-033 June2024 uphill wall/bank. Extent and plant sizes fitted. */
+export const EAGLEY_WAY_BANK_PLANTING = {
+  startX: 20,
+  endX: 34,
+  wallOffset: 3.7,
+  wallHeight: 1.7,
+  spacing: 1.15,
+  bands: [2.4, 4.2],
 };
 
 /** Entrance posts are interpreted, including their count and spacing. */
@@ -439,7 +495,6 @@ export const TURNING_CIRCLE_DETAILS = {
   // Start/end are positions along the M02 outer control points. This keeps
   // the bed behind the same pavement instead of tracing a competing edge.
   bed: { start: 1, end: 4, width: 1.45, height: 0.42 },
-  bollard: { centre: [131.4, 20.75] as P, width: 0.24, height: 0.65 },
   lamps: [
     { centre: [118.9, 34.1] as P, height: 8, rotation: -0.2 },
     { centre: [147.8, 18.4] as P, height: 8, rotation: 0.3 },
@@ -522,6 +577,38 @@ export const WOODLAND_STEPS = {
 
 /** M10: north-up aerial trace checked against June 2024 entrance views.
  * OSM aisles anchor the plan; all edges, bay totals and dimensions are estimates. */
+/** Marked bay rows: line i runs a→b offset by i·(dx,dz); n bays per row.
+ * Provisional represented totals, not a surveyed capacity. */
+export const BROOK_PARKING_ROWS: {
+  a: P;
+  b: P;
+  n: number;
+  dx: number;
+  dz: number;
+}[] = [
+  { a: [29.8, -54.4], b: [29.4, -50], n: 4, dx: 2.45, dz: 0.2 },
+  { a: [49, -53], b: [48.6, -48.6], n: 5, dx: 2.45, dz: 0.2 },
+  { a: [37.8, -46.1], b: [41.8, -45.8], n: 7, dx: -0.2, dz: 2.45 },
+  { a: [48.2, -46.3], b: [52.5, -45.9], n: 7, dx: -0.2, dz: 2.45 },
+  { a: [59.8, -39.3], b: [63, -39], n: 5, dx: -0.2, dz: 2.45 },
+  // Short fan along the diagonal western boundary.
+  { a: [17.8, -41.5], b: [21.2, -38.1], n: 3, dx: 1.75, dz: -1.75 },
+];
+/** Parked residents' cars (flag 44044a67). Occupancy is illustrative:
+ * [row, bay] pairs, nose towards the row's `a` end. Bays beside the
+ * parking check's aisle (row 1 bay 3, row 2 bays
+ * 0-1, row 3 and the short eastern row) stay free. */
+export const BROOK_PARKED = [
+  [0, 0],
+  [0, 2],
+  [0, 3],
+  [1, 0],
+  [1, 1],
+  [2, 3],
+  [5, 0],
+  [5, 1],
+  [5, 2],
+] as [number, number][];
 export const BROOK_PARKING = {
   outline: [
     [15, -43],
@@ -625,6 +712,12 @@ export const BROOK_PARKING_PLANTING = {
     { x: 36.3, z: -34.2, height: 0.95, rx: 1.35, rz: 1.5, bed: 3 },
     { x: 34.3, z: -31.4, height: 0.85, rx: 1.4, rz: 1.55, bed: 3 },
     { x: 36.4, z: -31.3, height: 0.9, rx: 1.1, rz: 1.5, bed: 3 },
+  ],
+  /** Three distinct broadleaf trunks in June2024, positions/heights fitted. */
+  roadsideTrees: [
+    { x: 32.0, z: -57.0, h: 11.5 },
+    { x: 54.0, z: -56.5, h: 12.5 },
+    { x: 61.5, z: -55.8, h: 10.5 },
   ],
   crownSpacing: 0.8,
   coniferHeight: 5.1,
@@ -788,6 +881,72 @@ export const BROOK_EAST_PARKING = {
   roadBlend: [4.5, 11] as const,
 };
 
+/**
+ * Planted beds either side of the Brook Mill east entrance (flag c70cde16;
+ * June 2024 NrBn7lFZ84Dc1-Ddye6W_g heading 285): bark/gravel mulch, low
+ * clipped shrubs, one tree each and two sign posts in the north bed.
+ * Outlines fitted inside the existing verges; sizes estimated.
+ */
+export const BROOK_EAST_BEDS = {
+  beds: [
+    [
+      [129.5, -34.4],
+      [136.7, -35.5],
+      [134.6, -38.4],
+      [130.2, -37.6],
+    ],
+    [
+      [131.2, -27.2],
+      [138.5, -29.4],
+      [138.3, -25.8],
+      [132.2, -24.6],
+    ],
+  ] as P[][],
+  trees: [
+    { x: 132.6, z: -36.3, h: 7.5 },
+    { x: 134.4, z: -26.6, h: 7 },
+  ],
+  signs: [
+    [135.4, -35.6],
+    [134.6, -35.8],
+  ] as P[],
+};
+
+/**
+ * Threadfold north bank (flag 1e384123). June 2024 Street View
+ * T7eHk94lcG3DAz--2EFGdg (113 Threadfold Way) headings 40/290/340 and
+ * egiISSG4D9coDLQvnYRnEg heading 330: narrow pavement, then a steep planted
+ * bank (yews, ivy, mature trees, black lamp) up to the tall School Street
+ * wall; no wall at the pavement east of the small car park. The car park is
+ * cut into the bank at road level, open to the road, with a low stone wall
+ * and pier on its west side. Under canopy on the aerial: outline, grade and
+ * the lamp position are fitted from the panoramas, not measured.
+ */
+export const THREADFOLD_MINI_PARKING = {
+  outline: [
+    [100.6, -65.7],
+    [108.9, -64.85],
+    [108.9, -72.75],
+    [100.9, -76.4],
+  ] as P[],
+  /** Rise per metre back from the kerb. */
+  fall: 0.04,
+  /** Keep the shared footway flat before easing into the parking rise. */
+  entranceFlatDistance: 5.05,
+  entranceBlend: 1,
+  /** Full roadside-shrub crown plus leaf-card allowance. */
+  plantingClearance: 2.65,
+  /** North-boundary low walls are absent between these x values. */
+  openWallX: [99.5, 131] as const,
+  /** Bank planting runs between these x values, outside the car park. */
+  bankX: [95, 133] as const,
+  lamp: [113.6, -64.6] as P,
+  cars: [
+    { x: 102.6, z: -72.6, yaw: Math.PI * 0.95 },
+    { x: 106.6, z: -70.4, yaw: Math.PI * 0.95 },
+  ],
+};
+
 /** M10 entrance grade. Extent inferred from the mapped road and parking mouth;
  * grade is fitted for continuity, not a measured driveway profile. */
 export const BROOK_PARKING_ENTRY = {
@@ -886,7 +1045,8 @@ export const BLACKBURN_ENTRANCE = {
   origin: [-290.12, 158.63] as P,
   direction: [0.637, -0.771] as P,
   gateKerb: [
-    [16, -3.2],
+    // Starts where the generic Eagley Way pavement resumes (densified node).
+    [16.6, -3.2],
     [10, -3.2],
     [8.2, -3.45],
     [6.9, -4.2],
@@ -895,7 +1055,7 @@ export const BLACKBURN_ENTRANCE = {
     [6.7, -14],
   ] as P[],
   hillKerb: [
-    [16, 3.2],
+    [16.6, 3.2],
     [10, 3.2],
     [7.8, 3.5],
     [5.6, 4.4],

@@ -14,6 +14,8 @@ import {
 } from '../landmarks/blackburn-entrance';
 import { addGarageBacking } from '../landmarks/garage-backing';
 import { addBrookParkingBoundaries } from '../landmarks/brook-mill-grounds';
+import { addBrookEastBeds } from '../landmarks/brook-east-entrance';
+import { addThreadfoldNorthBank } from '../landmarks/threadfold-north-bank';
 import * as T from 'three';
 import { densify, inPoly, nearest, outline, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
@@ -45,6 +47,9 @@ import {
   OSM,
   PASSAGE_GATE,
   LANDSCAPING_GATE,
+  HOUGH_BRIDGE_SOUTH,
+  THREADFOLD_COTTAGE_WALL,
+  THREADFOLD_MINI_PARKING,
 } from './layout';
 import type { Surface } from './surface';
 
@@ -54,6 +59,7 @@ export type PlantingHints = {
   ferns: { x: number; y: number; z: number; h: number }[];
   ivy: { x: number; y: number; z: number; heading: number; h: number }[];
   shrubs: { x: number; z: number; y: number; h: number; flowering?: boolean }[];
+  trees: { x: number; z: number; h: number }[];
 };
 
 // Walls, fences, rails and gates. Every solid boundary registers a collision
@@ -68,10 +74,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addHallLaneBoundary(kit, { surface, data }));
   walls.push(...addHallWoodlandGates(kit, { surface }));
   walls.push(...addValleyEntrance(kit, { surface }));
-  const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [] };
+  const plants: PlantingHints = { ferns: [], ivy: [], shrubs: [], trees: [] };
 
   walls.push(...addGarageBacking(kit, { surface, data }));
   walls.push(...addBrookParkingBoundaries(kit, { surface }));
+  addBrookEastBeds(kit, { surface, plants });
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
   walls.push(...addBridgeGardenFences(kit, { surface }));
   walls.push(...bridgeGateHedgeWalls());
@@ -439,22 +446,37 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
     [120.1, 20.6],
     [121.2, 19.05],
     [122.5, 17.1],
-    [124.0, 14.8],
+    // Continues at the carriageway edge into the bridge's west parapet.
+    ...densify(HOUGH_BRIDGE_SOUTH.westWall, 1.2),
   ];
-  for (const path of [landscapeWall])
-    for (let i = 1; i < path.length; i++) {
-      const a = path[i - 1],
-        b = path[i];
-      masonry(
-        a,
-        b,
-        ground(...a) - 0.1,
-        ground(...b) - 0.1,
-        0.94,
-        0.94,
-        passageStone,
-      );
-    }
+  // Road-side top stays level with the lane; the base follows the lawn,
+  // which falls towards the brook behind the wall. The top rises to meet
+  // the parapet coping over the last stretch.
+  const parapetEnd = landscapeWall[landscapeWall.length - 1];
+  for (let i = 1; i < landscapeWall.length; i++) {
+    const a = landscapeWall[i - 1],
+      b = landscapeWall[i],
+      dx = b[0] - a[0],
+      dz = b[1] - a[1],
+      len = Math.hypot(dx, dz) || 1,
+      // Lawn side is to the left of the path's direction.
+      wx = (dz / len) * 0.6,
+      wz = (-dx / len) * 0.6;
+    const base = (p: P) =>
+        Math.min(ground(...p), terrain(...p), terrain(p[0] + wx, p[1] + wz)) -
+        0.1,
+      top = (p: P) =>
+        ground(...p) +
+        lerp(
+          0.94,
+          0.84,
+          Math.min(
+            1,
+            Math.hypot(p[0] - parapetEnd[0], p[1] - parapetEnd[1]) / 5,
+          ),
+        );
+    masonry(a, b, base(a), base(b), top(a) - base(a), top(b) - base(b));
+  }
   // M07's passage branch is separate from the shared-landscaping gate.
   walls.push(...addBridgePassageGate(kit, { surface }));
   // Shrubs occupy the enclosed corner, leaving the recessed gate approach clear.
@@ -485,7 +507,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   for (const side of [-1, 1]) {
     const a: P = [ba[0] + bnx * 2.175 * side, ba[1] + bnz * 2.175 * side],
       b: P = [bb[0] + bnx * 2.175 * side, bb[1] + bnz * 2.175 * side];
-    masonry(a, b, roadY(...a), roadY(...b), 1.05, 1.05, stone, false, false);
+    // June 2024 GXaLJ6-lQQXM-ZBvWlBeyw heading 40: coursed grey gritstone
+    // parapets with heavy coping, the same stone as the lawn wall.
+    masonry(a, b, roadY(...a), roadY(...b), 0.94, 0.94);
     // West parapet turns back along the end of the west pavement, which
     // stops at the bridge (DQl heading 250). The east side opens onto the
     // footbridge, so it has no return.
@@ -504,9 +528,6 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
           ground(...to) - 0.12,
           1.05,
           1.05,
-          stone,
-          false,
-          false,
         );
   }
   walls.push(
@@ -532,6 +553,9 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       b = threadPath[j],
       x = (a[0] + b[0]) / 2;
     if (x < 45 || x > 130) continue;
+    // Flag 1e384123: a planted bank and the small car park, not a pavement wall.
+    const [o0, o1] = THREADFOLD_MINI_PARKING.openWallX;
+    if (x > o0 && x < o1) continue;
     const dx = b[0] - a[0],
       dz = b[1] - a[1],
       len = Math.hypot(dx, dz),
@@ -542,6 +566,24 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
       h = x > 104 ? 1.9 : 1.05;
     masonry(aa, bb, roadY(...a) - 0.2, roadY(...b) - 0.2, h, h);
   }
+
+  {
+    const W = THREADFOLD_COTTAGE_WALL.points,
+      h = THREADFOLD_COTTAGE_WALL.height;
+    for (let i = 1; i < W.length; i++)
+      masonry(
+        W[i - 1],
+        W[i],
+        ground(...W[i - 1]) - 0.2,
+        ground(...W[i]) - 0.2,
+        h,
+        h,
+      );
+  }
+
+  plants.trees.push(
+    ...addThreadfoldNorthBank(kit, { surface, data, plants, masonry }).trees,
+  );
 
   // ---- Riverside path: steel mesh railing, stone retaining with iron rails ----
   const vehicleSeg = roadSeg.filter((s) => roadWidth(s.f) > 2);

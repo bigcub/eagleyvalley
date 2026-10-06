@@ -1,3 +1,4 @@
+import { addEagleyWayBankPlanting } from '../landmarks/eagley-way-bank';
 import { addCourtEdgePlanting } from '../landmarks/court-woodland-edge';
 import { addBridgeGatePlanting } from '../landmarks/bridge-gate-planting';
 import {
@@ -9,13 +10,14 @@ import {
   BROOK_WATER_WIDTH,
   SCHOOL_STREET_PARKING,
   BROOK_EAST_PARKING,
+  BROOK_PARKING_PLANTING,
 } from './layout';
 import {
   addBlackburnEntranceHedge,
   inBlackburnEntrance,
 } from '../landmarks/blackburn-entrance';
 import * as T from 'three';
-import { inPoly, nearest } from '../core/geo';
+import { inPoly, nearest, outline } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { addTrees } from '../vegetation/realistic-trees';
 import { addWoodlandFerns } from '../vegetation/woodland-ferns';
@@ -30,7 +32,11 @@ import { inTurningCircle } from '../landmarks/turning-circle';
 import { addTurningCirclePlanting } from '../landmarks/turning-circle-details';
 import { passageWallZ } from '../landmarks/bridge-passage';
 import { roadWidth, type WorldData } from './data';
-import { BRIDGE_ROAD_WALL } from './layout';
+import {
+  BRIDGE_ROAD_WALL,
+  BROOK_EAST_BEDS,
+  THREADFOLD_MINI_PARKING,
+} from './layout';
 import type { PlantingHints } from './boundaries';
 import type { Surface } from './surface';
 
@@ -61,22 +67,35 @@ export function addVegetation(
         !inPoly(t.x, t.z, brookParking) &&
         !inPoly(t.x, t.z, SCHOOL_STREET_PARKING.outline) &&
         !inPoly(t.x, t.z, BROOK_EAST_PARKING.outline) &&
+        !inPoly(t.x, t.z, THREADFOLD_MINI_PARKING.outline) &&
         (!inTurningCircle(t.x, t.z, surface.turningCirclePlan) ||
           inPoly(t.x, t.z, surface.turningCirclePlan.grass))
       );
     });
+  // Brook Mill east entrance beds: one tree in each (June 2024).
+  trees.push(...BROOK_EAST_BEDS.trees, ...plants.trees);
   const bank = woodedBankPlan(surface, data, hitBuilding);
   // Canopy peaks already represented nearby take precedence over fitted trunks.
   for (const t of bank.trees)
     if (!trees.some((other) => Math.hypot(other.x - t.x, other.z - t.z) < 4))
       trees.push(t);
+  // June2024 has three broadleaf trunks in the western roadside beds.
+  // Append after existing groups so their procedural geometry stays stable.
+  const roadsideTrees = BROOK_PARKING_PLANTING.roadsideTrees.filter(
+    (t) =>
+      !hitBuilding(t.x, t.z, 0.7) &&
+      !trees.some((other) => Math.hypot(other.x - t.x, other.z - t.z) < 3),
+  );
+  trees.push(...roadsideTrees);
   const leaf = addTrees(
     scene,
     trees.filter((t) => !inPassage(t.x, t.z)),
     (x, z) =>
-      inBridgeParkingIsland(x, z)
-        ? surface.courtY(x, z) + 0.025
-        : terrain(x, z),
+      roadsideTrees.some((t) => t.x === x && t.z === z)
+        ? surface.brookParkingY(x, z) + 0.09
+        : inBridgeParkingIsland(x, z)
+          ? surface.courtY(x, z) + 0.025
+          : terrain(x, z),
     (t) => inPoly(t.x, t.z, surface.turningCirclePlan.island),
   );
   addHoughBankPlanting(kit, {
@@ -94,6 +113,7 @@ export function addVegetation(
     hitBuilding,
     existingShrubs: plants.shrubs,
   });
+  addEagleyWayBankPlanting(kit, { scene, surface, data, leaf, hitBuilding });
   addTurningCirclePlanting(kit, { scene, surface, leaf });
   addBlackburnEntranceHedge(kit, { surface, leaf });
 
@@ -137,7 +157,17 @@ export function addVegetation(
   }
 
   addWoodlandFerns(scene, plants.ferns);
-  addRoadsideShrubs(scene, plants.shrubs, leaf);
+  const parkingEdge = outline(THREADFOLD_MINI_PARKING.outline);
+  addRoadsideShrubs(
+    scene,
+    plants.shrubs.filter(
+      (s) =>
+        !inPoly(s.x, s.z, THREADFOLD_MINI_PARKING.outline) &&
+        nearest(s.x, s.z, parkingEdge).d >=
+          THREADFOLD_MINI_PARKING.plantingClearance,
+    ),
+    leaf,
+  );
   addBrookParkingPlanting(kit, { scene, surface });
   addBrookFrontageShrubs(kit, { scene, surface });
   addBridgeGardens(kit, { leaf, terrain, passageY });

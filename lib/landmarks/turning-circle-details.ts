@@ -8,7 +8,7 @@ import type { Surface } from '../world/surface';
 
 type Wall = { a: P; b: P };
 
-/** EAG-048/049 shelter, bin and brick bed, EAG-045 nose post and loop lamps.
+/** EAG-048/049 shelter, bin and brick bed, loop lamps.
  * Dimensions and concealed supports are estimates. Reference images stay out
  * of the model; the shelter notice board is unlettered. */
 export function addTurningCircleFurniture(
@@ -171,17 +171,7 @@ export function addTurningCircleFurniture(
   );
   walls.push(...outline(binOutline));
 
-  const post = D.bollard;
-  kit.box(
-    post.centre[0],
-    y(...post.centre) + 0.08 + post.height / 2,
-    post.centre[1],
-    post.width,
-    post.height,
-    post.width,
-    kit.mat('turningConcretePost', '#9b9b87'),
-  );
-  walls.push({ a: post.centre, b: post.centre });
+  // The EAG-045 nose post was removed after user flag b4097f86 (v0.3.128).
   for (const lamp of D.lamps) {
     const base = surface.ground(...lamp.centre) + 0.07;
     const g = new T.CylinderGeometry(0.055, 0.095, lamp.height, 8);

@@ -3,7 +3,12 @@ import { inPoly, nearest, segments } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { brookParking } from '../landmarks/brook-mill-grounds';
 import type { WorldData } from '../world/data';
-import { WORLD_LIMITS } from '../world/layout';
+import {
+  BROOK_PARKED,
+  BROOK_PARKING_ROWS,
+  THREADFOLD_MINI_PARKING,
+  WORLD_LIMITS,
+} from '../world/layout';
 import type { Surface } from '../world/surface';
 import { carModel } from './vehicles';
 import { createEngineSound, createMapOverlay } from './overlays';
@@ -53,11 +58,34 @@ export function createPlay(opts: {
     z: a[1] + Math.cos(angle) * 12 - Math.sin(angle) * 1.3,
     yaw: angle,
   };
-  // The two parked cars sit in the Bridge Mill court.
+  // Two parked cars sit in the Bridge Mill court; the rest fill some of the
+  // Brook Mill bays. All of them can be entered.
+  const parkedColours = [
+    '#2b2f33',
+    '#c9c9c4',
+    '#5b6770',
+    '#8a1f22',
+    '#1f3550',
+    '#d8d4c8',
+  ];
+  const brookCars = BROOK_PARKED.map(([r, i], k) => {
+    const row = BROOK_PARKING_ROWS[r];
+    return {
+      x: (row.a[0] + row.b[0]) / 2 + (i + 0.5) * row.dx,
+      z: (row.a[1] + row.b[1]) / 2 + (i + 0.5) * row.dz,
+      yaw: Math.atan2(row.a[0] - row.b[0], row.a[1] - row.b[1]),
+      color: parkedColours[k % parkedColours.length],
+    };
+  });
   const cars = [
     { ...spawn, color: '#426d61' },
     { x: 17.2, z: 26, yaw: Math.PI, color: '#b9ad89' },
     { x: 20, z: 26, yaw: Math.PI, color: '#934f39' },
+    ...brookCars,
+    ...THREADFOLD_MINI_PARKING.cars.map((c, k) => ({
+      ...c,
+      color: k ? '#9ea3a6' : '#c7c9c8',
+    })),
   ].map((v, i) => {
     const model = carModel(kit, v.color);
     model.g.position.set(v.x, ground(v.x, v.z), v.z);
@@ -267,9 +295,32 @@ export function createPlay(opts: {
     updateHud();
     updateCamera(1);
   }
-  /** E: get out beside the car, or get into the nearest car within 4m. */
+  /** In bird mode: land on the nearest standable spot below and walk from
+   * there. The car stays where it was left. */
+  function land() {
+    const { player } = s;
+    for (let r = 0; r <= 12; r += 0.75)
+      for (let k = 0; k < (r ? 12 : 1); k++) {
+        const a = (k / 12) * Math.PI * 2,
+          x = player.x + Math.sin(a) * r,
+          z = player.z + Math.cos(a) * r;
+        if (!canStand(x, z, 0.35)) continue;
+        returnState = null;
+        s.mode = 'walk';
+        s.player = { x, z, yaw: player.yaw, speed: 0 };
+        s.look = 0;
+        s.lookPitch = 0;
+        keys.clear();
+        updateCamera(1);
+        updateHud();
+        return;
+      }
+  }
+  /** E: get out beside the car, get into the nearest car within 4m, or land
+   * from bird mode. */
   function interact() {
-    if (!s.started || s.mode === 'bird') return;
+    if (!s.started) return;
+    if (s.mode === 'bird') return land();
     const { player } = s;
     if (s.mode === 'drive') {
       if (Math.abs(player.speed) > 1.2) return;
@@ -307,7 +358,7 @@ export function createPlay(opts: {
     if (s.started && !s.paused && !s.reviewing) {
       const gas = held('KeyW', 'ArrowUp') - held('KeyS', 'ArrowDown'),
         steer = held('KeyD', 'ArrowRight') - held('KeyA', 'ArrowLeft'),
-        shift = keys.has('ShiftLeft');
+        shift = keys.has('ShiftLeft') || keys.has('ShiftRight');
       const p = s.player;
       if (s.mode === 'bird') {
         p.yaw -= steer * 1.5 * dt;
@@ -352,7 +403,8 @@ export function createPlay(opts: {
         syncCar();
       } else {
         p.yaw -= steer * 1.8 * dt;
-        p.speed = gas * (shift ? 4.2 : 2.3);
+        // Shift sprints at a running pace.
+        p.speed = gas * (shift ? 6.5 : 2.3);
         const x = p.x + Math.sin(p.yaw) * p.speed * dt,
           z = p.z + Math.cos(p.yaw) * p.speed * dt;
         if (canStand(x, z, 0.35)) {

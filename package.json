@@ -30,7 +30,8 @@
     "test:blackburn": "node scripts/check-blackburn.mjs",
     "test:school": "node scripts/check-school-house.mjs",
     "test:valley-entrance": "node scripts/check-valley-entrance.mjs",
-    "test:streets": "node scripts/check-street-houses.mjs"
+    "test:streets": "node scripts/check-street-houses.mjs",
+    "test:threadfold-parking": "node scripts/check-threadfold-parking.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

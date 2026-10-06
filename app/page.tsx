@@ -208,18 +208,20 @@ export default function Home() {
             <div className="quick-controls">
               <Button
                 variant="ghost"
-                disabled={
-                  hud.mode === 'bird' || (hud.mode === 'walk' && !hud.nearCar)
-                }
+                disabled={hud.mode === 'walk' && !hud.nearCar}
                 onClick={() => action('interact')}
               >
-                {hud.mode === 'drive' ? (
+                {hud.mode !== 'walk' ? (
                   <Footprints size={17} />
                 ) : (
                   <Car size={17} />
                 )}
                 <kbd>E</kbd>
-                {hud.mode === 'drive' ? 'Get out' : 'Enter car'}
+                {hud.mode === 'drive'
+                  ? 'Get out'
+                  : hud.mode === 'bird'
+                    ? 'Land here'
+                    : 'Enter car'}
               </Button>
               <Button
                 variant="ghost"
@@ -326,12 +328,12 @@ export default function Home() {
             <br />Q · Fly down
             <br />V · Overhead / angled view in bird mode
             <br />B · Bird mode / return to saved position
-            <br />E · Exit / enter a nearby car
+            <br />E · Exit / enter a nearby car / land from bird mode
             <br />C · Change camera
             <br />
             Drag the scene · Look around
             <br />
-            Shift · Walk / fly faster
+            Shift · Sprint / fly faster
             <br />R · Return to start
             <br />F · Fullscreen
             <br />

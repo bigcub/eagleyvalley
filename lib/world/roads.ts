@@ -9,6 +9,8 @@ import {
   blackburnLocal,
 } from '../landmarks/blackburn-entrance';
 import * as T from 'three';
+import { addHoughBridgeSouthApron } from '../landmarks/hough-bridge-south';
+import { addThreadfoldMiniParking } from '../landmarks/threadfold-north-bank';
 import {
   densify,
   inPoly,
@@ -39,6 +41,7 @@ import {
   SCHOOL_STREET_WEST,
   SCHOOL_STREET_PARKING,
   BROOK_EAST_PARKING,
+  THREADFOLD_MINI_PARKING,
 } from './layout';
 import type { Surface } from './surface';
 
@@ -81,7 +84,8 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
       if (
         f.id === OSM.threadfoldWayLoop &&
         (material === paving || material === kerb) &&
-        inPoly(x, z, BROOK_EAST_PARKING.outline)
+        (inPoly(x, z, BROOK_EAST_PARKING.outline) ||
+          inPoly(x, z, THREADFOLD_MINI_PARKING.outline))
       )
         return false;
       if (
@@ -176,6 +180,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
     if (f.id === OSM.busTurningLoop) continue; // M02 draws one connected loop.
     if (f.id === OSM.eagleyBrow) continue; // Dedicated woodland entrance below.
     if ([OSM.houghOldLane, OSM.houghJunctionFootway].includes(f.id)) continue;
+    if (f.id === OSM.houghFootbridgeSouthPath) continue; // Part of the apron.
     // M25b: the photographed bay and square are block paving, drawn with the
     // west-end walls; the mapped cross-run and footpath keep their movement roles.
     if ([OSM.schoolStreetCross, OSM.schoolStreetWestPath].includes(f.id))
@@ -212,6 +217,16 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
       for (const side of [-1, 1]) {
         if (f.id === OSM.houghMillApproach && side === 1) continue;
         if (f.id === OSM.houghTurningApproach && side === 1) continue;
+        // The cottage lane's Threadfold side is the railed Threadfold
+        // pavement (flag e7aa54b0); a second strip crossed the verge.
+        if (f.id === OSM.hallCottageLane && side === 1) continue;
+        // South of the road bridge the west edge is the lawn wall and the
+        // east edge is the flush apron (hough-bridge-south.ts).
+        if (
+          (f.id === OSM.houghTurningApproach && side === -1) ||
+          f.id === OSM.houghLaneSouth
+        )
+          continue;
         if (f.tags.highway === 'service' && f.id !== OSM.busTurningLoop)
           continue;
         const walkPoints =
@@ -327,5 +342,7 @@ export function addRoads(kit: Kit, surface: Surface, data: WorldData) {
   addEagleyBrowSurface(kit, { surface, data });
   addEagleyHoughBend(kit, { surface, data });
   addTurningCircle(kit, { surface });
+  addHoughBridgeSouthApron(kit, { surface });
+  addThreadfoldMiniParking(kit, { surface });
   addBrookParking(kit, { surface });
 }

@@ -17,6 +17,7 @@ import {
   nearest,
   outline,
   segments,
+  type Feature,
   type Nearest,
   type P,
 } from '../core/geo';
@@ -49,6 +50,8 @@ import {
   SCHOOL_STREET_WEST,
   SCHOOL_STREET_PARKING,
   HOUGH_TERRACE_ROAD,
+  HOUGH_BRIDGE_SOUTH,
+  THREADFOLD_MINI_PARKING,
 } from './layout';
 import {
   createEagleyHoughBendPlan,
@@ -485,6 +488,26 @@ export function createSurface(data: WorldData) {
         0,
         BROOK_EAST_PARKING.edgeBlend,
       ),
+    );
+  }
+  // Small car park cut into the Threadfold north bank: road level at the
+  // kerb, rising gently towards the School Street wall.
+  const miniParkingBounds = bounds(THREADFOLD_MINI_PARKING.outline);
+  function miniParkingY(x: number, z: number) {
+    const B = miniParkingBounds;
+    if (x < B.minX || x > B.maxX || z < B.minZ || z > B.maxZ) return undefined;
+    if (!inPoly(x, z, THREADFOLD_MINI_PARKING.outline)) return undefined;
+    const n = nearest(x, z, brookEntryRoad);
+    return (
+      roadY(n.x, n.z, n) +
+      Math.max(0, n.d - THREADFOLD_MINI_PARKING.entranceFlatDistance) *
+        smoothstep(
+          n.d,
+          THREADFOLD_MINI_PARKING.entranceFlatDistance,
+          THREADFOLD_MINI_PARKING.entranceFlatDistance +
+            THREADFOLD_MINI_PARKING.entranceBlend,
+        ) *
+        THREADFOLD_MINI_PARKING.fall
     );
   }
   const brookWestEntry = brookParkingY(...BROOK_WEST_ENTRANCE.centre) + 0.02;
@@ -1017,6 +1040,24 @@ export function createSurface(data: WorldData) {
       },
     },
     {
+      name: 'threadfold-mini-parking-formation',
+      y: (x, z) => {
+        if (nearest(x, z, brookEntryRoad).d < 3) return undefined;
+        // Grow the cut by a cell so coarse grass cannot cross the tarmac.
+        for (const [dx, dz] of [
+          [0, 0],
+          [1.2, 0],
+          [-1.2, 0],
+          [0, 1.2],
+          [0, -1.2],
+        ]) {
+          const y = miniParkingY(x + dx, z + dz);
+          if (y !== undefined) return Math.min(sampledTerrain(x, z), y - 0.12);
+        }
+        return undefined;
+      },
+    },
+    {
       name: 'brook-east-parking-formation',
       y: (x, z) => {
         // Centreline samples remain unchanged, avoiding terrain/road recursion.
@@ -1335,6 +1376,7 @@ export function createSurface(data: WorldData) {
       y: (x, z) =>
         inPoly(x, z, BRIDGE_PARKING.apron) ? courtApronY(x, z) : undefined,
     },
+    { name: 'threadfold-mini-parking', y: miniParkingY },
     {
       name: 'threadfold-east-bend-pavement',
       y: (x, z) =>
@@ -1445,6 +1487,23 @@ export function createSurface(data: WorldData) {
       },
     },
   ];
+  // Lawn behind the Hough bridge-south wall keeps grass level instead of the
+  // carriageway formation that used to carry a pavement there.
+  const houghLawnWall = segments([
+    {
+      points: [[121.2, 19.05], [122.5, 17.1], ...HOUGH_BRIDGE_SOUTH.westWall],
+    } as Feature,
+  ]);
+  groundZones.push({
+    name: 'hough-bridge-south-lawn',
+    y: (x, z) => {
+      const n = nearest(x, z, houghLawnWall);
+      if (n.d < 0.32 || n.d > HOUGH_BRIDGE_SOUTH.lawnReach) return undefined;
+      const { a, b } = n.s,
+        west = (b[0] - a[0]) * (z - a[1]) - (b[1] - a[1]) * (x - a[0]) < 0;
+      return west ? terrain(x, z) + 0.13 : undefined;
+    },
+  });
   function ground(x: number, z: number) {
     for (const zone of groundZones) {
       const y = zone.y(x, z);
@@ -1468,6 +1527,7 @@ export function createSurface(data: WorldData) {
     schoolHouseBase,
     blackburnEntrancePlan,
     blackburnEntranceY,
+    miniParkingY,
     roadSeg,
     riverSeg,
     eagleySegments,
