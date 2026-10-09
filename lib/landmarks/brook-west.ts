@@ -7,6 +7,7 @@ import { BROOK_WEST as W, BROOK_WEST_ENTRANCE as D } from '../world/layout';
 import { masonryUV, slateMaterial } from '../materials/building-surfaces';
 import { brookWestPoint } from './brook-west-entrance';
 import { brookWingRoofY } from './brook-north-return';
+import { brookUpper } from './brook-mill';
 
 /** Mapped main shell retained; west schedule and lower wing from UP-001/002.
  * No guessed windows on concealed parts. All dimensions interpreted. */
@@ -35,8 +36,12 @@ export function addBrookWest(
     kit.batch(g, m);
   };
   const foot = Math.min(...points.map((p) => surface.sampledTerrain(...p)));
-  extrude(base - foot + 3.6, foot, masonry);
-  extrude(14.4, base + 3.6, kit.m.brick);
+  // Main block only: the lower wing and entrance gable keep their heights.
+  const upper = (build: () => void) => brookUpper(kit, base, build);
+  upper(() => {
+    extrude(base - foot + 3.6, foot, masonry);
+    extrude(14.4, base + 3.6, kit.m.brick);
+  });
   const B = (
     u: number,
     y: number,
@@ -96,64 +101,73 @@ export function addBrookWest(
     if (door) B(u + 0.15, 1.1, d + 0.24, 0.025, 0.22, 0.06, kit.m.dark);
   };
   // Main block: only the visible photographed openings, independently of wall length.
-  for (const row of W.mainRows)
-    for (const u of row.us) opening(u, face(u), row.bottom, row.top, row.width);
-  for (let i = 0; i < 5; i++) {
-    const a = points[i],
-      b = points[i + 1],
-      len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    const angle = Math.atan2(b[0] - a[0], b[1] - a[1]);
-    kit.box(
-      (a[0] + b[0]) / 2,
-      entry + 1.6,
-      (a[1] + b[1]) / 2,
-      0.1,
-      3.2,
-      len,
-      masonry,
-      angle,
-    );
-    for (const y of W.bands)
+  upper(() => {
+    for (const row of W.mainRows)
+      for (const u of row.us)
+        opening(u, face(u), row.bottom, row.top, row.width);
+  });
+  upper(() => mainFaces());
+  function mainFaces() {
+    for (let i = 0; i < 5; i++) {
+      const a = points[i],
+        b = points[i + 1],
+        len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const angle = Math.atan2(b[0] - a[0], b[1] - a[1]);
       kit.box(
         (a[0] + b[0]) / 2,
-        entry + y,
+        entry + 1.6,
         (a[1] + b[1]) / 2,
         0.1,
-        0.16,
+        3.2,
         len,
-        bands,
+        masonry,
         angle,
       );
-    kit.box(
-      (a[0] + b[0]) / 2,
-      entry + 3.08,
-      (a[1] + b[1]) / 2,
-      0.23,
-      0.22,
-      len,
-      stone,
-      angle,
-    );
+      for (const y of W.bands)
+        kit.box(
+          (a[0] + b[0]) / 2,
+          entry + y,
+          (a[1] + b[1]) / 2,
+          0.1,
+          0.16,
+          len,
+          bands,
+          angle,
+        );
+      kit.box(
+        (a[0] + b[0]) / 2,
+        entry + 3.08,
+        (a[1] + b[1]) / 2,
+        0.23,
+        0.22,
+        len,
+        stone,
+        angle,
+      );
+    }
   }
   // Retain the independently modelled north/south/east rainwater geometry.
-  for (let i = 5; i < points.length; i++) {
-    const a = points[i],
-      b = points[(i + 1) % points.length];
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]),
-      angle = Math.atan2(b[0] - a[0], b[1] - a[1]);
-    kit.box(
-      (a[0] + b[0]) / 2,
-      base + 17.92,
-      (a[1] + b[1]) / 2,
-      0.13,
-      0.14,
-      len + 0.16,
-      kit.m.dark,
-      angle,
-    );
-    if (i % 2 === 0) {
-      kit.box(a[0], base + 9, a[1], 0.08, 18, 0.08, kit.m.dark);
-      kit.box(a[0], base + 0.18, a[1], 0.2, 0.25, 0.2, kit.m.dark);
+  upper(() => rainwater());
+  function rainwater() {
+    for (let i = 5; i < points.length; i++) {
+      const a = points[i],
+        b = points[(i + 1) % points.length];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]),
+        angle = Math.atan2(b[0] - a[0], b[1] - a[1]);
+      kit.box(
+        (a[0] + b[0]) / 2,
+        base + 17.92,
+        (a[1] + b[1]) / 2,
+        0.13,
+        0.14,
+        len + 0.16,
+        kit.m.dark,
+        angle,
+      );
+      if (i % 2 === 0) {
+        kit.box(a[0], base + 9, a[1], 0.08, 18, 0.08, kit.m.dark);
+        kit.box(a[0], base + 0.18, a[1], 0.2, 0.25, 0.2, kit.m.dark);
+      }
     }
   }
   const wing = W.wing,

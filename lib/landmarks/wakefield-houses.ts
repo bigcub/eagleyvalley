@@ -7,6 +7,7 @@ import {
   WAKEFIELD_HOUSES as H,
   WAKEFIELD_LOW_WING,
   WAKEFIELD_SOUTH_END,
+  WAKEFIELD_TOWN_PAIR as TP,
 } from '../world/layout';
 
 /** Dedicated courtyard housing. Photographed fronts, mapped footprints;
@@ -52,7 +53,8 @@ export function addWakefieldHouses(
   for (const h of models) {
     const base = bases.get(h.group)!;
     const town = h.kind === 'town',
-      height = town ? 8.3 : 5.85;
+      tall = h.kind === 'garageTown',
+      height = town ? 8.3 : tall ? TP.eaves : 5.85;
     const material = town ? red : buff;
     const rot = Math.atan2(-h.along[1], h.along[0]);
     const world = (u: number, v: number): P => [
@@ -126,7 +128,7 @@ export function addWakefieldHouses(
       B((u0 + u1) / 2, eave, 0.25, u1 - u0 + 0.35, 0.13, 0.16, dark);
       B((u0 + u1) / 2, eave, -depth - 0.25, u1 - u0 + 0.35, 0.13, 0.16, dark);
     };
-    roofPart(0, h.width, h.depth, height, town ? 1.9 : 1.75);
+    roofPart(0, h.width, h.depth, height, town ? 1.9 : tall ? TP.rise : 1.75);
     const window = (
       u: number,
       bottom: number,
@@ -233,6 +235,65 @@ export function addWakefieldHouses(
       }
     }
     B(h.width - 0.09, height / 2, 0.2, 0.07, height, 0.07, dark);
+    if (tall) {
+      // Road-facing front on the far side of the court-side line.
+      const face = -h.depth,
+        out = (v: number) => face - v;
+      const red = kit.mat('wakefieldTownRed', '#b9705a');
+      red.map = kit.m.brick.map;
+      const [s1, s2] = TP.storeys;
+      B(h.width / 2, (s1 + s2) / 2, out(0.03), h.width, s2 - s1, 0.06, red);
+      for (let course = 0.18; course < s1 - 0.1; course += 0.34)
+        B(h.width / 2, course, out(0.06), h.width, 0.27, 0.12, pale);
+      for (const y of [s1, s2])
+        B(h.width / 2, y, out(0.1), h.width, 0.18, 0.2, pale);
+      const opening = (
+        u: number,
+        bottom: number,
+        w: number,
+        hh: number,
+        m: T.Material,
+      ) => {
+        B(u, bottom + hh / 2, out(0.1), w + 0.16, hh + 0.12, 0.08, frames);
+        B(u, bottom + hh / 2, out(0.14), w, hh, 0.04, m);
+      };
+      const g = TP.ground[h.id];
+      const white = kit.mat('wakefieldGarageDoor', '#e6e6df');
+      opening(g.garage, 0.02, 2.3, 2.1, white);
+      for (let k = 1; k < 6; k++)
+        B(g.garage, 0.02 + (k * 2.1) / 6, out(0.17), 2.3, 0.025, 0.02, frames);
+      opening(g.door, 0.05, 0.95, 2.1, door);
+      window(g.door, 1.75, 0.5, 0.32, 1, out(0.2));
+      B(g.door, 2.35, out(0.2), 1.35, 0.14, 0.3, pale);
+      // French windows with Juliet balconies; small top-floor windows above.
+      for (const t of TP.frenchDoors) {
+        const u = h.width * t;
+        opening(u, s1 + 0.2, 1.0, 2.1, glass);
+        B(u, s1 + 0.2 + 1.05, out(0.17), 0.04, 2.1, 0.02, frames);
+        B(u, s1 + 0.14, out(0.12), 1.25, 0.1, 0.24, pale);
+        B(u, s1 + 2.42, out(0.12), 1.3, 0.18, 0.18, pale);
+        for (const y of [s1 + 0.32, s1 + 1.15])
+          B(u, y, out(0.32), 1.2, 0.04, 0.04, dark);
+        for (let k = 0; k <= 8; k++)
+          B(u - 0.6 + k * 0.15, s1 + 0.74, out(0.32), 0.02, 0.84, 0.02, dark);
+        opening(u, s2 + 0.75, 0.85, 1.05, glass);
+        B(u, s2 + 0.68, out(0.12), 1.05, 0.1, 0.22, pale);
+      }
+      B(h.width - 0.05, height / 2, out(0.08), 0.08, height, 0.08, dark);
+      if (h.id === '727427304') {
+        const [cx, cz] = world(0.45, -h.depth / 2);
+        kit.box(
+          cx,
+          base + height + TP.rise + 0.55,
+          cz,
+          0.7,
+          1.6,
+          1.1,
+          pale,
+          rot,
+        );
+      }
+    }
     if (h.id === '727427306') {
       const endWindow = (
         v: number,

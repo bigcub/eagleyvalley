@@ -1,16 +1,21 @@
 import { slateMaterial, roofUV } from '../materials/building-surfaces';
 import { createPottedTopiary } from '../vegetation/potted-topiary';
 import { settMaterials } from '../materials/sett-material';
+import {
+  bridgeDressing,
+  bridgeMossWash,
+  bridgeStone,
+} from '../materials/bridge-stone';
 import { passageWallZ } from './bridge-passage';
 import {
   BRIDGE_JUNCTION,
+  BRIDGE_MILL_FOOTPRINT,
   BRIDGE_NO5_DOOR,
   passageSettInset,
 } from '../world/layout';
 import { hoopRailing } from './garden-fences';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 type P = [number, number];
 
 /** User photos: a deep basement light well in front of each window bay
@@ -20,6 +25,11 @@ const lightWells = [0, 2, 4, 6, 8].map((bay) => 79.7 + bay * 3.12);
 const LIGHT_WELL = { width: 1.8, depth: 0.75, floor: 2.5 };
 const NO3_WELL = lightWells[2];
 const frontZ = (x: number) => 19.55 + (x - 80) * 0.041;
+// Mapped south wall face (BRIDGE_MILL_FOOTPRINT), 0.02-0.04m in front of frontZ.
+const [FA, FB] = [BRIDGE_MILL_FOOTPRINT[3], BRIDGE_MILL_FOOTPRINT[2]];
+const FACE_SLOPE = (FB[1] - FA[1]) / (FB[0] - FA[0]);
+const FACE_ROT = Math.atan(FACE_SLOPE);
+const faceZ = (x: number) => FA[1] + (x - FA[0]) * FACE_SLOPE;
 /** Open well, for cutting the fine grass mesh. */
 export function inBridgeLightWell(x: number, z: number) {
   const w = LIGHT_WELL.width / 2;
@@ -38,7 +48,7 @@ type Junction = {
 export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
   const { box, batch } = kit;
   const wells: P[][] = [];
-  const { stone, trim, dark, glass } = kit.m;
+  const { stone, dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
       color: '#eeeae0',
       roughness: 0.72,
@@ -69,137 +79,389 @@ export function addBridgeFront(kit: Kit, base: number, junction: Junction) {
       m,
       -0.041,
     );
+  const dressing = bridgeDressing(kit);
+  const shadow = kit.mat('bridgeRevealShadow', '#4a4a40', 1);
+  /** Box at `out` metres in front of the mapped wall face (its centre),
+   * with real depth. The shell follows BRIDGE_MILL_FOOTPRINT's south edge. */
+  const D = (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    out: number,
+    depth: number,
+    m: T.Material,
+  ) => box(x, base + y, faceZ(x) + out, w, h, depth, m, -FACE_ROT);
+  // User photos of No.3, 7 October 2026: 15-over-15 white sashes (five panes
+  // across, three rows per sash) set straight into the stone, with tooled
+  // lintels and projecting sills. Ground windows sit about 1.0m above the
+  // flags and rise to about 3.15m. Sizes scaled from the door (2.05m).
   function sash(x: number, y: number) {
-    B(x, y, 1.53, 2.24, 0.16, dark, 0.04);
-    B(x, y, 1.43, 2.14, 0.15, white, 0.13);
-    B(x, y, 1.29, 1.98, 0.16, glass, 0.22);
-    for (let c = -1; c <= 1; c++)
-      B(x + c * 0.32, y, 0.035, 1.98, 0.035, white, 0.32);
-    for (let r = -2; r <= 2; r++)
-      B(x, y + r * 0.33, 1.29, 0.032, 0.035, white, 0.32);
-    B(x, y, 1.38, 0.065, 0.05, white, 0.35);
-    B(x, y - 1.18, 1.75, 0.13, 0.43, stone, 0.16);
-    B(x, y + 1.23, 1.8, 0.25, 0.18, stone, 0.08);
+    const w = 1.43,
+      h = 2.14,
+      gw = 1.29,
+      gh = 1.98;
+    // Frame behind, glass in front of it, glazing bars in front of the glass.
+    D(x, y, w + 0.04, h + 0.04, 0.004, 0.02, shadow);
+    D(x, y, w, h, 0.012, 0.024, white);
+    D(x, y, gw, gh, 0.03, 0.01, glass);
+    for (let c = -2; c <= 2; c++)
+      if (c)
+        D(
+          x + (c - Math.sign(c) * 0.5) * (gw / 5),
+          y,
+          0.032,
+          gh,
+          0.065,
+          0.025,
+          white,
+        );
+    for (const r of [-2, -1, 1, 2])
+      D(x, y + r * 0.33, gw, 0.03, 0.065, 0.025, white);
+    // Meeting rail and sash stiles.
+    D(x, y, gw + 0.02, 0.07, 0.07, 0.04, white);
+    for (const side of [-1, 1])
+      D(x + side * (gw / 2 + 0.03), y, 0.06, gh, 0.07, 0.03, white);
+    D(x, y - h / 2 - 0.07, w + 0.3, 0.12, 0.1, 0.22, dressing);
+    D(x, y + h / 2 + 0.15, w + 0.34, 0.3, 0.04, 0.1, dressing);
   }
   // User frontage photos from No.3: four doors on odd bays, windows at both
   // ends. No.5 (west) has its red door on the side. West to east: No.4
   // plum, No.3 green, No.2 navy, No.1 dark grey. Shades matched by eye.
   const doorColours = ['#5a2a45', '#173f30', '#1f2850', '#34383c'];
+  // No.3 photo, front-on: six-panel door 0.88 x 2.0m between white panelled
+  // pilasters 0.30m wide, a rail, then a 5x2 transom light across the full
+  // surround; tooled lintel above with a carriage lantern, single stone step.
+  const DOOR = { w: 0.88, h: 2.0, sill: 0.13, pilaster: 0.3, transom: 0.76 };
+  const panelled = (
+    x: number,
+    y0: number,
+    w: number,
+    h: number,
+    out: number,
+    face: T.Material,
+    edge: T.Material,
+  ) => {
+    D(x, y0 + h / 2, w, h, out, 0.02, edge);
+    D(x, y0 + h / 2, w - 0.05, h - 0.05, out + 0.008, 0.02, face);
+  };
   for (let bay = 0; bay < 9; bay++) {
     const x = 79.7 + bay * 3.12;
     sash(x, 5.05);
     if (bay % 2 === 0) {
-      sash(x, 1.54);
+      sash(x, 2.08);
       continue;
     }
-    const door = new T.MeshStandardMaterial({
-      color: doorColours[(bay - 1) / 2],
-      roughness: 0.55,
-    });
-    B(x, 1.15, 1.72, 2.38, 0.2, white, 0.12);
-    B(x, 1.15, 1.22, 2.22, 0.18, door, 0.24);
-    for (const side of [-1, 1]) {
-      B(x + side * 0.74, 1.16, 0.22, 2.3, 0.08, white, 0.26);
-      for (const [y, h] of [
-        [0.24, 0.3],
-        [1.1, 1.22],
-        [2.02, 0.27],
-      ]) {
-        B(x + side * 0.74, y, 0.17, h, 0.035, trim, 0.32);
-        B(x + side * 0.74, y, 0.125, h - 0.055, 0.025, white, 0.35);
-      }
-      for (const [y, h] of [
-        [0.43, 0.58],
-        [1.24, 0.67],
-        [1.96, 0.3],
+    const colour = doorColours[(bay - 1) / 2];
+    const door = kit.mat(`bridgeDoor${colour}`, colour, 0.5);
+    const doorEdge = kit.mat(
+      `bridgeDoorEdge${colour}`,
+      `#${new T.Color(colour).multiplyScalar(0.62).getHexString()}`,
+      0.6,
+    );
+    const { w, h, sill, pilaster: pw, transom } = DOOR;
+    const full = w + pw * 2;
+    // Step, door leaf and its six raised-and-fielded panels.
+    D(x, sill / 2, full + 0.08, sill, 0.17, 0.36, dressing);
+    D(x, sill + h / 2, w, h, 0.02, 0.04, door);
+    for (const side of [-1, 1])
+      for (const [c, ph] of [
+        [0.875, 0.28],
+        [0.6, 0.6],
+        [0.2, 0.62],
       ])
-        B(x + side * 0.3, y, 0.48, h, 0.05, door, 0.36);
+        panelled(
+          x + side * 0.2,
+          sill + h * c - ph / 2,
+          0.32,
+          ph,
+          0.04,
+          door,
+          doorEdge,
+        );
+    D(x, sill + h * 0.41, 0.3, 0.065, 0.055, 0.02, brass);
+    D(x + 0.33, sill + h * 0.46, 0.045, 0.22, 0.055, 0.02, brass);
+    D(x + 0.31, sill + h * 0.5, 0.1, 0.025, 0.08, 0.04, brass);
+    // Pilasters with three panels each.
+    const off = kit.mat('bridgeDoorPanelShadow', '#cfccc2', 0.8);
+    for (const side of [-1, 1]) {
+      const px = x + side * (w / 2 + pw / 2);
+      D(px, sill + h / 2, pw, h, 0.06, 0.1, white);
+      for (const [lo, hi] of [
+        [0.03, 0.21],
+        [0.25, 0.82],
+        [0.86, 0.98],
+      ])
+        panelled(px, sill + h * lo, pw - 0.1, h * (hi - lo), 0.11, white, off);
     }
-    B(x, 2.73, 1.66, 0.86, 0.17, white, 0.16);
-    B(x, 2.73, 1.5, 0.72, 0.17, glass, 0.26);
+    // Rail and transom light: five lights across, two high.
+    const t0 = sill + h,
+      ty = t0 + 0.09 + transom / 2;
+    D(x, t0 + 0.045, full, 0.09, 0.06, 0.1, white);
+    D(x, ty, full, transom, 0.012, 0.024, white);
+    D(x, ty, full - 0.12, transom - 0.1, 0.03, 0.01, glass);
     for (const c of [-1.5, -0.5, 0.5, 1.5])
-      B(x + c * 0.3, 2.73, 0.026, 0.72, 0.035, white, 0.36);
-    B(x, 2.73, 1.5, 0.025, 0.035, white, 0.36);
-    B(x, 3.28, 1.96, 0.3, 0.2, stone, 0.13);
-    B(x, 0.72, 0.37, 0.09, 0.045, brass, 0.39);
-    B(x + 0.48, 1.04, 0.06, 0.19, 0.04, brass, 0.4);
-    B(x, -0.02, 1.98, 0.17, 0.65, stone, 0.34);
-    // Potted topiary flanks each entrance.
+      D(
+        x + (c * (full - 0.12)) / 5,
+        ty,
+        0.03,
+        transom - 0.1,
+        0.065,
+        0.025,
+        white,
+      );
+    D(x, ty, full - 0.12, 0.03, 0.065, 0.025, white);
+    const lintelTop = t0 + 0.09 + transom + 0.3;
+    D(x, lintelTop - 0.15, full + 0.3, 0.3, 0.04, 0.12, dressing);
+    // Carriage lantern standing on the lintel.
+    D(x, lintelTop + 0.05, 0.1, 0.1, 0.1, 0.18, dark);
+    D(x, lintelTop + 0.27, 0.2, 0.32, 0.16, 0.2, dark);
+    D(
+      x,
+      lintelTop + 0.27,
+      0.16,
+      0.26,
+      0.16,
+      0.21,
+      kit.mat('bridgeLanternGlow', '#e4c47f'),
+    );
+    D(x, lintelTop + 0.46, 0.26, 0.05, 0.16, 0.26, dark);
+    // Pots: No.3 has two black glazed planters (photo); the others keep their
+    // potted topiary.
     for (const side of [-1, 1]) {
       const px = x + side * 1.04,
-        pz = south(px) + 0.87;
-      topiary(px, base, pz, bay * 2 + side, bay === 3);
+        pz = south(px) + 0.4;
+      if (bay === 3) {
+        const pot = new T.CylinderGeometry(0.22, 0.2, 0.4, 28);
+        pot.translate(px, base + 0.2, pz);
+        batch(pot, kit.mat('bridgeBlackGlaze', '#101112', 0.15));
+        const lip = new T.CylinderGeometry(0.235, 0.235, 0.05, 28);
+        lip.translate(px, base + 0.385, pz);
+        batch(lip, kit.mat('bridgeBlackGlaze', '#101112', 0.15));
+        const inside = new T.CircleGeometry(0.2, 24);
+        inside.rotateX(-Math.PI / 2);
+        inside.translate(px, base + 0.33, pz);
+        batch(inside, kit.mat('bridgePotInside', '#3a2c22'));
+      } else topiary(px, base, south(px) + 0.87, bay * 2 + side, false);
     }
-    B(x, 3.7, 0.17, 0.32, 0.18, dark, 0.18);
-    B(
-      x,
-      3.7,
-      0.12,
-      0.22,
-      0.17,
-      new T.MeshStandardMaterial({
-        color: '#e4c47f',
-        emissive: '#cf9a43',
-        emissiveIntensity: 0.3,
-      }),
-      0.27,
-    );
+  }
+  // 7 October photos along the frontage from No.3: extra pots in the gaps
+  // between the light wells and the doorway topiary. Two blue glazed pots
+  // west of No.3's west well; a dark green planter with a young tree east of
+  // its east well; pink hydrangeas in pots either side of Nos.2 and 1.
+  // Positions scaled from the views; plants and sizes estimated.
+  {
+    let seed = 6113;
+    const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const leafy = [
+      kit.mat('frontPotLeaf1', '#3f5c2e', 0.9),
+      kit.mat('frontPotLeaf2', '#527037', 0.9),
+    ];
+    for (const m of leafy) m.side = T.DoubleSide;
+    const bloom = [
+      kit.mat('hydrangeaPink', '#c97a9a', 0.9),
+      kit.mat('hydrangeaMauve', '#a87fae', 0.9),
+    ];
+    const earth = kit.mat('frontPotEarth', '#3b3226');
+    const foliage = (
+      x: number,
+      z: number,
+      y: number,
+      rad: number,
+      h: number,
+      flowers: boolean,
+    ) => {
+      for (let i = 0; i < 260; i++) {
+        const a = r() * Math.PI * 2,
+          d = Math.sqrt(r()) * rad;
+        const g = new T.PlaneGeometry(0.07, 0.055);
+        g.rotateX((r() - 0.5) * 2);
+        g.rotateY(r() * 6.28);
+        g.translate(x + Math.cos(a) * d, y + r() * h, z + Math.sin(a) * d);
+        batch(g, leafy[i % 2]);
+      }
+      if (flowers)
+        for (let k = 0; k < 7; k++) {
+          const a = r() * Math.PI * 2,
+            d = r() * rad * 0.8;
+          const head = new T.IcosahedronGeometry(0.09 + r() * 0.04, 1);
+          head.translate(
+            x + Math.cos(a) * d,
+            y + h * (0.7 + r() * 0.35),
+            z + Math.sin(a) * d,
+          );
+          batch(head, bloom[k % 2]);
+        }
+    };
+    const pot = (
+      x: number,
+      out: number,
+      rad: number,
+      h: number,
+      colour: string,
+      plant: 'hydrangea' | 'shrub' | 'none',
+    ) => {
+      const m = kit.mat(`frontPot${colour}`, colour, 0.35);
+      const z = faceZ(x) + out;
+      const body = new T.CylinderGeometry(rad, rad * 0.75, h, 20);
+      body.translate(x, base + h / 2, z);
+      batch(body, m);
+      const rim = new T.TorusGeometry(rad, 0.02, 5, 20);
+      rim.rotateX(Math.PI / 2);
+      rim.translate(x, base + h, z);
+      batch(rim, m);
+      const soil = new T.CircleGeometry(rad - 0.02, 16);
+      soil.rotateX(-Math.PI / 2);
+      soil.translate(x, base + h - 0.04, z);
+      batch(soil, earth);
+      if (plant !== 'none')
+        foliage(
+          x,
+          z,
+          base + h - 0.03,
+          rad * 1.5,
+          plant === 'hydrangea' ? 0.55 : 0.4,
+          plant === 'hydrangea',
+        );
+    };
+    pot(84.35, 0.32, 0.2, 0.34, '#24508f', 'shrub');
+    pot(84.75, 0.55, 0.16, 0.28, '#2c5c9c', 'none');
+    // Dark green planter with a young multi-stem tree.
+    {
+      const x = 93.8,
+        z = faceZ(x) + 0.42;
+      const planter = kit.mat('frontPlanterGreen', '#2f4436', 0.6);
+      box(x, base + 0.27, z, 0.75, 0.54, 0.45, planter, -FACE_ROT);
+      foliage(x, z, base + 0.5, 0.35, 0.35, false);
+      const bark = kit.mat('frontTreeBark', '#5b4f40');
+      for (let k = 0; k < 3; k++) {
+        const top = new T.Vector3(
+          x + (r() - 0.5) * 0.5,
+          base + 1.6 + r() * 0.5,
+          z + (r() - 0.5) * 0.3,
+        );
+        kit.beam(new T.Vector3(x, base + 0.5, z), top, 0.03, 0.03, bark);
+        foliage(top.x, top.z, top.y - 0.35, 0.35, 0.5, false);
+      }
+    }
+    pot(96.85, 0.38, 0.22, 0.38, '#7d8285', 'hydrangea');
+    pot(97.3, 0.62, 0.17, 0.3, '#d8d2c2', 'hydrangea');
+    pot(99.95, 0.4, 0.22, 0.4, '#3c4a52', 'hydrangea');
+    pot(103.2, 0.38, 0.2, 0.36, '#7d8285', 'hydrangea');
   }
   // No.3's downpipe runs east of its window into the light well (user photos).
   for (const x of [77.8, 92.96, 104.4]) {
     B(x, 3.6, 0.075, 7.3, 0.075, dark, 0.22);
     B(x, 7.1, 0.12, 0.12, 0.28, dark, 0.22);
   }
-  // Individual flags at the doorstep; irregular setts fill the shared passage.
+  // Green-grey weathering low on the front and rear walls (No.3 photos).
+  const wash = bridgeMossWash(kit);
+  const washWall = (
+    x0: number,
+    x1: number,
+    z0: number,
+    slope: number,
+    y0: number,
+    h: number,
+    facing: 1 | -1,
+  ) => {
+    const len = (x1 - x0) * Math.hypot(1, slope);
+    const g = new T.PlaneGeometry(len, h);
+    const uv = g.getAttribute('uv');
+    for (let i = 0; i < uv.count; i++) uv.setX(i, (uv.getX(i) * len) / 2.4);
+    if (facing < 0) g.rotateY(Math.PI);
+    g.rotateY(-Math.atan(slope));
+    const xm = (x0 + x1) / 2;
+    g.translate(xm, y0 + h / 2, z0 + (xm - x0) * slope + facing * 0.012);
+    batch(g, wash);
+  };
+  {
+    const [n0, n1] = [BRIDGE_MILL_FOOTPRINT[0], BRIDGE_MILL_FOOTPRINT[1]];
+    washWall(FA[0], FB[0], FA[1], FACE_SLOPE, base, 1.3, 1);
+    washWall(
+      n0[0],
+      n1[0],
+      n0[1],
+      (n1[1] - n0[1]) / (n1[0] - n0[0]),
+      base - 2.8,
+      1.0,
+      -1,
+    );
+  }
+  // Setts, No.3 photos (7 October 2026, front door looking left, right and
+  // ahead): small domed stones about 0.14m wide and 0.2-0.3m long, laid
+  // end-on in staggered lines running from the flags to the retaining wall,
+  // with green moss in every joint. Sizes scaled from the door.
   const stones = settMaterials();
-  const joints = new T.MeshStandardMaterial({ color: '#454638', roughness: 1 });
+  const mossBed = kit.mat('bridgePassageMossBed', '#5a6a2c', 1);
   for (let x = BRIDGE_JUNCTION.x1; x < 109; x += 0.43) {
     const z0 = south(x) + 1.15,
       z1 = passageWallZ(x) - passageSettInset(x);
-    box(x, base - 0.1, (z0 + z1) / 2, 0.45, 0.025, z1 - z0, joints);
+    box(x, base - 0.07, (z0 + z1) / 2, 0.45, 0.025, z1 - z0, mossBed);
   }
-  // Cross-passage courses, with variable stone lengths and staggered joints.
-  // Tops stay within a few millimetres of the existing walking surface.
   let seed = 4107;
   const random = () => {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-  const sett = new RoundedBoxGeometry(1, 0.08, 1, 2, 0.013);
-  const moss = new T.MeshStandardMaterial({ color: '#4b5231', roughness: 1 });
-  let course = 0;
+  /** Low-poly domed sett: straight sides, bevelled shoulders, raised crown. */
+  const settGeometry = (w: number, l: number, h: number) => {
+    const ring = (inset: number, y: number) => [
+      [-w / 2 + inset, y, -l / 2 + inset],
+      [w / 2 - inset, y, -l / 2 + inset],
+      [w / 2 - inset, y, l / 2 - inset],
+      [-w / 2 + inset, y, l / 2 - inset],
+    ];
+    const r0 = ring(0, 0),
+      r1 = ring(0.008, h * 0.62),
+      r2 = ring(0.04, h * 0.92),
+      crown = [0, h * 1.06, 0];
+    const pos: number[] = [];
+    const quad = (a: number[], b: number[], c: number[], d: number[]) =>
+      pos.push(...a, ...c, ...b, ...a, ...d, ...c);
+    for (let i = 0; i < 4; i++) {
+      const j = (i + 1) % 4;
+      quad(r0[i], r0[j], r1[j], r1[i]);
+      quad(r1[i], r1[j], r2[j], r2[i]);
+      pos.push(...r2[i], ...crown, ...r2[j]);
+    }
+    const g = new T.BufferGeometry();
+    g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+    g.computeVertexNormals();
+    const uv: number[] = [];
+    for (let i = 0; i < pos.length; i += 3)
+      uv.push(pos[i] * 3 + 0.5, pos[i + 2] * 3 + 0.5);
+    g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+    return g;
+  };
   for (let x = BRIDGE_JUNCTION.x1; x < 108.9;) {
-    const width = 0.23 + random() * 0.07,
+    const width = 0.13 + random() * 0.035,
       cx = x + width / 2,
-      start = south(cx) + 1.2,
       end = passageWallZ(cx) - passageSettInset(cx);
-    let z = start;
-    while (z < end - 0.055) {
-      const length = Math.min(
-        (z === start && course % 2 ? 0.19 : 0.33) + random() * 0.2,
-        end - z,
+    let z = faceZ(cx) + 1.15 - random() * 0.15;
+    while (z < end - 0.08) {
+      const len = Math.min(0.2 + random() * 0.12, end - z);
+      const g = settGeometry(
+        width - 0.02 - random() * 0.01,
+        len - 0.02 - random() * 0.012,
+        0.075,
       );
-      const gap = 0.01 + random() * 0.009,
-        g = sett.clone();
-      g.scale(width - 0.012, 1, length - gap);
-      g.rotateY((random() - 0.5) * 0.025);
-      g.translate(cx, base - 0.04 + (random() - 0.5) * 0.005, z + length / 2);
+      g.rotateY(-FACE_ROT + (random() - 0.5) * 0.05);
+      g.translate(cx, base - 0.07 + (random() - 0.5) * 0.006, z + len / 2);
       batch(g, stones[Math.floor(random() * stones.length)]);
-      if (random() < 0.38) {
+      if (random() < 0.3) {
         const patch = new T.PlaneGeometry(
-          width * (0.35 + random() * 0.5),
-          gap * 0.85,
+          width * (0.4 + random() * 0.5),
+          0.024,
         );
         patch.rotateX(-Math.PI / 2);
-        patch.translate(cx, base - 0.025, z + length - gap * 0.4);
-        batch(patch, moss);
+        patch.translate(cx, base - 0.012, z + len - 0.006);
+        batch(patch, kit.mat('bridgeSettMoss', '#5f6d2c', 1));
       }
-      z += length;
+      z += len;
     }
     x += width;
-    course++;
   }
-  sett.dispose();
   for (let x = BRIDGE_JUNCTION.x1 + 0.3; x < 108; x += 0.65) {
     // Flags stop at the light wells' railings.
     const well = lightWells.some((w) => Math.abs(x - w) < LIGHT_WELL.width / 2);
@@ -352,10 +614,8 @@ export function addBridgeEngineHouse(kit: Kit, base: number) {
   });
   body.rotateX(-Math.PI / 2);
   body.translate(0, base - 3.6, 0);
-  const uv = body.getAttribute('uv');
-  for (let i = 0; i < uv.count; i++)
-    uv.setXY(i, uv.getX(i) / 2, uv.getY(i) / 2);
-  batch(body, stone);
+  const walling = bridgeStone(kit);
+  batch(body, walling);
   const roof = new T.BufferGeometry();
   roof.setAttribute(
     'position',
@@ -400,7 +660,7 @@ export function addBridgeEngineHouse(kit: Kit, base: number) {
     new T.Float32BufferAttribute([0, 0, 2.76, 0, 1.38, 0.625], 2),
   );
   gable.computeVertexNormals();
-  batch(gable, stone);
+  batch(gable, walling);
   const white = new T.MeshStandardMaterial({
     color: '#e2e2d8',
     roughness: 0.8,

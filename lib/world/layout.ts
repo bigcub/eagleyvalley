@@ -35,6 +35,8 @@ export const OSM = {
   brookParkingAisles: ['762841713', '762841714', '762841715'],
   busTurningLoop: '549204394',
   gatehouse: '571633838',
+  /** Half-timbered red brick villa at the west end of Back Park View. */
+  parkVilla: '573645273',
   schoolHouse: '727404344',
   valleyMill: '73858746',
   scholarsRise: '73858749',
@@ -319,6 +321,101 @@ export const EAGLEY_WAY_BANK_PLANTING = {
   wallHeight: 1.7,
   spacing: 1.15,
   bands: [2.4, 4.2],
+  /** EAG-034..037 June2024: flowering rhododendron bank spills over the tall
+   * wall up to the woodland steps. Bands/heights fitted, not surveyed. */
+  rhododendron: { startX: 34, endX: 54, bands: [1.6, 3.4] },
+  /** EAG-038..043 June2024: fern clumps along the low wall top, patchy ivy,
+   * dense broadleaf undergrowth and saplings behind. Bands/heights fitted. */
+  lowBank: { startX: 61.5, bands: [1.4, 3.0, 4.7] },
+  /** Keep the woodland-step flight and its mapped path open. */
+  stepsClearance: 1.6,
+  /** EAG-012..029 June2024 (side views EAG-016 heading200, EAG-024 heading172):
+   * dense broadleaf woodland bank with saplings and rhododendron above the
+   * retaining panels. Deeper layers behind the existing roadside fringe;
+   * EAG-003's rough grass opening further uphill stays open. Fitted. */
+  upperBank: {
+    startX: -175,
+    endX: 18,
+    spacing: 1.6,
+    bands: [3.9, 5.7, 7.5],
+    flowering: [-80, -55] as const,
+    /** Continuous canopy (>4m) depth behind the road centre, metres, from the
+     * EA 2022 1m DSM minus DTM sampled every 8m along Eagley Way. Two
+     * single-sample gaps (X-104, X-65) smoothed from neighbours; capped at
+     * the garden edge. Woodland floor undergrowth fills this depth. */
+    canopyDepth: [
+      [-178, 22],
+      [-170, 20],
+      [-167, 23],
+      [-160, 18],
+      [-159, 20],
+      [-151, 26],
+      [-144, 25],
+      [-137, 27],
+      [-129, 26],
+      [-122, 20],
+      [-118, 29],
+      [-112, 23],
+      [-104, 23],
+      [-96, 32],
+      [-88, 31],
+      [-81, 32],
+      [-73, 32],
+      [-65, 32],
+      [-57, 32],
+      [-49, 32],
+      [-41, 32],
+      [-33, 24],
+      [-25, 32],
+      [-20, 32],
+      [-13, 32],
+      [-8, 26],
+      [-2, 32],
+      [4, 32],
+      [6, 32],
+      [12, 32],
+      [19, 32],
+    ] as [number, number][],
+    deepStart: 14,
+    deepStep: 3,
+  },
+  /** Valley side, June2024 EAG-005 heading330, EAG-016 heading20, EAG-026
+   * heading0: ferns under the fence, dense broadleaf scrub and saplings
+   * beyond, the estate below hidden. Depth is the canopy cover depth from the
+   * EA 2022 DSM (`node scripts/canopy-depth.mjs -1 -280 20 33 6 cover`):
+   * at least 33m almost throughout, so capped at 30m; clearings just behind
+   * the barrier get the near scrub band, as at EAG-016. Fitted, not surveyed. */
+  valleyBank: {
+    startX: -275,
+    endX: 18,
+    spacing: 1.6,
+    fernOffset: 5.9,
+    near: 7.2,
+    deepStart: 10.5,
+    deepStep: 3,
+    maxDepth: 30,
+    canopyDepth: [
+      [-280, 15],
+      [-275, 30],
+      [-4, 30],
+      [4, 27],
+      [6, 30],
+      [12, 30],
+      [19, 27],
+    ] as [number, number][],
+  },
+  /** Uphill wall ivy mats. cover is the fraction of face buried: near-full
+   * EAG-033..035, patchier past EAG-036, patchy on the low wall (EAG-038/041). */
+  ivy: {
+    stretches: [
+      { x0: 15, x1: 42, cover: 0.9 },
+      { x0: 42, x1: 55, cover: 0.5 },
+      { x0: 61.5, x1: 99.36, cover: 0.4 },
+    ],
+    thickness: 0.32,
+    overTop: 0.3,
+    leavesPerM2: 900,
+  },
 };
 
 /** Entrance posts are interpreted, including their count and spacing. */
@@ -910,6 +1007,14 @@ export const BROOK_EAST_BEDS = {
     [135.4, -35.6],
     [134.6, -35.8],
   ] as P[],
+  /** Clipped mass heights per bed: lumpier shrubs by the signs, ground cover
+   * in the south bed. NrBn June2024; estimated, not measured. */
+  heights: [0.85, 0.6],
+  inset: 0.12,
+  shoulder: 0.55,
+  lumpiness: 0.18,
+  trunkClear: 0.35,
+  leavesPerM2: 650,
 };
 
 /**
@@ -1163,13 +1268,98 @@ export const BROOK_EAST_GROUND = {
   rise: 0.5,
 };
 
-/** Two narrow courses per brick storey visible in the east photograph.
- * Course heights, thickness and face extents are interpreted, not measured. */
+/** Eagley Hall's modern brick block (hallBrickPolygon edges, starting at the
+ * hall's south-east corner). Aug 2022 Street View cgRt7RN-SkuArMGhJI5aOw
+ * photographs edges 0-7 (car-park front and east end); 8-10 face Hough Lane
+ * and aren't photographed; 11 is the party wall. Heights above the lowest
+ * terrain round the block, from the EA 2022 DSM; storeys and bays fitted. */
+export const EAGLEY_HALL_BLOCK = {
+  parapet: 10.6,
+  floors: [0, 3.35, 6.6],
+  bay: 2.7,
+  photographedEdges: [0, 1, 2, 3, 4, 5, 6, 7],
+  undercroftEdges: [0],
+  /** Open courtyard between the hall's south-east face and the block's wings,
+   * dark in the Google aerial and at ground level in the EA 2022 DSM. In the
+   * hall frame (hallWorld u, v): v=16 is the hall face. Edges fitted. */
+  courtyard: { u: [5.5, 18] as const, v: [16.8, 25] as const },
+  /** Low flat-roofed red brick wing outside the mapped footprint, against
+   * its north-east edge: Aug 2022 LbyMlfom-f_IC-Ej8mAmkg (138 Hough Ln)
+   * headings 110/150/195 and EA 2022 DSM 3.5-7m cells. Corners run along edge
+   * 8 then out to the north-east; height and window estimated. */
+  lowWing: {
+    points: [
+      [193.9, -24.2],
+      [185.4, -31.3],
+      [190.2, -37.1],
+      [198.7, -29.9],
+    ] as P[],
+    height: 3.8,
+  },
+};
+
+/** H01 half-timbered villa, OSM 573645273. Apr 2023 Street View
+ * jwVwrSwrYif_SpSinYdbNQ heading 305 (from 20 Playfair St, across gardens):
+ * red brick, half-timbered gables (black timbers on white) facing south and
+ * east, a smaller half-timbered gable dormer, steep slate roofs, four tall
+ * brick stacks. Volumes split from the mapped footprint; EA 2022 DSM gives
+ * about 7m 1.5m inside the main walls, 9m at the south gable and 12.3m at the
+ * highest stack. Rectangles are [x0, x1, z0, z1]; heights fitted. */
+export const PARK_VILLA = {
+  main: { rect: [-157, -143.8, 112.8, 126.8], eaves: 5.7, rise: 4.8 },
+  south: { rect: [-154.9, -147.8, 126.8, 134.8], eaves: 5.4, rise: 3.6 },
+  east: { rect: [-143.8, -139, 120.6, 125.6], eaves: 3.0, rise: 1.2 },
+  west: { rect: [-157.2, -154.9, 126.8, 131.4], eaves: 2.9, rise: 1.1 },
+  // Cross gable on the main block's south face, east of the south wing.
+  dormer: { x: -145.8, width: 3.2, rise: 2.6 },
+  stacks: [
+    [-155.6, 116.5],
+    [-153.4, 116.5],
+    [-145.2, 117.5],
+    [-151.4, 133.2],
+  ] as P[],
+  stackTop: 12.3,
+};
+
+/** Brook Mill main-block heights above the datum. EA 2022 1m DSM: parapet
+ * 38.4m (AOD-100) on the north and east edges, about 22.7m above the 15.69m
+ * datum; tower top about 31m. The east photograph agrees (front about 26m
+ * wide, 24m to the cornice). The photographed 3.6m ground storey is kept;
+ * upper storeys stretch from the older 3.6m to about 4.55m so the 18.72m
+ * modelled parapet lands at 22.71m. Lower west wing and entrance gable
+ * already match the DSM and are not stretched. */
+export const BROOK_HEIGHT = {
+  ground: 3.6,
+  modelledParapet: 18.72,
+  parapet: 22.71,
+  towerTop: 31,
+};
+
+/** East front schedule from work/reference/brook-mill-front.jpg (front-on,
+ * capture date unknown), in the older 3.6m-storey frame before the DSM
+ * stretch. Three bays each side of the stair tower; buff stripes every few
+ * courses; floor 4 round-headed; paired stair lights stepped half a storey
+ * in the tower. Positions scaled from the photo; sizes interpreted. */
 export const BROOK_EAST_BANDS = {
-  heights: [4.05, 5.55, 7.65, 9.15, 11.25, 12.75, 14.85, 16.35],
-  thickness: 0.16,
-  flankEnds: [-13, -2.95, 2.95, 13],
-  flankOpenings: [-11, -7.7, -4.4, 4.4, 7.7, 11],
+  // Buff stripes: first height, spacing, last height and thickness.
+  stripes: { from: 3.95, step: 0.55, to: 18, thickness: 0.17 },
+  flankEnds: [-13, -3.2, 3.2, 13],
+  flankOpenings: [-10.75, -7.95, -5.15, 5.15, 7.95, 10.75],
+  // The porch replaces the inner ground-floor window on its side.
+  porchU: 4.2,
+  towerHalf: 3,
+  // Paired stair lights: u offsets, width and [bottom, top] pairs.
+  stairLights: {
+    us: [-1.07, 1.07],
+    width: 1,
+    spans: [
+      [6.75, 9.75],
+      [10.05, 14.2],
+    ],
+  },
+  topLight: { width: 2.4, height: 2.7 },
+  archRise: 0.8,
+  downpipes: [-6.55, 6.55],
 };
 
 /** M21d lower east entrance. Mapped facade/road, photographed level relation;
@@ -1283,6 +1473,18 @@ export const VALLEY_ENGINE_SOUTH = {
 /** M21a Valley Mill east elevation. OSM end anchors, 2012 Alan Murray-Rust
  * photographs and June 2024 CGJKJDqjUkB1pntPvj9yVQ. Counts photographed;
  * positions, heights, projections and cupola profile estimated. */
+/** Valley Mill heights above its base (lowest terrain round the footprint).
+ * EA 2022 DSM 1.5m inside the north, east and south edges: 16.7-16.9m; the
+ * west (engine-house) end is also full height with roof features; highest
+ * point 21.4m near the east-end cupola. The modelled parapet was 14.88m on
+ * four 3.6m storeys. The ground storey and its arcades keep their photographed
+ * heights; upper storeys stretch evenly. */
+export const VALLEY_HEIGHT = {
+  ground: 3.6,
+  modelledParapet: 14.88,
+  parapet: 16.8,
+};
+
 export const VALLEY_MILL = {
   east: { from: [17.39, -81.98] as P, to: [7.44, -54.06] as P },
   // M21c 25 July 2012 Geograph 3075244/3075248, east-to-west south face.
@@ -1546,12 +1748,30 @@ export const COURT_WOODLAND_EDGE = {
 
 /** M25 mapped courtyard front edges. Counts from August 2022 panoramas;
  * dimensions and concealed elevations remain fitted/provisional. */
+/** 727427304/305: three-storey townhouse pair facing Threadfold Way. Aug 2022
+ * Street View cDmLevKoRL-FRCH67TZLrw heading10: banded buff ground floor with
+ * a garage and door each (mirrored), red brick first floor with two French
+ * windows and Juliet balconies each, buff top floor with two small windows
+ * each, chimney at the west gable. EA 2022 DSM ridge about 12.3m. Heights and
+ * openings fitted; u runs west to east along the court-side line. */
+export const WAKEFIELD_TOWN_PAIR = {
+  eaves: 8.8,
+  rise: 3.4,
+  storeys: [2.95, 5.95],
+  // Per house: garage and door centres along u, from the photograph.
+  ground: {
+    '727427304': { door: 0.95, garage: 3.45 },
+    '727427305': { garage: 1.65, door: 4.15 },
+  } as Record<string, { door: number; garage: number }>,
+  frenchDoors: [0.3, 0.72],
+};
+
 export const WAKEFIELD_HOUSES: {
   id: string;
   a: P;
   b: P;
   group: string;
-  kind: 'town' | 'arched' | 'plain' | 'bay';
+  kind: 'town' | 'arched' | 'plain' | 'bay' | 'garageTown';
 }[] = [
   {
     id: '727427283',
@@ -1635,14 +1855,14 @@ export const WAKEFIELD_HOUSES: {
     a: [-48.75, 10.17],
     b: [-43.97, 11.94],
     group: 'south',
-    kind: 'plain',
+    kind: 'garageTown',
   },
   {
     id: '727427305',
     a: [-43.97, 11.94],
     b: [-39.17, 13.73],
     group: 'south',
-    kind: 'plain',
+    kind: 'garageTown',
   },
   {
     id: '727427306',
@@ -1828,6 +2048,12 @@ export const BRIDGE_GARDENS = {
     [111.5, -4.3],
   ] as P[],
   gates: [87.4, 92.5],
+  /** 7 October photos from No.3's garden: the brook-end hedge stands about
+   * 2.7m (scaled from the 1.0m gate), not the earlier 1.95m estimate. */
+  hedgeHeight: 2.7,
+  /** No.3's apple tree, back left (west) of the lawn: trunk about a quarter
+   * of the way across and 1.8m in front of the hedge; ~3.8m tall, ~5m crown. */
+  no3Apple: { x: 90.3, z: -4.2, height: 3.8, crown: 5.0 },
   no3WestHedgeX: 89.1,
   /** No.4 paved path beside the hedge and far seating area, photographed. */
   no4Path: { x: 88.05, width: 0.95 },
@@ -1902,16 +2128,50 @@ export type StreetHouseStyle =
 export type StreetHouseFace =
   | 'buff'
   | 'grit'
+  /** Weathered dark gritstone, Back Park View and Playfair Street (H01). */
+  | 'darkGrit'
   | 'red'
   | 'dark'
   | 'white'
   | 'cream'
   | 'sandstone'
   | 'painted';
+export type StreetSideWall = {
+  facing: P;
+  windows: { u: number; floor: number; sill: number; w: number; h: number }[];
+  /** Painted render over the whole wall and gable, as a colour. */
+  render?: string;
+};
 export type StreetHouse = {
   style: StreetHouseStyle;
   face: StreetHouseFace;
   seen: boolean;
+  /** Storey heights fitted to the EA 2022 DSM, replacing the type's. */
+  floors?: number[];
+  /** Ridge runs back from the front, so the front wall is a gable. */
+  gableFront?: boolean;
+  /** Dormers and front gables rising through the front eaves. u is the
+   * fraction across the front, left to right from the street; below is how
+   * far the face starts under the eaves, h its height above them. A window is
+   * added when windowH is set. */
+  dormers?: {
+    u: number;
+    w: number;
+    h: number;
+    below: number;
+    cap: 'arch' | 'gable';
+    windowH?: number;
+    windowW?: number;
+    /** Window sill below the eaves; defaults to just inside the face. */
+    sillBelow?: number;
+    /** Face set forward of the front line, for a projecting bay. */
+    forward?: number;
+  }[];
+  /** Photographed openings on one non-front wall, chosen by its outward
+   * direction. u is the fraction across the wall, left to right as seen from
+   * outside; sill is metres above that floor's level; floor 2 on a two-storey
+   * house is the gable above the eaves. */
+  side?: StreetSideWall | StreetSideWall[];
   garage?: boolean;
   oculus?: boolean;
   porch?: boolean;
@@ -1971,7 +2231,7 @@ const terrace = (faces: Record<string, StreetHouseFace>, seen: boolean) =>
   );
 export const STREET_HOUSES: Record<string, StreetHouse> = {
   // Threadfold Way, panoramas 0N-Rpc4AFucYY_73dIp2FQ and gUumhreI878pOWaZQbFBXA.
-  ...houses(['427252', '427253', '427254', '427255', '427257', '427273'], {
+  ...houses(['427252', '427253', '427254', '427255', '427273'], {
     style: 'estate',
     face: 'buff',
     seen: true,
@@ -1984,10 +2244,27 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
     garage: true,
     oculus: true,
   }),
-  ...houses(['427258', '427259', '427260', '427261'], {
+  ...houses(['427258', '427260'], {
     style: 'estate',
     face: 'buff',
     seen: true,
+  }),
+  // Aug 2022 mRJbzK64pPriX31Gg9MSnw heading 330: round window at the inner
+  // corner of this L-shaped pair (arched dormer not modelled).
+  ...houses(['427261'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    oculus: true,
+  }),
+  // Aug 2022 lUEnRfoNL4tYcASRgLHuxA (44 Threadfold Way) heading 270: this
+  // house's door, round window and windows face Threadfold Way to the east.
+  ...houses(['427259'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    oculus: true,
+    front: [0.99, 0.16],
   }),
   ...houses(['427269', '427270', '427271', '427272'], {
     style: 'estate',
@@ -2001,40 +2278,94 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
     seen: false,
   }),
   ...houses(
-    [
-      '427256',
-      '427262',
-      '427263',
-      '427264',
-      '427266',
-      '427265',
-      '427268',
-      '427267',
-    ],
+    ['427256', '427263', '427264', '427266', '427265', '427268', '427267'],
     { style: 'townhouse', face: 'red', seen: true },
   ),
   // Cottonfields, panorama fwT3uQd6UF-u5KE5s14CHg. The townhouse row faces
   // south onto Cottonfields; its ends also border the cul-de-sac spur.
-  ...houses(
-    ['427242', '427243', '427244', '427245', '427246', '427247', '427248'],
-    { style: 'townhouse', face: 'red', seen: true, front: [0, 1] },
-  ),
-  ...houses(['427241'], {
+  ...houses(['427242', '427243', '427244', '427245', '427246', '427247'], {
     style: 'townhouse',
     face: 'red',
-    seen: false,
+    seen: true,
     front: [0, 1],
   }),
-  ...houses(['427234', '427235', '427236', '427237'], {
+  // EA 2022 DSM height audit (scripts/height-audit.mjs, building-dsm.mjs):
+  // these ridges are 7.6-9.1m, too low for three storeys, so they are
+  // two-storey; 427257 has 11.3m eaves and a 12.2m ridge, so three. Face
+  // colours and garages keep the earlier Street View typing.
+  ...houses(['427241', '427248'], {
+    style: 'estate',
+    face: 'red',
+    seen: false,
+    garage: true,
+    front: [0, 1],
+  }),
+  // Aug 2022 mRJbzK64pPriX31Gg9MSnw heading 330: buff brick, not red; the
+  // red brick building beyond it is townhouse 263.
+  ...houses(['427262'], {
     style: 'estate',
     face: 'buff',
     seen: true,
     garage: true,
   }),
-  ...houses(['427232', '427233', '427238', '427239', '427240'], {
+  ...houses(['427257'], { style: 'townhouse', face: 'buff', seen: true }),
+  ...houses(['427234'], {
     style: 'estate',
     face: 'buff',
-    seen: false,
+    seen: true,
+    garage: true,
+  }),
+  // Jun 2024 2m3-D3h01JyjCPFjWAiZbA (52 Cottonfields) heading 350: each
+  // footprint is one house with a 4.9m main front carrying two arched dormers
+  // through the eaves, and a 3.7m bay 0.4m forward with a front gable; the
+  // bays of 235 and 237 meet in the middle as the photographed pair. u is
+  // across the 4.9m main front, so the bays lie beyond it (235 to its right,
+  // 237 to its left). Sizes estimated; the garages under the dormers aren't
+  // modelled on this narrow front.
+  ...Object.fromEntries(
+    (
+      [
+        ['427235', 1.39],
+        ['427237', -0.39],
+      ] as [string, number][]
+    ).map(([id, bay]) => [
+      `727${id}`,
+      {
+        style: 'estate',
+        face: 'buff',
+        seen: true,
+        garage: true,
+        dormers: [
+          { u: 0.27, w: 1.3, h: 0.75, below: 0.9, cap: 'arch', windowH: 0.85 },
+          { u: 0.73, w: 1.3, h: 0.75, below: 0.9, cap: 'arch', windowH: 0.85 },
+          {
+            u: bay,
+            w: 3.5,
+            h: 2.4,
+            below: 0.05,
+            cap: 'gable',
+            windowH: 1.05,
+            windowW: 1.1,
+            sillBelow: 1.6,
+            forward: 0.4,
+          },
+        ],
+      } as StreetHouse,
+    ]),
+  ),
+  // Jun 2024 NbhBI1g5_VnrJZQqGpqTlw heading 0: 236 turns a tall gable with a
+  // chimney to the road and has no garage of its own; 238's door, canopy and
+  // garage face the road under its eaves.
+  ...houses(['427236'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
+    gableFront: true,
+  }),
+  ...houses(['427238'], {
+    style: 'estate',
+    face: 'buff',
+    seen: true,
     garage: true,
   }),
   // Hough Lane, panoramas qhk1TO3wrs1KF3ACqP29Ig, P4nxuImCWrbU2pHtno5IQA,
@@ -2070,11 +2401,41 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
     true,
   ),
   '727575013': { style: 'terrace', face: 'red', seen: true, porch: true },
+  // V01 valley-floor generics. Aug 2022 Street View NfKgHUXRB5G2-xVQiJYvvg
+  // (136 Hough Ln) heading 300: 727434554 is 136 Hough Lane, a two-storey
+  // light sandstone end-terrace facing Hough Lane beside the flagged Back
+  // School Street path. Heading 120: the Eagley School House Nursery
+  // (727434508) gable is dark rubble gritstone with brown frames. Aug 2022
+  // 0Yod2ZQokKJ2ZbLVcse4YA (5 Wakefield Mews) headings 240/300: 727427288/289
+  // at the head of the cul-de-sac are buff brick like their neighbours; their
+  // fronts (south and east down the mews) are inferred.
+  '727434554': {
+    style: 'terrace',
+    face: 'sandstone',
+    seen: true,
+    front: [0.8, 0.6],
+  },
+  '727434508': {
+    style: 'terrace',
+    face: 'darkGrit',
+    seen: true,
+    frames: 'brown',
+  },
+  '727427288': {
+    style: 'estate',
+    face: 'buff',
+    seen: false,
+    front: [0.34, 0.94],
+  },
+  '727427289': {
+    style: 'estate',
+    face: 'buff',
+    seen: false,
+    front: [0.94, 0.34],
+  },
   ...terrace(
     {
       '574972': 'grit',
-      '434503': 'grit',
-      '434508': 'grit',
       '434555': 'grit',
       '434556': 'grit',
       '434557': 'grit',
@@ -2107,6 +2468,9 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
             glazing: ['two-sash', 'two-sash'],
             overDoor: true,
             overDoorGlazing: 'two-sash',
+            // Aug 2022 u4WK-uzOE3KV1sbD3C8m2A heading 45: the west gable to
+            // the square is blank and rendered pale grey.
+            side: { facing: [-0.91, -0.42], windows: [], render: '#b4b6b0' },
           },
         ],
         [
@@ -2233,7 +2597,28 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
         ['549', { frames: 'white', door: '#b5bdb8' }],
         ['550', { frames: 'brown', door: '#5a3424' }],
         ['551', { frames: 'brown', door: '#6b4a2e' }],
-        ['552', { frames: 'brown', door: '#5a2b2b', seen: false }],
+        [
+          '552',
+          {
+            frames: 'brown',
+            door: '#5a2b2b',
+            seen: false,
+            // Aug 2022 WpLeu3RuJXGvLxzcJvHndg (138 Hough Ln) heading 290: the
+            // wall to Hough Lane has a small gable light, three upper and two
+            // lower windows; its lower left half is blank. Dormer not modelled.
+            side: {
+              facing: [0.91, 0.42],
+              windows: [
+                { u: 0.42, floor: 2, sill: 0.25, w: 0.5, h: 0.6 },
+                { u: 0.51, floor: 1, sill: 0.55, w: 0.85, h: 1.0 },
+                { u: 0.67, floor: 1, sill: 0.55, w: 0.6, h: 1.05 },
+                { u: 0.89, floor: 1, sill: 0.6, w: 0.95, h: 0.95 },
+                { u: 0.47, floor: 0, sill: 0.8, w: 1.3, h: 1.15 },
+                { u: 0.83, floor: 0, sill: 0.8, w: 0.9, h: 1.1 },
+              ],
+            },
+          },
+        ],
       ] as [string, Partial<StreetHouse>][]
     ).map(([id, extra]) => [
       `727434${id}`,
@@ -2254,7 +2639,21 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
         [
           '499',
           'right',
-          { frames: 'brown', door: '#4a2a2a', surround: '#4d4a53' },
+          {
+            frames: 'brown',
+            door: '#4a2a2a',
+            surround: '#4d4a53',
+            // Aug 2022 b5M2Pof-1NftwHAKLYq7Zg (12 School St) heading 175: one
+            // upper and one lower window towards the back of the west end wall,
+            // the lower one behind a stone yard wall (not modelled).
+            side: {
+              facing: [-0.92, -0.39],
+              windows: [
+                { u: 0.78, floor: 1, sill: 0.7, w: 0.55, h: 0.95 },
+                { u: 0.88, floor: 0, sill: 0.9, w: 0.6, h: 0.9 },
+              ],
+            },
+          },
         ],
         [
           '500',
@@ -2269,7 +2668,21 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
         [
           '503',
           'left',
-          { frames: 'brown', door: '#8a5a32', plate: 'SCHOOL STREET' },
+          {
+            frames: 'brown',
+            door: '#8a5a32',
+            plate: 'SCHOOL STREET',
+            // Aug 2022 wCTbzR349Hl-4V6pVwIhsg (137 Hough Ln) heading 320: the
+            // wall to Hough Lane has two upper windows and one lower.
+            side: {
+              facing: [0.76, 0.65],
+              windows: [
+                { u: 0.18, floor: 1, sill: 1.0, w: 0.55, h: 0.75 },
+                { u: 0.75, floor: 1, sill: 0.55, w: 0.9, h: 1.15 },
+                { u: 0.48, floor: 0, sill: 0.85, w: 0.8, h: 1.2 },
+              ],
+            },
+          },
         ],
       ] as [string, 'left' | 'right', Partial<StreetHouse>][]
     ).map(([id, doorSide, extra]) => [
@@ -2284,6 +2697,240 @@ export const STREET_HOUSES: Record<string, StreetHouse> = {
       } as StreetHouse,
     ]),
   ),
+  // H01. Apr 2023 Street View jwVwrSwrYif_SpSinYdbNQ (20 Playfair St), headings
+  // 0/95/180: dark gritstone two-storey terraces, slate roofs, chimney stacks,
+  // white frames and coloured doors. Back Park View row faces south over front
+  // gardens; Playfair Street's east end has terraces on both sides ending in
+  // taller gabled corner houses. The north-south row behind the alley is not
+  // seen; its west-facing front is inferred. Storeys fitted to EA 2022 DSM
+  // ridges: about 7.3m on the cottage rows, 8.9-9.5m on the corner houses.
+  ...Object.fromEntries(
+    (
+      [
+        [
+          '573645276 573645277 573645278 573645279 573645280',
+          [0, 1],
+          true,
+          'row',
+        ],
+        ['573645281 573645282 573645283 573645284', [0, 1], true, 'row'],
+        [
+          '573645286 573645287 573645288 573645289 573645290 573645291',
+          [-1, 0],
+          false,
+          'row',
+        ],
+        ['568264979 568264980 568264981', [0, 1], true, 'row'],
+        ['568264929 568264930 568264931', [0, -1], true, 'row'],
+        ['573645275 573645292', [0, 1], true, 'corner'],
+        ['574944695', [0, -1], true, 'corner'],
+      ] as [string, P, boolean, 'row' | 'corner'][]
+    ).flatMap(([ids, front, seen, kind]) =>
+      ids.split(' ').map((id) => [
+        id,
+        {
+          style: 'terrace',
+          face: 'darkGrit',
+          seen,
+          front,
+          floors: kind === 'row' ? [2.55, 2.4] : [3.1, 3.0],
+        } as StreetHouse,
+      ]),
+    ),
+  ),
+  // H01. Aug 2022 Street View zmM6Nlhqi6vvVCOq2Hw9kA (37 Eagley Brow), headings
+  // 20/70/345. East of the cobbled lane the row steps down facing it behind low
+  // stone walls: white render (311 with a ground-floor bay, 312), cream render
+  // (313), then red brick (314-316). Dormers on 311/312 aren't modelled. Park
+  // Terrace (568264983-985) is light stone facing Playfair Street. Houses
+  // 317-321 behind the trees stay generic.
+  ...Object.fromEntries(
+    (
+      [
+        ['573645311', 'white'],
+        ['573645312', 'white'],
+        ['573645313', 'cream'],
+        ['573645314', 'red'],
+        ['573645315', 'red'],
+        ['573645316', 'red'],
+      ] as [string, StreetHouseFace][]
+    ).map(([id, face]) => [
+      id,
+      {
+        style: 'terrace',
+        face,
+        seen: true,
+        front: [-0.8, -0.6],
+        floors: [3.0, 2.85],
+      } as StreetHouse,
+    ]),
+  ),
+  ...Object.fromEntries(
+    ['568264983', '568264984', '568264985'].map((id) => [
+      id,
+      {
+        style: 'terrace',
+        face: 'sandstone',
+        seen: true,
+        front: [0, 1],
+        floors: [2.55, 2.4],
+      } as StreetHouse,
+    ]),
+  ),
+  // H01. Jun 2024 Street View etWv8QQSttIC1k3csYdHTg (31 Kellett St) and
+  // 89TPhIEGrPCpm7kZQMJBFQ (19 Park Row), headings 60-70/330, along the road
+  // OSM names Ollerton Terrace. West side: light buff sandstone two-storey
+  // terrace, slate roofs, tall stone stacks, round-arched door heads, doors on
+  // the flagged pavement, facing the road. East side: red brick terrace behind
+  // small front gardens and low brick walls, one porch and a white-rendered end
+  // house (not yet assigned to a footprint). Storeys fitted to EA 2022 DSM
+  // highest points: about 8-8.8m west, 9.6-9.8m east.
+  ...Object.fromEntries(
+    (
+      [
+        [
+          '574944678 574944679 574944680 574944681 574944682',
+          'sandstone',
+          [0.9, 0.43],
+          [2.55, 2.4],
+        ],
+        [
+          '574944683 574944684 574944685 574944686 574944687 574944688 574944689 574944691',
+          'sandstone',
+          [0.9, 0.43],
+          [2.55, 2.4],
+        ],
+        [
+          '573645245 573645246 573645247 573645248 573645249 573645250 573645251 573645252',
+          'red',
+          [-0.9, -0.43],
+          [2.8, 2.7],
+        ],
+      ] as [string, StreetHouseFace, P, number[]][]
+    ).flatMap(([ids, face, front, floors]) =>
+      ids
+        .split(' ')
+        .map((id) => [
+          id,
+          { style: 'terrace', face, seen: true, front, floors } as StreetHouse,
+        ]),
+    ),
+  ),
+  // H01. Row west of the Park Row alley, 574944697-712. Only the backs are
+  // covered: Jun 2024 Street View 5ETPzpUhFTHBvs8kfb1HKg headings 260/330
+  // shows whitewashed and stone rear walls behind stone yard walls, slate
+  // roofs and stacks, and a taller gabled stone house mid-row. Fronts face west
+  // and aren't seen, so stone and terrace openings are inferred. Storeys from
+  // the EA 2022 DSM: about 6.8m for most, 9.4-9.9m for 704-706, 11.2m peak
+  // on the large north-end house 712.
+  ...Object.fromEntries(
+    (
+      [
+        [
+          '574944697 574944698 574944699 574944700 574944701 574944702 574944703 574944707 574944708 574944709 574944710 574944711',
+          [2.55, 2.4],
+        ],
+        ['574944704 574944705 574944706', [3.1, 3.0]],
+        ['574944712', [3.4, 3.3]],
+      ] as [string, number[]][]
+    ).flatMap(([ids, floors]) =>
+      ids.split(' ').map((id) => [
+        id,
+        {
+          style: 'terrace',
+          face: 'darkGrit',
+          seen: false,
+          front: [-0.94, -0.34],
+          floors,
+        } as StreetHouse,
+      ]),
+    ),
+  ),
+  // V01. Paper Mill Road and Cross Street beside Eagley Hall. Aug 2022 Street
+  // View XKhaVOUSGp06Eor80ThsJg (18 Paper Mill Rd) heading 240 and
+  // ztVhoCFAAnu1IkGlqhh6iw (32 Paper Mill Rd) heading 330: light stone cottages
+  // round the Cross Street lane; a dark gritstone two-storey terrace on the
+  // cobbled road, doors onto the street. The row lies south-east of the road
+  // and faces it. EA 2022 DSM peaks 7.2-8.0m including stacks. Apr 2023
+  // Hn5PePpS7Q0nA0eP8vZvGQ (3 Cross St) heading 170: 727434510, south of the
+  // lane bend, is a two-storey dark gritstone house with white frames; its
+  // north wall to the lane is nearly blank (one small upper window, the rest
+  // hidden by a shed) and its windowed west end faces the bend. 727434509
+  // behind it is unseen (DSM peak 12.2m). The large 533 and 534 stay generic.
+  ...Object.fromEntries(
+    (
+      [
+        [
+          '727434511 727434512 727434513 727434514 727434516',
+          'grit',
+          [0.57, -0.83],
+          true,
+        ],
+        ['727434515', 'grit', [-1, 0], true],
+        ['727434509', 'darkGrit', [1, 0], false],
+        [
+          '727434517 727434518 727434519 727434520 727434521 727434522 727434523 727434524 727434525 727434526 727434527 727434528 727434529 727434530 727434531 727434532',
+          'darkGrit',
+          [0.57, -0.83],
+          true,
+        ],
+      ] as [string, StreetHouseFace, P, boolean][]
+    ).flatMap(([ids, face, front, seen]) =>
+      ids.split(' ').map((id) => [
+        id,
+        {
+          style: 'terrace',
+          face,
+          seen,
+          front,
+          floors: id === '727434509' ? [2.8, 2.6] : [2.25, 2.15],
+        } as StreetHouse,
+      ]),
+    ),
+  ),
+  // Apr 2023 Hn5PePpS7Q0nA0eP8vZvGQ (3 Cross St) heading 5: 514 is a pale
+  // stone gable-fronted wing facing south down the lane, with an upper pair and
+  // a ground window (pergola not modelled) and one upper window towards the
+  // back of its east side. Heading 50: 516's west end is dark gritstone with a
+  // window on each floor; its lean-to porch isn't modelled.
+  '727434514': {
+    style: 'terrace',
+    face: 'grit',
+    seen: true,
+    front: [-0.57, 0.83],
+    gableFront: true,
+    floors: [2.25, 2.15],
+    side: {
+      facing: [0.82, 0.57],
+      windows: [{ u: 0.7, floor: 1, sill: 0.7, w: 0.5, h: 0.8 }],
+    },
+  },
+  '727434510': {
+    style: 'terrace',
+    face: 'darkGrit',
+    seen: true,
+    front: [-0.83, -0.55],
+    gableFront: true,
+    floors: [2.25, 2.15],
+    side: {
+      facing: [0.37, -0.93],
+      windows: [{ u: 0.65, floor: 1, sill: 0.9, w: 0.5, h: 0.6 }],
+    },
+  },
+  '727434516': {
+    style: 'terrace',
+    face: 'darkGrit',
+    seen: true,
+    front: [0.57, -0.83],
+    floors: [2.25, 2.15],
+    side: {
+      facing: [-0.81, -0.59],
+      windows: [
+        { u: 0.5, floor: 1, sill: 0.7, w: 0.5, h: 0.8 },
+        { u: 0.5, floor: 0, sill: 0.85, w: 0.5, h: 0.9 },
+      ],
+    },
+  },
 };
 
 /**

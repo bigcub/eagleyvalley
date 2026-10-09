@@ -1,4 +1,5 @@
 import { addEagleyWayBankPlanting } from '../landmarks/eagley-way-bank';
+import { addBrookEastBedPlanting } from '../landmarks/brook-east-entrance';
 import { addCourtEdgePlanting } from '../landmarks/court-woodland-edge';
 import { addBridgeGatePlanting } from '../landmarks/bridge-gate-planting';
 import {
@@ -113,7 +114,14 @@ export function addVegetation(
     hitBuilding,
     existingShrubs: plants.shrubs,
   });
-  addEagleyWayBankPlanting(kit, { scene, surface, data, leaf, hitBuilding });
+  addEagleyWayBankPlanting(kit, {
+    scene,
+    surface,
+    data,
+    leaf,
+    hitBuilding,
+    ferns: plants.ferns,
+  });
   addTurningCirclePlanting(kit, { scene, surface, leaf });
   addBlackburnEntranceHedge(kit, { surface, leaf });
 
@@ -169,6 +177,7 @@ export function addVegetation(
     leaf,
   );
   addBrookParkingPlanting(kit, { scene, surface });
+  addBrookEastBedPlanting(kit, { scene, surface });
   addBrookFrontageShrubs(kit, { scene, surface });
   addBridgeGardens(kit, { leaf, terrain, passageY });
   addBridgeGardenHedges(kit, { surface, leaf });

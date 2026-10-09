@@ -1,3 +1,5 @@
+import { addBridgePassagePlanting } from './bridge-passage-planting';
+import { bridgePassageWall } from '../materials/bridge-stone';
 import { passageWallZ } from './bridge-passage';
 import { PASSAGE_BED } from '../world/layout';
 import * as T from 'three';
@@ -18,7 +20,7 @@ export function addBridgeGardens(
   },
 ) {
   const { box, batch } = kit;
-  const { stone, dark } = kit.m;
+  const { dark } = kit.m;
   const earth = new T.MeshStandardMaterial({ color: '#494637', roughness: 1 });
   const grass = new T.MeshStandardMaterial({ color: '#637449', roughness: 1 });
   const petals = ['#c391a6', '#e4d7bf', '#b3a4bd'].map(
@@ -94,8 +96,9 @@ export function addBridgeGardens(
   // M06: one raised dry-stone bed at the wall foot opposite Nos.3-4 (user
   // passage photos); elsewhere the setts run to the wall with pots.
   const B = PASSAGE_BED;
-  const bedStone = kit.mat('passageBedStone', '#66665a');
-  bedStone.map = stone.map;
+  const bedStone = bridgePassageWall(kit);
+  // Rounded dark slatey coping stones (No.3 photos), not pale dressed stone.
+  const coping = kit.mat('passageBedCoping', '#6b6c66', 0.95);
   const rot = (x: number) =>
     -Math.atan((passageWallZ(x + 0.1) - passageWallZ(x - 0.1)) / 0.2);
   for (let x = B.x0 + 0.3; x < B.x1; x += 0.6) {
@@ -113,12 +116,12 @@ export function addBridgeGardens(
     );
     box(
       x,
-      passageY + B.height + 0.04,
+      passageY + B.height + 0.05,
       front + 0.2,
       0.62,
-      0.09,
-      0.46,
-      stone,
+      0.1,
+      0.48,
+      coping,
       rot(x),
     );
     patch(
@@ -192,6 +195,11 @@ export function addBridgeGardens(
     batch(soil, earth);
     shrub(x, z, 0.65 + (i % 2) * 0.2, passageY + h - 0.03, true);
   }
+  addBridgePassagePlanting(kit, {
+    passageY,
+    wallZ: passageWallZ,
+    trellisX: tx,
+  });
   // Frontage photos show light wells and pots at the window bays, not beds.
   // Approximate visible garden edges traced from north-up Google aerial imagery.
   // Roof corners anchor the trace; the mapped riverside path remains outside it.

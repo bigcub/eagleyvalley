@@ -1,9 +1,9 @@
+import { bridgePassageWall } from '../materials/bridge-stone';
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { densify, nearest, type P } from '../core/geo';
 import type { Kit } from '../core/kit';
 import { masonryUV } from '../materials/building-surfaces';
-import { masonryTexture } from '../materials/masonry-texture';
 import { retainingTexture } from '../materials/landscape-materials';
 import { BRIDGE_ROAD_WALL as D, OSM } from '../world/layout';
 import type { WorldData } from '../world/data';
@@ -85,10 +85,9 @@ export function addBridgeRoadWall(
   },
 ) {
   const walls: Wall[] = [];
-  const stone = kit.mat('bridgeRoadRubble', '#a1a197');
-  stone.map = masonryTexture(true);
-  stone.bumpMap = stone.map;
-  stone.bumpScale = 0.07;
+  // Same dark grey dry-stone as the retaining face below (No.3 photos and
+  // EAG-039 from the road).
+  const stone = bridgePassageWall(kit);
   const cap = kit.mat('bridgeRoadCoping', '#bcbaac');
   cap.map = retainingTexture();
   cap.bumpMap = cap.map;

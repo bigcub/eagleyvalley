@@ -4,6 +4,7 @@ export function addRoadsideShrubs(
   scene: T.Scene,
   shrubs: { x: number; z: number; y: number; h: number; flowering?: boolean }[],
   leaf: T.Material,
+  castShadow = true,
 ) {
   let seed = 781;
   const rand = () => {
@@ -69,11 +70,8 @@ export function addRoadsideShrubs(
       );
     }
   });
-  leaves.castShadow =
-    leaves.receiveShadow =
-    stems.castShadow =
-    stems.receiveShadow =
-      true;
+  leaves.receiveShadow = stems.receiveShadow = true;
+  leaves.castShadow = stems.castShadow = castShadow;
   scene.add(stems, leaves);
   // Clustered purple flowers observed in June 2024 at EAG-009..012.
   // Flower locations vary within each reference-led planting run, not surveyed individual blooms.

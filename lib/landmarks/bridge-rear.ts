@@ -1,3 +1,4 @@
+import { bridgeDressing } from '../materials/bridge-stone';
 import * as T from 'three';
 import type { Kit } from '../core/kit';
 import {
@@ -27,7 +28,7 @@ export function rearFormation(
 }
 export function addBridgeRear(kit: Kit, base: number) {
   const { box, batch } = kit;
-  const { stone, dark, glass } = kit.m;
+  const { dark, glass } = kit.m;
   const white = new T.MeshStandardMaterial({
     color: '#eeeae2',
     roughness: 0.72,
@@ -37,10 +38,11 @@ export function addBridgeRear(kit: Kit, base: number) {
     metalness: 0.65,
     roughness: 0.4,
   });
-  // Painted dark blue-grey in the user's view from No.3; earlier IMG_8274 grey.
-  const timber = new T.MeshStandardMaterial({ color: '#363c46', roughness: 1 });
+  // Painted blue-grey; the 7 October rear photo shows it lighter than the
+  // earlier view from No.3 (IMG_8274 grey).
+  const timber = new T.MeshStandardMaterial({ color: '#4d535c', roughness: 1 });
   const timberLight = new T.MeshStandardMaterial({
-    color: '#414854',
+    color: '#59606a',
     roughness: 1,
   });
   const lanternGlass = new T.MeshStandardMaterial({
@@ -63,12 +65,16 @@ export function addBridgeRear(kit: Kit, base: number) {
     offset = 0.12,
     d = 0.055,
   ) => box(x, floor + y, rearWallZ(x) - offset, w, h, d, m, rot);
+  // 7 October rear photo from the back of No.3's garden: white frames set
+  // straight into the stone (no dark surround), pale tooled lintels and sills.
+  const shadow = kit.mat('bridgeRevealShadow', '#4a4a40', 1);
+  const dressing = bridgeDressing(kit);
   function opening(x: number, width: number, height: number, bottom: number) {
-    B(x, bottom + height / 2, width + 0.18, height + 0.15, dark, 0.06, 0.09);
+    B(x, bottom + height / 2, width + 0.04, height + 0.04, shadow, 0.06, 0.09);
     B(x, bottom + height / 2, width, height, white, 0.13, 0.12);
     B(x, bottom + height / 2, width - 0.15, height - 0.14, glass, 0.205, 0.045);
-    B(x, bottom + height + 0.18, width + 0.42, 0.29, stone, 0.1, 0.23);
-    B(x, bottom - 0.055, width + 0.28, 0.13, stone, 0.2, 0.36);
+    B(x, bottom + height + 0.18, width + 0.42, 0.29, dressing, 0.1, 0.23);
+    B(x, bottom - 0.055, width + 0.28, 0.13, dressing, 0.2, 0.36);
   }
   for (let i = 0; i < 5; i++) {
     const a = rearDivisions[i],

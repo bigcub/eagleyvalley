@@ -75,6 +75,7 @@ export function addStreetHouses(
   const faces: Record<StreetHouseFace, T.MeshStandardMaterial> = {
     buff: stone('streetBuffStone', '#f7e3b2'),
     grit: stone('streetGritstone', '#d9ceb6'),
+    darkGrit: stone('streetDarkGritstone', '#a39684'),
     red: brick('streetRedBrick', '#ffd2bd'),
     dark: brick('streetDarkBrick', '#a08e84'),
     white: kit.mat('streetWhiteRender', '#ecebe4'),
@@ -166,7 +167,11 @@ export function addStreetHouses(
 
     const plan = streetHousePlan(p, house, fronts);
     const { fa, fb, L, t, n, outward } = plan;
-    const depth = (q: P) => -((q[0] - fa[0]) * n[0] + (q[1] - fa[1]) * n[1]);
+    // Roof axis: depth behind the front (ridge parallel to it), or distance
+    // along it for gable-fronted houses (ridge running back from it).
+    const behind = (q: P) => -((q[0] - fa[0]) * n[0] + (q[1] - fa[1]) * n[1]);
+    const along = (q: P) => (q[0] - fa[0]) * t[0] + (q[1] - fa[1]) * t[1];
+    const depth = house.gableFront ? along : behind;
     const ds = p.map(depth),
       dMin = Math.min(...ds),
       dMax = Math.max(...ds),
@@ -181,11 +186,12 @@ export function addStreetHouses(
       (fa[1] + fb[1]) / 2 + n[1] * 1.2,
     );
     const base = doorY + (house.style === 'terrace' ? 0.18 : 0.08);
-    const eaves = type.floors.reduce((s, h) => s + h, 0);
+    const floors = house.floors ?? type.floors;
+    const eaves = floors.reduce((s, h) => s + h, 0);
     const top = base + eaves;
     const bottom = Math.min(...p.map((q) => terrain(...q))) - 0.3;
     const floorY = (k: number) =>
-      base + type.floors.slice(0, k).reduce((s, h) => s + h, 0);
+      base + floors.slice(0, k).reduce((s, h) => s + h, 0);
 
     // Walls. Townhouses have a buff stone garage storey under the brick.
     const extrude = (y0: number, y1: number, m: T.Material) => {
@@ -443,20 +449,106 @@ export function addStreetHouses(
     };
 
     const F = face(fa, fb);
+    // Dormers and front gables through the front eaves.
+    if (house.dormers) {
+      const roofMat =
+        house.style === 'cottage' || house.style === 'pub' ? stoneSlate : slate;
+      // Left to right from the street runs along (n.z, -n.x).
+      const ltr = t[0] * n[1] - t[1] * n[0] > 0;
+      const slope = rise / half;
+      const W = (sx: number, y: number, v: number): number[] => [
+        fa[0] + t[0] * sx + n[0] * v,
+        y,
+        fa[1] + t[1] * sx + n[1] * v,
+      ];
+      // Both windings, so faces show from either side.
+      const both = (tris: number[][][], m: T.Material) => {
+        const pos: number[] = [];
+        for (const [a, b, c] of tris)
+          pos.push(...a, ...b, ...c, ...a, ...c, ...b);
+        const g = new T.BufferGeometry();
+        g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+        g.computeVertexNormals();
+        roofUV(g);
+        kit.batch(g, m);
+      };
+      for (const d of house.dormers) {
+        const u = (ltr ? d.u : 1 - d.u) * L;
+        const fwd = d.forward ?? 0;
+        const y0 = top - d.below,
+          y1 = top + d.h;
+        const D = Math.min(half, d.h / slope + 0.4);
+        F.B(u, (y0 + y1) / 2, fwd - D / 2 + 0.01, d.w, y1 - y0, D, wall);
+        const R = d.w / 2 + 0.12;
+        const capH = d.cap === 'arch' ? R : d.w * 0.42;
+        // Cap profile from left eave to right eave, over the face.
+        const prof: [number, number][] =
+          d.cap === 'arch'
+            ? Array.from({ length: 13 }, (_, k) => {
+                const a = Math.PI - (k * Math.PI) / 12;
+                return [Math.cos(a) * R, Math.sin(a) * capH];
+              })
+            : [
+                [-R, 0],
+                [0, capH],
+                [R, 0],
+              ];
+        const tris: number[][][] = [];
+        for (let k = 1; k < prof.length; k++) {
+          const [x0, h0] = prof[k - 1],
+            [x1, h1] = prof[k];
+          const f0 = W(u + x0, y1 + h0, fwd + 0.15),
+            f1 = W(u + x1, y1 + h1, fwd + 0.15),
+            b0 = W(u + x0, y1 + h0, -D),
+            b1 = W(u + x1, y1 + h1, -D);
+          tris.push([f0, f1, b1], [f0, b1, b0]);
+        }
+        both(tris, roofMat);
+        // Gable or arch face in the wall material, under the cap.
+        const faceTris: number[][][] = [];
+        const inner = d.w / 2 / R;
+        for (let k = 1; k < prof.length; k++) {
+          const [x0, h0] = prof[k - 1],
+            [x1, h1] = prof[k];
+          faceTris.push([
+            W(u, y1, fwd + 0.005),
+            W(u + x0 * inner, y1 + h0 * inner, fwd + 0.005),
+            W(u + x1 * inner, y1 + h1 * inner, fwd + 0.005),
+          ]);
+        }
+        both(faceTris, wall);
+        // Window on the dormer face, shifted forward with a projecting bay.
+        const DF = fwd
+          ? face(
+              [fa[0] + n[0] * fwd, fa[1] + n[1] * fwd],
+              [fb[0] + n[0] * fwd, fb[1] + n[1] * fwd],
+            )
+          : F;
+        if (d.windowH)
+          DF.window(
+            u,
+            top - (d.sillBelow ?? d.below - 0.15),
+            d.windowW ?? d.w - 0.45,
+            d.windowH,
+          );
+      }
+    }
     const g0 = floorY(0),
       g1 = floorY(1),
       g2 = floorY(2);
     if (house.style === 'estate') {
+      // Photographed dormer windows replace the generic first-floor ones.
+      const upper = !house.dormers?.some((d) => d.windowH);
       const garaged = plan.garages.length > 0;
       const span = garaged ? L - 2.9 : L;
       if (garaged) {
         F.garage(plan.garages[0].u, g0);
-        F.window(plan.garages[0].u, g1 + 0.85, 1.2, 1.15);
+        if (upper) F.window(plan.garages[0].u, g1 + 0.85, 1.2, 1.15);
       }
       const doorU = plan.doors[0];
       F.door(doorU, g0);
       F.canopy(doorU, g0);
-      F.window(doorU, g1 + 0.95, 0.7, 1.05);
+      if (upper) F.window(doorU, g1 + 0.95, 0.7, 1.05);
       if (house.oculus) {
         const [x, z] = [
           fa[0] + t[0] * (doorU + 0.95) + n[0] * 0.06,
@@ -471,7 +563,8 @@ export function addStreetHouses(
       if (span - doorU > 2.2) {
         const u = (doorU + 0.6 + span) / 2;
         F.window(u, g0 + 0.85, Math.min(1.7, span - doorU - 1.3), 1.2);
-        F.window(u, g1 + 0.85, Math.min(1.4, span - doorU - 1.5), 1.15);
+        if (upper)
+          F.window(u, g1 + 0.85, Math.min(1.4, span - doorU - 1.5), 1.15);
       }
     } else if (house.style === 'townhouse') {
       F.band(g1, 0.2);
@@ -621,7 +714,7 @@ export function addStreetHouses(
       const units = Math.max(1, Math.round(R.len / 5.2));
       for (let k = 0; k < units; k++) {
         const u = ((k + 0.5) * R.len) / units;
-        for (let floor = 0; floor < type.floors.length; floor++)
+        for (let floor = 0; floor < floors.length; floor++)
           R.window(
             u,
             floorY(floor) + 0.9,
@@ -631,11 +724,79 @@ export function addStreetHouses(
       }
     }
 
+    // Photographed side-wall openings, where a gable or end wall faces a road.
+    for (const side of house.side
+      ? Array.isArray(house.side)
+        ? house.side
+        : [house.side]
+      : []) {
+      const { facing, windows } = side;
+      let best = -1,
+        score = 0.5;
+      for (let j = 0; j < p.length; j++) {
+        const a = p[j],
+          b = p[(j + 1) % p.length];
+        if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 2) continue;
+        const o = outward(a, b),
+          s = o[0] * facing[0] + o[1] * facing[1];
+        if (s > score) {
+          score = s;
+          best = j;
+        }
+      }
+      if (best >= 0) {
+        let a = p[best],
+          b = p[(best + 1) % p.length];
+        const o = outward(a, b);
+        // Left to right as seen from outside runs along (o.z, -o.x).
+        if ((b[0] - a[0]) * o[1] - (b[1] - a[1]) * o[0] < 0) [a, b] = [b, a];
+        const S = face(a, b);
+        if (side.render) {
+          // Render skin over the wall and gable, just proud of the masonry.
+          const so = outward(a, b),
+            sd: P = [(b[0] - a[0]) / S.len, (b[1] - a[1]) / S.len];
+          const profile: [number, number][] = [
+            [0, bottom],
+            [S.len, bottom],
+            [S.len, top + roofH(b)],
+          ];
+          const da = depth(a) - ridgeD,
+            db = depth(b) - ridgeD;
+          if (da * db < 0) profile.push([(S.len * da) / (da - db), top + rise]);
+          profile.push([0, top + roofH(a)]);
+          const g = new T.ShapeGeometry(
+            new T.Shape(profile.map(([u, y]) => new T.Vector2(u, y))),
+          );
+          const pos = g.getAttribute('position');
+          for (let k = 0; k < pos.count; k++) {
+            const u = pos.getX(k),
+              y = pos.getY(k);
+            pos.setXYZ(
+              k,
+              a[0] + sd[0] * u + so[0] * 0.025,
+              y,
+              a[1] + sd[1] * u + so[1] * 0.025,
+            );
+          }
+          g.computeVertexNormals();
+          const skin = kit.mat(`streetRender${side.render}`, side.render);
+          skin.side = T.DoubleSide;
+          kit.batch(g, skin);
+        }
+        for (const w of windows)
+          S.window(w.u * S.len, floorY(w.floor) + w.sill, w.w, w.h);
+      }
+    }
+
     // Chimney stacks on the ridge (positions estimated).
     if (house.style !== 'townhouse' && !(house.style === 'estate' && id % 2)) {
       const at = (u: number) => {
-        const x = fa[0] + t[0] * u - n[0] * ridgeD,
-          z = fa[1] + t[1] * u - n[1] * ridgeD;
+        // Gable-fronted: one stack on the ridge at the front gable (510).
+        const [su, sd] = house.gableFront
+          ? [ridgeD, Math.min(...p.map(behind)) + 0.6]
+          : [u, ridgeD];
+        const x = fa[0] + t[0] * su - n[0] * sd,
+          z = fa[1] + t[1] * su - n[1] * sd;
         box(
           x,
           top + rise + 0.45,

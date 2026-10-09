@@ -1,3 +1,4 @@
+import { bridgePassageWall } from '../materials/bridge-stone';
 import { bridgeGateHedgeWalls } from '../landmarks/bridge-gate-planting';
 import { addHallLaneBoundary } from '../landmarks/hough-wooded-banks';
 import {
@@ -78,7 +79,7 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
 
   walls.push(...addGarageBacking(kit, { surface, data }));
   walls.push(...addBrookParkingBoundaries(kit, { surface }));
-  addBrookEastBeds(kit, { surface, plants });
+  addBrookEastBeds(kit, { surface });
   walls.push(...addBridgeRear(kit, surface.bridgeBase));
   walls.push(...addBridgeGardenFences(kit, { surface }));
   walls.push(...bridgeGateHedgeWalls());
@@ -103,7 +104,11 @@ export function addBoundaries(kit: Kit, surface: Surface, data: WorldData) {
   walls.push(...addSchoolStreetWall(kit, { surface }));
   walls.push(...addSchoolStreetWest(kit, { surface }));
   walls.push(
-    ...addBridgeRoadWall(kit, { surface, data, lowerStone: passageStone }),
+    ...addBridgeRoadWall(kit, {
+      surface,
+      data,
+      lowerStone: bridgePassageWall(kit),
+    }),
   );
   const bendRetaining = mat('bendRetaining', '#969b83');
   bendRetaining.map = retainingTexture();

@@ -110,9 +110,79 @@ export function addBridgeGardenHedges(
   { surface, leaf }: { surface: Surface; leaf: T.Material },
 ) {
   const ground = (x: number, z: number) => surface.terrain(x, z);
+  const core = kit.mat('bridgeGardenHedge', '#4b6236');
   for (const run of hedgeRuns())
     for (let i = 1; i < run.length; i++)
-      clippedHedge(kit, leaf, run[i - 1], run[i], ground, 1.95, HEDGE_W);
+      clippedHedge(
+        kit,
+        leaf,
+        run[i - 1],
+        run[i],
+        ground,
+        G.hedgeHeight,
+        HEDGE_W,
+        core,
+      );
   const [a, b] = no3Hedge();
-  clippedHedge(kit, leaf, a, b, ground, 1.6, 0.7);
+  clippedHedge(kit, leaf, a, b, ground, 1.6, 0.7, core);
+  appleTree(kit, leaf, ground);
+}
+
+/** No.3's apple tree (7 October photos): short trunk forking low into a
+ * spreading crown, with red-flushed apples. Branching and fruit estimated. */
+function appleTree(
+  kit: Kit,
+  leaf: T.Material,
+  ground: (x: number, z: number) => number,
+) {
+  const A = G.no3Apple;
+  let seed = 6151;
+  const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const y0 = ground(A.x, A.z);
+  const bark = kit.mat('appleBark', '#6a5d4a', 1);
+  const fork = new T.Vector3(A.x + 0.1, y0 + 1.05, A.z);
+  kit.beam(new T.Vector3(A.x, y0, A.z), fork, 0.2, 0.2, bark);
+  const rx = A.crown / 2,
+    ry = (A.height - 1.2) / 2,
+    cy = y0 + 1.2 + ry,
+    rz = A.crown * 0.4;
+  // Five main limbs, each with a few twigs.
+  for (let k = 0; k < 5; k++) {
+    const a = (k / 5) * Math.PI * 2 + r() * 0.6;
+    const end = new T.Vector3(
+      A.x + Math.cos(a) * rx * 0.75,
+      cy + (r() - 0.2) * ry,
+      A.z + Math.sin(a) * rz * 0.75,
+    );
+    kit.beam(fork, end, 0.09, 0.09, bark);
+    for (let j = 0; j < 3; j++) {
+      const tip = end
+        .clone()
+        .add(new T.Vector3((r() - 0.5) * 1.2, r() * 0.7, (r() - 0.5) * 1.0));
+      kit.beam(end, tip, 0.035, 0.035, bark);
+    }
+  }
+  // Leaf cards fill an irregular dome; apples sit near the outside.
+  const red = kit.mat('appleRed', '#b6452c', 0.6),
+    green = kit.mat('appleGreen', '#a7a948', 0.6);
+  const appleLeaf = kit.mat('appleLeaf', '#5e7d34', 0.9);
+  appleLeaf.side = T.DoubleSide;
+  for (let i = 0; i < 2600; i++) {
+    const a = r() * Math.PI * 2,
+      e = Math.acos(1 - r() * 1.75),
+      d = Math.pow(r(), 0.22);
+    const x = A.x + Math.cos(a) * Math.sin(e) * rx * d,
+      y = cy + Math.cos(e) * ry * d,
+      z = A.z + Math.sin(a) * Math.sin(e) * rz * d;
+    const g = new T.PlaneGeometry(0.34, 0.26);
+    g.rotateX((r() - 0.5) * 2.4);
+    g.rotateY(r() * Math.PI * 2);
+    g.translate(x, y, z);
+    kit.batch(g, i % 3 ? appleLeaf : leaf);
+    if (d > 0.75 && y < cy + ry * 0.5 && r() < 0.14) {
+      const apple = new T.SphereGeometry(0.045, 8, 6);
+      apple.translate(x, y - 0.06, z);
+      kit.batch(apple, r() < 0.7 ? red : green);
+    }
+  }
 }

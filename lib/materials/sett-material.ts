@@ -2,14 +2,15 @@ import * as T from 'three';
 // Procedural surface study from the user's wet, weathered passage photographs.
 // No photograph is embedded. Reuse these seven materials across batched setts.
 export function settMaterials() {
+  // Greyer, greener tones from the No.3 photos (7 October 2026).
   const palette = [
-    '#766956',
-    '#817360',
-    '#6b6b61',
-    '#8b7b68',
-    '#706b5c',
-    '#827e70',
-    '#686454',
+    '#86826f',
+    '#8f8774',
+    '#7c7e72',
+    '#958b75',
+    '#7b7c68',
+    '#8a8879',
+    '#76715f',
   ];
   return palette.map((color, index) => {
     let seed = 817 + index * 193;

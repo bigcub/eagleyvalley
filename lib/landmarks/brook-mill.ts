@@ -1,5 +1,22 @@
 import * as T from 'three';
 import type { Kit } from '../core/kit';
+import { BROOK_HEIGHT as H } from '../world/layout';
+import { stretchAbove, stretchedY } from '../core/stretch';
+
+const upperScale = (H.parapet - H.ground) / (H.modelledParapet - H.ground);
+
+/** Modelled height above the datum to the DSM-fitted height: the ground
+ * storey is unchanged, upper storeys are stretched evenly. */
+export function brookStoreyY(y: number) {
+  return stretchedY(y, H.ground, upperScale);
+}
+
+/** Build main-block geometry in the older 3.6m-storey frame and stretch it
+ * onto the DSM heights about `base`. */
+export function brookUpper<R>(kit: Kit, base: number, build: () => R) {
+  return stretchAbove(kit, { base, keep: H.ground, scale: upperScale }, build);
+}
+
 // Upper-storey segmental heads described in Historic England 1388079.
 // Dimensions are interpreted; present-day opening counts remain under review.
 export function addBrookUpperWindow(

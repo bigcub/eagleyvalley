@@ -25,6 +25,8 @@ These override older notes, photos and map data. Keep them.
 - **The Bridge Mill wall is rejected** as it appears from Eagley Way. Audit the low road-facing boundary separately from the tall retaining face opposite the passage doors. That face slopes and steps with the road above.
 - **The passage** has weathered rounded setts, mossy joints and a tall, dark retaining wall opposite the doors. Avoid uniform paving and clean brick-like walls.
 - **Two gates at the Hough Lane end.** One opens onto the cobbled passage. The other leads to shared landscaping behind the private gardens and is not a garden entrance.
+- **No.3's rear garden** is all lawn (ignore the bark in the photos), with an apple tree at the back left and the iron gate at the back right.
+- **Passage setts** are small domed setts laid end-on, long side running towards the retaining wall, with mossy joints (No.3 photos, 7 October).
 - **Former engine/boiler house** is a separate, lower side building.
 - **Houses opposite the garages** (OSM 727427311/312/313) are three storeys with only the bottom floor partly sunken, a continuous roof, and a small bridge to each door. Model in `lib/landmarks/court-houses.ts`.
 - **The start building is the gatehouse.** The Eagley Way name plate is mounted on it.

@@ -112,13 +112,19 @@ export function createKit() {
     paving: mat('paving', '#999789'),
   };
 
+  // Optional remap applied to every batched geometry while `transformed` runs.
+  let transform: ((g: T.BufferGeometry) => void) | undefined;
+
   function batch(g: T.BufferGeometry, material: T.Material) {
+    transform?.(g);
     if (material.userData.pitchedRoof) {
       if (g.index) g = g.toNonIndexed();
       g.computeVertexNormals();
     }
     if (material === stone || material === brick)
       masonryUV(g, material === stone ? 4 : 1.2);
+    else if (material.userData.masonryMetres)
+      masonryUV(g, material.userData.masonryMetres as number);
     const key = material.uuid;
     mats[key] = material;
     (batches[key] ??= []).push(g.index ? g.toNonIndexed() : g);
@@ -206,6 +212,18 @@ export function createKit() {
     batch(g, material);
   }
 
+  /** Run `build` with each geometry it batches passed through `t` first.
+   * Box, beam, polygon and ribbon all batch, so they are covered too. */
+  function transformed<R>(t: (g: T.BufferGeometry) => void, build: () => R) {
+    const previous = transform;
+    transform = t;
+    try {
+      return build();
+    } finally {
+      transform = previous;
+    }
+  }
+
   /** Merge collected geometry into one mesh per material and add to the scene. */
   function flush(scene: T.Scene, noShadow: T.Material[]) {
     for (const [key, geos] of Object.entries(batches)) {
@@ -221,7 +239,7 @@ export function createKit() {
     }
   }
 
-  return { m, mat, batch, box, beam, polygon, ribbon, flush };
+  return { m, mat, batch, box, beam, polygon, ribbon, transformed, flush };
 }
 export type Kit = ReturnType<typeof createKit>;
 export type Materials = Kit['m'];
